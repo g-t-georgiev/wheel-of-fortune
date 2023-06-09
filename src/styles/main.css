@@ -262,6 +262,10 @@
     transition: all .3s ease-in-out;
 }
 
-.wheel-start-btn:is(:hover, :focus, :focus-within, :focus-visible) {
+.wheel-start-btn:hover {
     scale: 1.1;
+}
+
+.wheel-start-btn:is(:focus, :focus-visible, :focus-within) {
+    outline: 3px solid rgba(255, 255, 255, 1);
 }
