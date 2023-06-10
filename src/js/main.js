@@ -2,9 +2,11 @@ import { getSideLen } from './utils/polygon.js';
 import { rand } from './utils/helpers.js';
 import appConfig from './app.config.js';
 
-let winningSector = 11;
-let targetAngle = null;
-let angleOffset = appConfig.anglePerSector / 2;
+const SECTORS_COUNT = 14;
+const ANGLE_PER_SECTOR = 360 / SECTORS_COUNT;
+
+let winningSector = null;
+
 let requestId;
 let isSpinning = false;
 let targetTimeInMs = 5e3;
@@ -23,41 +25,41 @@ let hoverFeature = window.matchMedia('(hover: hover)');
 const setWheelSectorsBlockSize = function (sector, parentContainer) {
     const wheelRect = parentContainer.getBoundingClientRect();
     const wheelRadius = wheelRect.width / 1.95;
-    const sideLen = getSideLen(appConfig.sectorsCount, wheelRadius);
+    const sideLen = getSideLen(SECTORS_COUNT, wheelRadius);
     console.log(sideLen);
     sector.style.setProperty('--wheel-sector-block-size', sideLen + 'px');
 };
 
 document.addEventListener('DOMContentLoaded', () => {
     if (
-        !wheelContainerEl || 
-        !wheelSectorsContainerEl || 
+        !wheelContainerEl ||
+        !wheelSectorsContainerEl ||
         !spinBtn
     ) {
         // create wheel outer container if not defined
-        !wheelContainerEl && 
-        (
-            wheelContainerEl = document.createElement('div'), 
-            wheelContainerEl.classList.add('wheel-container-outer')
-        );
+        !wheelContainerEl &&
+            (
+                wheelContainerEl = document.createElement('div'),
+                wheelContainerEl.classList.add('wheel-container-outer')
+            );
 
         // create wheel inner container if not defined
-        !wheelSectorsContainerEl && 
-        (
-            wheelSectorsContainerEl = document.createElement('div'), 
-            wheelSectorsContainerEl.classList.add('wheel-container-inner'),
-            wheelContainerEl.append(wheelSectorsContainerEl)
-        );
+        !wheelSectorsContainerEl &&
+            (
+                wheelSectorsContainerEl = document.createElement('div'),
+                wheelSectorsContainerEl.classList.add('wheel-container-inner'),
+                wheelContainerEl.append(wheelSectorsContainerEl)
+            );
 
         // create wheel start button if not defined
-        !spinBtn && 
-        (
-            spinBtn = document.createElement('button'), 
-            spinBtn.setAttribute('type', 'button'), 
-            spinBtn.classList.add('wheel-start-btn'),
-            spinBtn.textContent = 'Go',
-            wheelContainerEl.append(spinBtn)
-        );
+        !spinBtn &&
+            (
+                spinBtn = document.createElement('button'),
+                spinBtn.setAttribute('type', 'button'),
+                spinBtn.classList.add('wheel-start-btn'),
+                spinBtn.textContent = 'Go',
+                wheelContainerEl.append(spinBtn)
+            );
 
         // console.log(wheelContainerEl, wheelSectorsContainerEl, spinBtn);
 
@@ -66,11 +68,11 @@ document.addEventListener('DOMContentLoaded', () => {
         !wheelContainerEl.isConnected && appWrapper.append(wheelContainerEl);
     }
 
-    sectorEls = [ ...wheelSectorsContainerEl.querySelectorAll('.wheel-sector') ];
+    sectorEls = [...wheelSectorsContainerEl.querySelectorAll('.wheel-sector')];
 
     if (!sectorEls.length) {
 
-        for (let i = 0; i < appConfig.sectorsCount; i++) {
+        for (let i = 0; i < SECTORS_COUNT; i++) {
             const dataSrc = appConfig.data[i];
 
             const sector = document.createElement('div');
@@ -99,22 +101,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const startBtnClickHandler = function () {
         if (isSpinning) {
-            // Stop the wheel prematurely or some
-            // other logic for the button when the
-            // wheel is currently spinning.
-            // console.log('Wait until spin stops.');
+            // Do something while wheel is spinning...
             return;
         }
-    
-        isSpinning = true;   
-        // const targetAngleUpperTreshold = winningSector * appConfig.anglePerSector;
-        // const targetAngleLowerTreshold = targetAngleUpperTreshold - appConfig.anglePerSector;
-        // const targetAngleMeanValue = rand(targetAngleLowerTreshold, targetAngleUpperTreshold);
-        // targetAngle = targetAngleMeanValue;
-        // console.log(`Winning sector: ${winningSector}; Target angle mean value: ${targetAngle}`);
+
+        isSpinning = true;
         requestId = window.requestAnimationFrame(animationFrameCb);
     };
-    
+
     if (hoverFeature.matches) {
         spinBtn.addEventListener('click', startBtnClickHandler);
     } else {
@@ -153,8 +147,23 @@ const animationFrameCb = function (timestamp) {
         isSpinning = false;
         startTime = null;
         rotationsCount = 0;
+
+        // Calculate the angle of the winning sector
+        const winningSectorAngle = 360 - rotationProgress;
+        const sectorsCount = sectorEls.length;
+        const anglePerSector = 360 / sectorsCount;
+
+        // Determine the winning sector index
+        let winningSectorIndex = Math.floor(winningSectorAngle / anglePerSector);
+        if (winningSectorIndex === sectorsCount) {
+            winningSectorIndex = 0; // Wrap around if the last sector is the winning one
+        }
+
+        winningSector = sectorEls[winningSectorIndex];
+
+        console.log(`Winning sector index: ${winningSectorIndex}`);
+        console.log('Winning sector:', winningSector);
         console.log(`Rotation: ${rotationProgress}; Time elapsed from start: ${elapsedTime}`);
-        winningSector = rand(1, 14);
         cancelAnimationFrame(requestId);
     }
 };
