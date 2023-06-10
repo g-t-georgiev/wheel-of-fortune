@@ -17,10 +17,6 @@ const CLR_LIST = {
 };
 
 export default {
-    sectorsCount: 14, 
-    get anglePerSector() {
-        return 360 / this.sectorsCount;
-    },
     data: [
         {
             id: 1,
