@@ -99,18 +99,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const startBtnClickHandler = function () {
         if (isSpinning) {
+            // Stop the wheel prematurely or some
+            // other logic for the button when the
+            // wheel is currently spinning.
             // console.log('Wait until spin stops.');
             return;
         }
     
-        isSpinning = true;
-        
-        const targetAngleUpperTreshold = winningSector * appConfig.anglePerSector;
-        const targetAngleLowerTreshold = targetAngleUpperTreshold - appConfig.anglePerSector;
-        const targetAngleMeanValue = rand(targetAngleLowerTreshold, targetAngleUpperTreshold);
-        targetAngle = targetAngleMeanValue;
-        console.log(`Winning sector: ${winningSector}; Target angle mean value: ${targetAngle}`);
-
+        isSpinning = true;   
+        // const targetAngleUpperTreshold = winningSector * appConfig.anglePerSector;
+        // const targetAngleLowerTreshold = targetAngleUpperTreshold - appConfig.anglePerSector;
+        // const targetAngleMeanValue = rand(targetAngleLowerTreshold, targetAngleUpperTreshold);
+        // targetAngle = targetAngleMeanValue;
+        // console.log(`Winning sector: ${winningSector}; Target angle mean value: ${targetAngle}`);
         requestId = window.requestAnimationFrame(animationFrameCb);
     };
     
@@ -146,28 +147,14 @@ const animationFrameCb = function (timestamp) {
 
         rotationProgress = rotationProgress % 360;
 
-        if (
-            elapsedTime > targetTimeInMs - 500 &&
-            rotationProgress >= targetAngle - angleOffset && 
-            rotationProgress <= targetAngle + angleOffset
-        ) {
-            isSpinning = false;
-            startTime = null;
-            rotationsCount = 0;
-            console.log(`Rotation: ${rotationProgress}, Time elapsed from start: ${elapsedTime}`);
-            cancelAnimationFrame(requestId);
-            winningSector = rand(1, 14);
-            console.log(winningSector);
-            return;
-        }
-
         wheelSectorsContainerEl.style.setProperty('transform', `rotate(${rotationProgress}deg)`);
         window.requestAnimationFrame(animationFrameCb);
     } else {
         isSpinning = false;
         startTime = null;
         rotationsCount = 0;
-        console.log(`Rotation: ${rotationProgress}, Time elapsed from start: ${elapsedTime}`);
+        console.log(`Rotation: ${rotationProgress}; Time elapsed from start: ${elapsedTime}`);
+        winningSector = rand(1, 14);
         cancelAnimationFrame(requestId);
     }
 };
