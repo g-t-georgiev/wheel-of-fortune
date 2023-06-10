@@ -80,7 +80,7 @@
     clip-path: var(--wheel-sector-shape);
     color: var(--clr-txt-dark);
     font-weight: 600;
-    font-size: 1.2rem;
+    font-size: clamp(.65rem, 1vw, 1.2rem);
     -webkit-user-select: none;
     user-select: none;
 }
@@ -223,12 +223,15 @@
     [data-value="freeSpins"],
     [data-value="looseAll"]
 )) .wheel-sector-content {
+    max-inline-size: 50px;
+    inline-size: 3vw;
+    min-inline-size: 25px;
     aspect-ratio: 1 / 1;
     rotate: z -90deg;
     border-radius: 50%;
     border-width: 2px;
     border-style: solid;
-    padding: 10px;
+    padding: clamp(2px, 2vw, 5px);
 }
 
 .wheel-sector:is(
@@ -261,7 +264,7 @@
     translate: -50% -50%;
     inline-size: 10%;
     aspect-ratio: 1 / 1;
-    padding: 15px;
+    padding: clamp(5px, 5vw, 15px);
     border-radius: 50%;
     border: 2px solid black;
     background-color: brown;
@@ -269,7 +272,7 @@
     box-shadow: 
         0 0 15px rgba(0, 0, 0, .7),
         inset 0 0 15px rgba(255, 255, 255, .7);
-    font-size: 1.5rem;
+    font-size: clamp(.65rem, 1.5vw, 1.5rem);
     font-weight: 600;
     text-align: center;
     text-transform: uppercase;
