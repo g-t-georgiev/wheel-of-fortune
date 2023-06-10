@@ -4,7 +4,7 @@ import appConfig from './app.config.js';
 
 let winningSector = 11;
 let targetAngle = null;
-let angleOffset = 5;
+let angleOffset = appConfig.anglePerSector / 2;
 let requestId;
 let isSpinning = false;
 let targetTimeInMs = 5e3;
