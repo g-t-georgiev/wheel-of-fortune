@@ -140,10 +140,11 @@ const animationFrameCb = function (timestamp) {
         rotationProgress += rotationStep;
 
         if (rotationProgress >= 360) {
-            rotationProgress = rotationProgress - 360;
             rotationsCount++;
             console.log(`${rotationsCount} rotation(s) occurred`);
         }
+
+        rotationProgress = rotationProgress % 360;
 
         if (
             elapsedTime > targetTimeInMs - 500 &&
