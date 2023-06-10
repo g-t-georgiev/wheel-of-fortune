@@ -155,6 +155,8 @@ const animationFrameCb = function (timestamp) {
             rotationsCount = 0;
             console.log(`Rotation: ${rotationProgress}, Time elapsed from start: ${elapsedTime}`);
             cancelAnimationFrame(requestId);
+            winningSector = rand(1, 14);
+            console.log(winningSector);
             return;
         }
 
