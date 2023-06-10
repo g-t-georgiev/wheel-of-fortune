@@ -192,7 +192,7 @@
     [data-value="freeSpins"],
     [data-value="looseAll"]
 ) {
-    font-size: 1.5rem;
+    font-size: clamp(.75rem, 1.5vw, 1.5rem);
     text-transform: uppercase;
 }
 
