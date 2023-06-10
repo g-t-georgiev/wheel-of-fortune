@@ -9,9 +9,9 @@ let winningSector = null;
 
 let requestId;
 let isSpinning = false;
-let targetTimeInMs = 5e3;
+let targetTimeInMs = 15e3;
 let startTime = null;
-let rotationStep = 5;
+let rotationStep = 12;
 let rotationProgress = 0;
 let rotationsCount = 0;
 
@@ -124,15 +124,24 @@ window.addEventListener('resize', () => {
 
 // Wheel spin logic
 
+// Easing function
+function easeInCubic(t) {
+    return t * t * t;
+}
+
 const animationFrameCb = function (timestamp) {
     if (startTime == null) {
         startTime = timestamp;
     }
 
     const elapsedTime = timestamp - startTime;
+    const timeProgress = elapsedTime / targetTimeInMs;
+    const easingFactor = easeInCubic(1 - timeProgress);
+    const rotationProgressWithEasing = rotationStep * easingFactor;
 
     if (elapsedTime < targetTimeInMs) {
-        rotationProgress += rotationStep;
+        // rotationProgress += rotationStep;
+        rotationProgress += rotationProgressWithEasing;
 
         if (rotationProgress >= 360) {
             rotationsCount++;
