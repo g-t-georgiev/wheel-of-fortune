@@ -141,7 +141,7 @@ const animationFrameCb = function (timestamp) {
 
         rotationProgress = rotationProgress % 360;
 
-        wheelSectorsContainerEl.style.setProperty('transform', `rotate(${rotationProgress}deg)`);
+        wheelSectorsContainerEl.style.setProperty('transform', `rotateZ(${rotationProgress}deg)`);
         window.requestAnimationFrame(animationFrameCb);
     } else {
         isSpinning = false;
@@ -149,18 +149,18 @@ const animationFrameCb = function (timestamp) {
         rotationsCount = 0;
 
         // Calculate the angle of the winning sector
-        const winningSectorAngle = 360 - rotationProgress;
+        const angleOffset = ANGLE_PER_SECTOR / 2;
+        const winningSectorAngle = 360 - rotationProgress + angleOffset;
         const sectorsCount = sectorEls.length;
         const anglePerSector = 360 / sectorsCount;
 
         // Determine the winning sector index
         let winningSectorIndex = Math.floor(winningSectorAngle / anglePerSector);
-        if (winningSectorIndex === sectorsCount) {
-            winningSectorIndex = 0; // Wrap around if the last sector is the winning one
-        }
+        winningSectorIndex = winningSectorIndex % sectorsCount;
 
         winningSector = sectorEls[winningSectorIndex];
 
+        console.log(`Winning sector angle: ${winningSectorAngle}`);
         console.log(`Winning sector index: ${winningSectorIndex}`);
         console.log('Winning sector:', winningSector);
         console.log(`Rotation: ${rotationProgress}; Time elapsed from start: ${elapsedTime}`);
