@@ -109,7 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const targetAngleLowerTreshold = targetAngleUpperTreshold - appConfig.anglePerSector;
         const targetAngleMeanValue = rand(targetAngleLowerTreshold, targetAngleUpperTreshold);
         targetAngle = targetAngleMeanValue;
-        console.log(`Target angle mean value: ${targetAngle}`);
+        console.log(`Winning sector: ${winningSector}; Target angle mean value: ${targetAngle}`);
 
         requestId = window.requestAnimationFrame(animationFrameCb);
     };
