@@ -43,6 +43,22 @@
     overflow: hidden;
 }
 
+.wheel-container-outer::before {
+    content: '';
+    display: inline-block;
+    position: absolute;
+    top: clamp(-1.5px, -1vw, -3px);
+    left: 50%;
+    translate: -50% 0;
+    inline-size: 0;
+    block-size: 0;
+    border: 15px solid transparent;
+    border-bottom: none;
+    border-top-width: 30px;
+    border-top-color: black;
+    z-index: 1;
+}
+
 .wheel-container-inner {
     position: relative;
     inline-size: 100%;
