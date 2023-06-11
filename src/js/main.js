@@ -3,16 +3,13 @@ import { rand } from './utils/helpers.js';
 import appConfig from './app.config.js';
 
 const SECTORS_COUNT = 14;
-const ANGLE_PER_SECTOR = 360 / SECTORS_COUNT;
-
-let winningSector = null;
-
 let requestId;
 let isSpinning = false;
-let targetTimeInMs = 15e3;
 let startTime = null;
-let rotationStep = 12;
-let rotationProgress = 0;
+let winningSector = null;
+let rotationDurationMs = 15e3;
+let rotationStepDeg = 12;
+let rotationProgressDeg = 0;
 let rotationsCount = 0;
 
 let appWrapper = document.querySelector('.app-wrapper');
@@ -134,23 +131,23 @@ const animationFrameCb = function (timestamp) {
         startTime = timestamp;
     }
 
-    const elapsedTime = timestamp - startTime;
-    const timeProgress = elapsedTime / targetTimeInMs;
+    const elapsedTimeMs = timestamp - startTime;
+    const timeProgress = elapsedTimeMs / rotationDurationMs;
     const easingFactor = easeInCubic(1 - timeProgress);
-    const rotationProgressWithEasing = rotationStep * easingFactor;
+    const rotationProgressWithEasing = rotationStepDeg * easingFactor;
 
-    if (elapsedTime < targetTimeInMs) {
+    if (elapsedTimeMs < rotationDurationMs) {
         // rotationProgress += rotationStep;
-        rotationProgress += rotationProgressWithEasing;
+        rotationProgressDeg += rotationProgressWithEasing;
 
-        if (rotationProgress >= 360) {
+        if (rotationProgressDeg >= 360) {
             rotationsCount++;
             console.log(`${rotationsCount} rotation(s) occurred`);
         }
 
-        rotationProgress = rotationProgress % 360;
+        rotationProgressDeg = rotationProgressDeg % 360;
 
-        wheelSectorsContainerEl.style.setProperty('transform', `rotateZ(${rotationProgress}deg)`);
+        wheelSectorsContainerEl.style.setProperty('transform', `rotateZ(${rotationProgressDeg}deg)`);
         window.requestAnimationFrame(animationFrameCb);
     } else {
         isSpinning = false;
@@ -158,21 +155,21 @@ const animationFrameCb = function (timestamp) {
         rotationsCount = 0;
 
         // Calculate the angle of the winning sector
-        const angleOffset = ANGLE_PER_SECTOR / 2;
-        const winningSectorAngle = 360 - rotationProgress + angleOffset;
         const sectorsCount = sectorEls.length;
-        const anglePerSector = 360 / sectorsCount;
+        const anglePerSectorDeg = 360 / sectorsCount;
+        const winningSectorAngleDeg = 360 - rotationProgressDeg;
+        const angleOffsetDeg = anglePerSectorDeg / 2;
 
         // Determine the winning sector index
-        let winningSectorIndex = Math.floor(winningSectorAngle / anglePerSector);
+        let winningSectorIndex = Math.floor((winningSectorAngleDeg + angleOffsetDeg) / anglePerSectorDeg);
         winningSectorIndex = winningSectorIndex % sectorsCount;
 
         winningSector = sectorEls[winningSectorIndex];
 
-        console.log(`Winning sector angle: ${winningSectorAngle}`);
+        console.log(`Winning sector angle: ${winningSectorAngleDeg}`);
         console.log(`Winning sector index: ${winningSectorIndex}`);
         console.log('Winning sector:', winningSector);
-        console.log(`Rotation: ${rotationProgress}; Time elapsed from start: ${elapsedTime}`);
+        console.log(`Rotation: ${rotationProgressDeg}; Time elapsed from start: ${elapsedTimeMs}`);
         cancelAnimationFrame(requestId);
     }
 };
