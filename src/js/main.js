@@ -7,7 +7,7 @@ let requestId;
 let isSpinning = false;
 let startTime = null;
 let winningSector = null;
-let rotationDurationMs = 15e3;
+let rotationDurationMs = 5e3;
 let rotationStepDeg = 12;
 let rotationProgressDeg = 0;
 let rotationsCount = 0;
