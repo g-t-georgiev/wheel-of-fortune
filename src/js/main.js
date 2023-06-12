@@ -104,6 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         isSpinning = true;
         rotationDurationMs = rand(rotationDurationMs - 500, rotationDurationMs);
+        rotationStepDeg = rand(12, 15);
         requestId = window.requestAnimationFrame(animationFrameCb);
     };
 
