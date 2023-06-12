@@ -160,7 +160,7 @@ const animationFrameCb = function (timestamp) {
         // Calculate the angle of the winning sector
         const sectorsCount = sectorEls.length;
         const anglePerSectorDeg = Number(Number.prototype.toFixed.call(360 / sectorsCount, 2));
-        const angleOffsetDeg = 0.1;
+        const angleOffsetDeg = 0;
         let winningSectorAngleDeg = Math.round(360 - rotationProgressDeg - angleOffsetDeg);
 
         // Determine the winning sector index
