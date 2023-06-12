@@ -10,3 +10,12 @@ export function rand(min, max) {
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min + 1) + min) // min and max inclusive
 }
+
+/**
+ * On time time progress basis, calculates an easing factor.
+ * @param {number} t time progress
+ * @returns 
+ */
+export function easeInCubic(t) {
+    return t * t * t;
+}
