@@ -157,14 +157,11 @@ const animationFrameCb = function (timestamp) {
         // Calculate the angle of the winning sector
         const sectorsCount = sectorEls.length;
         const anglePerSectorDeg = Number(Number.prototype.toFixed.call(360 / sectorsCount, 2));
-        // console.log(anglePerSectorDeg);
-        const angleOffsetDeg = anglePerSectorDeg / 2;
-        let winningSectorAngleDeg = 360 - rotationProgressDeg;
-        winningSectorAngleDeg += angleOffsetDeg; // compensate initial offset
-        winningSectorAngleDeg += 0.1; // compensate css positon offset
+        const angleOffsetDeg = 0.1;
+        let winningSectorAngleDeg = Math.round(360 - rotationProgressDeg - angleOffsetDeg);
 
         // Determine the winning sector index
-        let winningSectorIndex = Math.floor(winningSectorAngleDeg / anglePerSectorDeg);
+        let winningSectorIndex = Math.round(winningSectorAngleDeg / anglePerSectorDeg);
         winningSectorIndex = winningSectorIndex % sectorsCount;
 
         winningSector = sectorEls[winningSectorIndex];
