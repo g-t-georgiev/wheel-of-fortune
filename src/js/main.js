@@ -2,7 +2,6 @@ import { getSideLen } from './utils/polygon.js';
 import { rand } from './utils/helpers.js';
 import appConfig from './app.config.js';
 
-const SECTORS_COUNT = 14;
 let requestId;
 let isSpinning = false;
 let startTime = null;
@@ -22,7 +21,7 @@ let hoverFeature = window.matchMedia('(hover: hover)');
 const setWheelSectorsBlockSize = function (sector, parentContainer) {
     const wheelRect = parentContainer.getBoundingClientRect();
     const wheelRadius = wheelRect.width / 1.95;
-    const sideLen = Math.floor(getSideLen(SECTORS_COUNT, wheelRadius));
+    const sideLen = Math.floor(getSideLen(appConfig.data.length, wheelRadius));
     console.log(sideLen);
     sector.style.setProperty('--wheel-sector-block-size', sideLen + 'px');
 };
@@ -69,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!sectorEls.length) {
 
-        for (let i = 0; i < SECTORS_COUNT; i++) {
+        for (let i = 0; i < appConfig.data.length; i++) {
             const dataSrc = appConfig.data[i];
 
             const sector = document.createElement('div');
@@ -103,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         isSpinning = true;
-        rotationDurationMs = rand(rotationDurationMs - 500, rotationDurationMs);
+        rotationDurationMs = rand(4.5e3, 5e3);
         rotationStepDeg = rand(12, 15);
         requestId = window.requestAnimationFrame(animationFrameCb);
     };
