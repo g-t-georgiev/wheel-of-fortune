@@ -156,7 +156,8 @@ const animationFrameCb = function (timestamp) {
 
         // Calculate the angle of the winning sector
         const sectorsCount = sectorEls.length;
-        const anglePerSectorDeg = 360 / sectorsCount;
+        const anglePerSectorDeg = Number(Number.prototype.toFixed.call(360 / sectorsCount, 2));
+        // console.log(anglePerSectorDeg);
         const angleOffsetDeg = anglePerSectorDeg / 2;
         let winningSectorAngleDeg = 360 - rotationProgressDeg;
         winningSectorAngleDeg += angleOffsetDeg; // compensate initial offset
