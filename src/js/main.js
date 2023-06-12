@@ -20,10 +20,10 @@ let hoverFeature = window.matchMedia('(hover: hover)');
 
 const setWheelSectorsBlockSize = function (sector, parentContainer) {
     const wheelRect = parentContainer.getBoundingClientRect();
-    const wheelRadius = wheelRect.width / 1.93;
+    const wheelRadius = wheelRect.width / 2;
     const sideLen = Math.floor(getSideLen(appConfig.data.length, wheelRadius));
-    console.log(`Sector block size: ${sideLen}px`);
-    sector.style.setProperty('--wheel-sector-block-size', sideLen + 'px');
+    console.log(`Sector block size: ${sideLen}px; \nWheel size: ${wheelRect.width}px / ${wheelRect.height}px`);
+    sector.style.setProperty('--wheel-sector-block-size',  `${sideLen}px`);
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -67,12 +67,29 @@ document.addEventListener('DOMContentLoaded', () => {
     sectorEls = [...wheelSectorsContainerEl.querySelectorAll('.wheel-sector')];
 
     if (!sectorEls.length) {
+        // const anglePerSectorDeg = 360 / appConfig.data.length;
+        // const wheelRect = wheelSectorsContainerEl.getBoundingClientRect();
+        // const wheelRadius = wheelRect.width / 2;
+        // const centerX = wheelRect.width - wheelRadius;
+        // const centerY = wheelRect.height - wheelRadius;
 
         for (let i = 0; i < appConfig.data.length; i++) {
+            // const startAngleDeg = i * anglePerSectorDeg;
+            // const startAngleRad = (startAngleDeg * Math.PI) / 180;
+            // const endAngleDeg = (i + 1) * anglePerSectorDeg;
+            // const endAngleRad = (endAngleDeg * Math.PI) / 180;
+            // const startX = centerX + wheelRadius * Math.cos(startAngleRad);
+            // const startY = centerY + wheelRadius * Math.sin(startAngleRad);
+            // const endX = centerX + wheelRadius * Math.cos(endAngleRad);
+            // const endY = centerY + wheelRadius * Math.sin(endAngleRad);
+
             const dataSrc = appConfig.data[i];
 
             const sector = document.createElement('div');
             sector.classList.add('wheel-sector', `clr-${dataSrc.color}`);
+            // sector.style.setProperty('left', `${startX / wheelRect.width * 100}%`);
+            // sector.style.setProperty('top', `${startY / wheelRect.height * 100}%`);
+            // sector.style.setProperty(`transform`, `rotate(${startAngleDeg}deg)`);
             sector.dataset.id = dataSrc.id;
             sector.dataset.value = dataSrc.value;
 
