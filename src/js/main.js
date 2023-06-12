@@ -20,7 +20,7 @@ let hoverFeature = window.matchMedia('(hover: hover)');
 
 const setWheelSectorsBlockSize = function (sector, parentContainer) {
     const wheelRect = parentContainer.getBoundingClientRect();
-    const wheelRadius = wheelRect.width / 1.95;
+    const wheelRadius = wheelRect.width / 1.93;
     const sideLen = Math.floor(getSideLen(appConfig.data.length, wheelRadius));
     console.log(`Sector block size: ${sideLen}px`);
     sector.style.setProperty('--wheel-sector-block-size', sideLen + 'px');
