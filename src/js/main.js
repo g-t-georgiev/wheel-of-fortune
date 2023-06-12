@@ -135,6 +135,7 @@ const animationFrameCb = function (timestamp) {
     const elapsedTimeMs = timestamp - startTime;
     const timeProgress = elapsedTimeMs / rotationDurationMs;
     const easingFactor = easeInCubic(1 - timeProgress);
+    // console.log(`Easing factor: ${easingFactor}`);
     const rotationProgressWithEasing = rotationStepDeg * easingFactor;
 
     if (elapsedTimeMs < rotationDurationMs) {
