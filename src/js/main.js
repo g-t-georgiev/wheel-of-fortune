@@ -1,5 +1,5 @@
 import { getSideLen } from './utils/polygon.js';
-import { rand } from './utils/helpers.js';
+import { rand, easeInCubic } from './utils/helpers.js';
 import appConfig from './app.config.js';
 
 let requestId;
@@ -138,11 +138,6 @@ window.addEventListener('resize', () => {
 });
 
 // Wheel spin logic
-
-// Easing function
-function easeInCubic(t) {
-    return t * t * t;
-}
 
 const animationFrameCb = function (timestamp) {
     if (startTime == null) {
