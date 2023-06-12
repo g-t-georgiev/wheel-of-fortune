@@ -38,8 +38,8 @@
     position: relative;
     inline-size: var(--wheel-size);
     border-radius: 50%;
-    border: clamp(3px, 1vw, 6px) solid black;
-    background-color: black;
+    border: clamp(3px, 1vw, 6px) solid rgba(0, 0, 0, 1);
+    background-color: rgba(0, 0, 0, 1);
     overflow: hidden;
 }
 
@@ -55,7 +55,7 @@
     border: 15px solid transparent;
     border-bottom: none;
     border-top-width: 30px;
-    border-top-color: black;
+    border-top-color: rgba(0, 0, 0, 1);
     z-index: 1;
 }
 
@@ -64,7 +64,7 @@
     inline-size: 100%;
     aspect-ratio: 1 / 1;
     border-radius: 50%;
-    background-color: black;
+    background-color: rgba(0, 0, 0, 1);
     transform-origin: center center;
 }
 
@@ -73,7 +73,7 @@
     justify-content: flex-start;
     align-items: center;
     position: absolute;
-    translate: -50% 0;
+    translate: -50% -50%;
     inline-size: var(--wheel-sector-inline-size);
     block-size: var(--wheel-sector-block-size);
     padding: 15px 35px;
@@ -87,105 +87,105 @@
 
 .wheel-sector.clr-red {
     background-color: var(--clr-red);
-    top: 13.5%;
-    left: 49.9%;
-    rotate: z 89.3deg;
+    top: 24.5%;
+    left: 50%;
+    rotate: z 90deg;
 }
 
 .wheel-sector.clr-blue {
     background-color: var(--clr-blue);
     color: var(--clr-txt-light);
-    top: 15.73%;
-    left: 60.75%;
-    rotate: z 114.9deg;
+    top: 27.15%;
+    left: 61%;
+    rotate: z 115.75deg;
 }
 
 .wheel-sector.clr-green {
     background-color: var(--clr-green);
-    top: 22.5%;
-    left: 69.75%;
-    rotate: z 140.7deg;
+    top: 34.35%;
+    left: 69.5%;
+    rotate: z 141.75deg;
 }
 
 .wheel-sector.clr-yellow {
     background-color: var(--clr-yellow);
-    top: 32.55%;
-    left: 74.55%;
-    rotate: z 166.5deg;
+    top: 44.35%;
+    left: 74.25%;
+    rotate: z 167.5deg;
 }
 
 .wheel-sector.clr-pink {
     background-color: var(--clr-pink);
-    top: 43.7%;
-    left: 74.7%;
-    rotate: z 192deg;
+    top: 55.7%;
+    left: 74.35%;
+    rotate: z 193.35deg;
 }
 
 .wheel-sector.clr-lightgray {
     background-color: var(--clr-lightgray);
-    top: 53.75%;
-    left: 70.1%;
-    rotate: z 217.5deg;
+    top: 65.75%;
+    left: 69.75%;
+    rotate: z 219deg;
 }
 
 .wheel-sector.clr-purple {
     background-color: var(--clr-purple);
     color: var(--clr-txt-light);
-    top: 60.7%;
-    left: 61.49%;
-    rotate: z 243.3deg;
+    top: 72.55%;
+    left: 60.85%;
+    rotate: z 243.95deg;
 }
 
 .wheel-sector.clr-darkorange {
     background-color: var(--clr-darkorange);
-    top: 63.3%;
-    left: 50.7%;
-    rotate: z 269deg;
+    top: 75%;
+    left: 50%;
+    rotate: z 270deg;
 }
 
 .wheel-sector.clr-lightgreen {
     background-color: var(--clr-lightgreen);
-    top: 61%;
-    left: 39.75%;
-    rotate: z 294.5deg;
+    top: 72.5%;
+    left: 39%;
+    rotate: z 295.5deg;
 }
 
 .wheel-sector.clr-darkred {
     background-color: var(--clr-darkred);
     color: var(--clr-txt-light);
-    top: 54.3%;
-    left: 31%;
-    rotate: z 320.3deg;
+    top: 65.5%;
+    left: 30.5%;
+    rotate: z 321deg;
 }
 
 .wheel-sector.clr-darkblue {
     background-color: var(--clr-darkblue);
     color: var(--clr-txt-light);
-    top: 44.35%;
-    left: 25.9%;
-    rotate: z 346deg;
+    top: 55.33935%;
+    left: 25.5%;
+    rotate: z 347deg;
 }
 
 .wheel-sector.clr-black {
     background-color: var(--clr-black);
     color: var(--clr-txt-light);
-    top: 33.15%;
-    left: 25.5%;
-    rotate: z 372deg;
+    top: 44.3495%;
+    left: 25.3%;
+    rotate: z 373deg;
 }
 
 .wheel-sector.clr-orange {
     background-color: var(--clr-orange);
-    top: 16.1%;
-    left: 39%;
-    rotate: z 423.5deg;
+    top: 27%;
+    left: 38.9%;
+    rotate: z 424.5deg;
 }
 
 .wheel-sector.clr-salmon {
     background-color: var(--clr-salmon);
-    top: 23.1%;
+    top: 33.9%;
     left: 30.25%;
-    rotate: z 397.7deg;
+    rotate: z 398.75deg;
 }
 
 .wheel-sector:is(
