@@ -169,10 +169,10 @@ const animationFrameCb = function (timestamp) {
 
         winningSector = sectorEls[winningSectorIndex];
 
-        console.log(`Winning sector angle: ${winningSectorAngleDeg}`);
+        console.log(`Winning sector angle: ${winningSectorAngleDeg}deg`);
         console.log(`Winning sector index: ${winningSectorIndex}`);
         console.log('Winning sector:', winningSector);
-        console.log(`Rotation: ${rotationProgressDeg}; Time elapsed from start: ${elapsedTimeMs}`);
+        console.log(`Rotation: ${rotationProgressDeg}deg; Time elapsed from start: ${elapsedTimeMs}ms`);
         cancelAnimationFrame(requestId);
     }
 };
