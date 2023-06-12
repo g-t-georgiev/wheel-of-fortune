@@ -22,7 +22,7 @@ let hoverFeature = window.matchMedia('(hover: hover)');
 const setWheelSectorsBlockSize = function (sector, parentContainer) {
     const wheelRect = parentContainer.getBoundingClientRect();
     const wheelRadius = wheelRect.width / 1.95;
-    const sideLen = getSideLen(SECTORS_COUNT, wheelRadius);
+    const sideLen = Math.floor(getSideLen(SECTORS_COUNT, wheelRadius));
     console.log(sideLen);
     sector.style.setProperty('--wheel-sector-block-size', sideLen + 'px');
 };
