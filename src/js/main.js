@@ -122,6 +122,8 @@ document.addEventListener('DOMContentLoaded', () => {
         rotationDurationMs = rand(4.5e3, 5e3);
         rotationStepDeg = rand(12, 15);
         requestId = window.requestAnimationFrame(animationFrameCb);
+        // Disable spin button when spin is being triggered
+        spinBtn.toggleAttribute('disabled', isSpinning);
     };
 
     if (hoverFeature.matches) {
@@ -186,6 +188,8 @@ const animationFrameCb = function (timestamp) {
         console.log('Winning sector:', winningSector);
         console.log(`Rotation: ${rotationProgressDeg}deg; Time elapsed from start: ${elapsedTimeMs}ms`);
         cancelAnimationFrame(requestId);
+        // Enable spin button upon spin end
+        spinBtn.toggleAttribute('disabled', isSpinning);
     }
 };
 
