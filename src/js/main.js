@@ -154,7 +154,7 @@ const wheelSpinHandler = function (timestamp) {
         // Calculate the angle of the winning sector
         const sectorsCount = sectorEls.length;
         const anglePerSectorDeg = Number(Number.prototype.toFixed.call(360 / sectorsCount, 2));
-        const angleOffset = 1.35;
+        const angleOffset = 1.5;
         let winningSectorAngleDeg = 360 - rotationProgressDeg;
 
         // Determine the winning sector index
