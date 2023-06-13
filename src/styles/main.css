@@ -23,7 +23,11 @@
     --wheel-size: clamp(350px, 35vw, 960px);
     --wheel-sector-inline-size: 50%;
     --wheel-sector-block-size: 20%;
+    --wheel-border-size: clamp(3px, 1vw, 6px);
     --wheel-sector-shape: polygon(0 0, 0% 100%, 100% 50%);
+
+    --wheel-arrow-height: 30px;
+    --wheel-arrow-base: calc(var(--wheel-arrow-height) / 2);
 
     --spin-btn-border-clr: var(--clr-black);
     --spin-btn-bg-clr: var(--clr-brown);
@@ -43,23 +47,22 @@
     position: relative;
     inline-size: var(--wheel-size);
     border-radius: 50%;
-    border: clamp(3px, 1vw, 6px) solid rgba(0, 0, 0, 1);
+    border: var(--wheel-border-size) solid rgba(0, 0, 0, 1);
     background-color: rgba(0, 0, 0, 1);
-    overflow: hidden;
 }
 
 .wheel-container-outer::before {
     content: '';
     display: inline-block;
     position: absolute;
-    top: clamp(-1.5px, -1vw, -3px);
+    top: calc((var(--wheel-arrow-height) * -1) - var(--wheel-border-size));
     left: 50%;
     translate: -50% 0;
     inline-size: 0;
     block-size: 0;
-    border: 15px solid transparent;
+    border: var(--wheel-arrow-base) solid transparent;
     border-bottom: none;
-    border-top-width: 30px;
+    border-top-width: var(--wheel-arrow-height);
     border-top-color: rgba(0, 0, 0, 1);
     z-index: 1;
 }
@@ -71,6 +74,7 @@
     border-radius: 50%;
     background-color: rgba(0, 0, 0, 1);
     transform-origin: center center;
+    overflow: hidden;
 }
 
 .wheel-sector {
