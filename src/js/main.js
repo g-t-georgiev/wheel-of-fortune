@@ -67,41 +67,18 @@ document.addEventListener('DOMContentLoaded', () => {
     sectorEls = [...wheelSectorsContainerEl.querySelectorAll('.wheel-sector')];
 
     if (!sectorEls.length) {
-        // const anglePerSectorDeg = 360 / appConfig.data.length;
-        // const wheelRect = wheelSectorsContainerEl.getBoundingClientRect();
-        // const wheelRadius = wheelRect.width / 2;
-        // const centerX = wheelRect.width - wheelRadius;
-        // const centerY = wheelRect.height - wheelRadius;
-
         for (let i = 0; i < appConfig.data.length; i++) {
-            // const startAngleDeg = i * anglePerSectorDeg;
-            // const startAngleRad = (startAngleDeg * Math.PI) / 180;
-            // const endAngleDeg = (i + 1) * anglePerSectorDeg;
-            // const endAngleRad = (endAngleDeg * Math.PI) / 180;
-            // const startX = centerX + wheelRadius * Math.cos(startAngleRad);
-            // const startY = centerY + wheelRadius * Math.sin(startAngleRad);
-            // const endX = centerX + wheelRadius * Math.cos(endAngleRad);
-            // const endY = centerY + wheelRadius * Math.sin(endAngleRad);
-
             const dataSrc = appConfig.data[i];
-
             const sector = document.createElement('div');
             sector.classList.add('wheel-sector', `clr-${dataSrc.color}`);
-            // sector.style.setProperty('left', `${startX / wheelRect.width * 100}%`);
-            // sector.style.setProperty('top', `${startY / wheelRect.height * 100}%`);
-            // sector.style.setProperty(`transform`, `rotate(${startAngleDeg}deg)`);
             sector.dataset.id = dataSrc.id;
             sector.dataset.value = dataSrc.value;
-
             const sectorHoverOverlay = document.createElement('div');
             sectorHoverOverlay.classList.add('wheel-sector-overlay');
-
             const sectorContent = document.createElement('div');
             sectorContent.classList.add('wheel-sector-content');
             sectorContent.textContent = dataSrc.text;
-
             sector.append(sectorHoverOverlay, sectorContent);
-
             sectorEls.push(sector);
         }
 
@@ -121,7 +98,8 @@ document.addEventListener('DOMContentLoaded', () => {
         isSpinning = true;
         rotationDurationMs = rand(4.5e3, 5e3);
         rotationStepDeg = rand(12, 15);
-        requestId = window.requestAnimationFrame(animationFrameCb);
+        startTime = performance.now();
+        wheelSpinHandler(startTime);
         // Disable spin button when spin is being triggered
         spinBtn.toggleAttribute('disabled', isSpinning);
     };
@@ -141,7 +119,7 @@ window.addEventListener('resize', () => {
 
 // Wheel spin logic
 
-const animationFrameCb = function (timestamp) {
+const wheelSpinHandler = function (timestamp) {
     if (startTime == null) {
         startTime = timestamp;
     }
@@ -165,7 +143,7 @@ const animationFrameCb = function (timestamp) {
         rotationProgressDeg = rotationProgressDeg % 360;
 
         wheelSectorsContainerEl.style.setProperty('transform', `rotateZ(${rotationProgressDeg}deg)`);
-        window.requestAnimationFrame(animationFrameCb);
+        requestId = window.requestAnimationFrame(wheelSpinHandler);
     } else {
         isSpinning = false;
         startTime = null;
