@@ -243,6 +243,11 @@
     margin-inline-start: 10%;
 }
 
+/* .wheel-sector:is(
+    [data-value="freeSpins"],
+    [data-value="looseAll"]
+) .wheel-sector-content { } */
+
 .wheel-sector:is(
     .clr-blue,
     .clr-purple,
