@@ -14,6 +14,7 @@
     --clr-darkblue: darkblue;
     --clr-lightgreen: lightgreen;
     --clr-salmon: salmon;
+    --clr-brown: brown;
 
     /* txt-colors */
     --clr-txt-dark: #222;
@@ -23,6 +24,10 @@
     --wheel-sector-inline-size: 50%;
     --wheel-sector-block-size: 20%;
     --wheel-sector-shape: polygon(0 0, 0% 100%, 100% 50%);
+
+    --spin-btn-border-clr: var(--clr-black);
+    --spin-btn-bg-clr: var(--clr-brown);
+    --spin-btn-txt-clr: var(--clr-txt-light);
 }
 
 .app-wrapper {
@@ -256,7 +261,6 @@
     border-color: var(--clr-txt-dark);
 }
 
-
 .wheel-start-btn {
     position: absolute;
     top: 50%;
@@ -266,9 +270,9 @@
     aspect-ratio: 1 / 1;
     padding: clamp(5px, 5vw, 15px);
     border-radius: 50%;
-    border: 2px solid black;
-    background-color: brown;
-    color: var(--clr-txt-light);
+    border: 2px solid var(--spin-btn-border-clr);
+    background-color: var(--spin-btn-bg-clr);
+    color: var(--spin-btn-txt-clr);
     box-shadow: 
         0 0 15px rgba(0, 0, 0, .7),
         inset 0 0 15px rgba(255, 255, 255, .7);
@@ -288,4 +292,9 @@
 
 .wheel-start-btn:is(:focus, :focus-visible, :focus-within) {
     outline: 3px solid rgba(255, 255, 255, 1);
+}
+
+.wheel-start-btn:is(:disabled, [disabled]) {
+    --spin-btn-bg-clr: rgb(102, 6, 6);
+    --spin-btn-txt-clr: #cfcfcf;
 }
