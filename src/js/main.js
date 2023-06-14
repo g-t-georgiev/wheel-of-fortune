@@ -146,9 +146,8 @@ const wheelSpinHandler = function (timestamp) {
     if (rotationProgressDeg >= 360) {
         rotationsCount++;
         console.log(`${rotationsCount} rotation(s) occurred`);
+        rotationProgressDeg = rotationProgressDeg % 360;
     }
-
-    rotationProgressDeg = rotationProgressDeg % 360;
 
     if (elapsedTimeMs >= rotationDurationMs) {
         let currentSectorDTO = getSectorData(rotationProgressDeg, sectorEls.length);
