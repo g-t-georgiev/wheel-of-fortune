@@ -2,11 +2,11 @@ import { getSideLen } from './utils/polygon.js';
 import { rand, easeIn } from './utils/helpers.js';
 import appConfig from './app.config.js';
 
-let requestId;
+let animationHandle;
 let isSpinning = false;
 let startTime = null;
-let winningSector = null;
-let winningSectorIndex = null;
+let targetSector = null;
+let targetSectorIndex = null;
 let rotationDurationMs = 5e3;
 let rotationStepDeg = 12;
 let rotationProgressDeg = 0;
@@ -121,8 +121,8 @@ window.addEventListener('resize', () => {
 
 // Wheel spin logic
 
-const getWinningSectorData = function (rotationProgress, sectorsCount) {
-    const sectorAngle = 360 - rotationProgress;
+const getSectorData = function (rotationProgressDeg, sectorsCount) {
+    const sectorAngle = 360 - rotationProgressDeg;
     const anglePerSectorDeg = Number(Number.prototype.toFixed.call(360 / sectorsCount, 2));
     const sectorIndex = sectorAngle / anglePerSectorDeg;
     const sectorIndexRounded = Math.round(sectorIndex);
@@ -151,13 +151,13 @@ const wheelSpinHandler = function (timestamp) {
     rotationProgressDeg = rotationProgressDeg % 360;
 
     if (elapsedTimeMs >= rotationDurationMs) {
-        const winningSectorDTO = getWinningSectorData(rotationProgressDeg, sectorEls.length);
-        winningSectorIndex = winningSectorDTO.index; // update module scope variable
-        winningSector = sectorEls[winningSectorIndex]; // update module scope variable
-        console.log(`Winning sector index: ${winningSectorDTO.index} \nWinning sector angle: ${winningSectorDTO.angle}`, '\nElement ref: ', winningSector);
+        let currentSectorDTO = getSectorData(rotationProgressDeg, sectorEls.length);
+        targetSectorIndex = currentSectorDTO.index;
+        targetSector = sectorEls[targetSectorIndex];
+        console.log(`Winning sector index: ${targetSectorIndex} \nWinning sector angle: ${currentSectorDTO.angle}`, '\nElement ref: ', targetSector);
 
-        let isMarginCase = Math.abs(winningSectorDTO.offset) > 0.4;
-        let isPositiveMargin = winningSectorDTO.offset > 0;
+        let isMarginCase = Math.abs(currentSectorDTO.offset) > 0.4;
+        let isPositiveMargin = currentSectorDTO.offset > 0;
         rotationProgressDeg = isMarginCase ? isPositiveMargin ? rotationProgressDeg - rotationOffset : rotationProgressDeg + rotationOffset : rotationProgressDeg;
     }
 
@@ -170,11 +170,11 @@ const wheelSpinHandler = function (timestamp) {
         isSpinning = false;
         startTime = null;
         rotationsCount = 0;
-        cancelAnimationFrame(requestId);
+        cancelAnimationFrame(animationHandle);
         spinBtn.toggleAttribute('disabled', isSpinning);
         return;
     }
 
-    requestId = window.requestAnimationFrame(wheelSpinHandler);
+    animationHandle = window.requestAnimationFrame(wheelSpinHandler);
 };
 
