@@ -12,10 +12,13 @@ export function rand(min, max) {
 }
 
 /**
- * On time time progress basis, calculates an easing factor.
+ * On time progress basis from 1 to 0, calculates a decreasing easing factor index.
  * @param {number} t time progress
  * @returns 
  */
-export function easeInCubic(t) {
-    return t * t * t;
+export function easeIn(t, exponent = 1) {
+    // console.log(`Time progression: `, t);
+    let easingFactor = (t) ** exponent;
+    // console.log('Easing factor:', easingFactor);
+    return easingFactor;
 }
