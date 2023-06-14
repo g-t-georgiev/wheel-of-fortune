@@ -163,7 +163,7 @@ const wheelSpinHandler = function (timestamp) {
 
     wheelSectorsContainerEl.style.setProperty(
         'transform',
-        `rotateZ(${rotationProgressDeg}deg)`
+        `rotateZ(${rotationProgressDeg}deg);`
     );
 
     if (elapsedTimeMs >= rotationDurationMs) {
