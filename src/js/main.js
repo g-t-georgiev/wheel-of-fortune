@@ -2,16 +2,35 @@ import { getSideLen } from './utils/polygon.js';
 import { rand, easeIn } from './utils/helpers.js';
 import appConfig from './app.config.js';
 
-let animationHandle;
-let isSpinning = false;
-let startTime = null;
-let targetSector = null;
-let targetSectorIndex = null;
-let rotationDurationMs = 5e3;
-let rotationStepDeg = 12;
-let rotationProgressDeg = 0;
-let rotationOffset = 1.5;
-let rotationsCount = 0;
+const wheelConfig = {
+    sectorsCount: appConfig.data.length,
+    get anglePerSectorDeg() {
+        return Number(Number.prototype.toFixed.call(360 / this.sectorsCount, 2));
+    },
+    animationHandle: null,
+    isSpinning: false,
+    startTimeMs: null,
+    targetSector: null,
+    get targetSectorAngleDeg() {
+        return this.targetSectorIndex * this.anglePerSectorDeg;
+    },
+    targetSectorIndex: null,
+    get totalDisplacementAngleDeg() {
+        // Calculate total displacement angle by subtracting the target sector angle,
+        // but take into account the offset position from the 0deg position.
+        let positionOffsetDeg = 360 - this.rotationProgressDeg;
+        let displacementAngleDeg = (360 + positionOffsetDeg) - this.targetSectorAngleDeg;
+        return displacementAngleDeg % 360;
+    },
+    rotationDurationMs: 5e3,
+    get rotationStepDeg() {
+        let rotationDurationSec = this.rotationDurationMs / 1e3;
+        return this.totalDisplacementAngleDeg / rotationDurationSec;
+    },
+    rotationProgressDeg: 0,
+    rotationOffset: 1.5,
+    rotationsCount: 0,
+};
 
 let appWrapper = document.querySelector('.app-wrapper');
 let wheelContainerEl = appWrapper.querySelector('.wheel-container-outer');
@@ -24,7 +43,6 @@ const setWheelSectorsBlockSize = function (sector, parentContainer) {
     const wheelRect = parentContainer.getBoundingClientRect();
     const wheelRadius = wheelRect.width / 2;
     const sideLen = Math.floor(getSideLen(appConfig.data.length, wheelRadius));
-    console.log(`Sector block size: ${sideLen}px; \nWheel size: ${wheelRect.width}px / ${wheelRect.height}px`);
     sector.style.setProperty('--wheel-sector-block-size', `${sideLen}px`);
 };
 
@@ -92,18 +110,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const startBtnClickHandler = function () {
-        if (isSpinning) {
+        if (wheelConfig.isSpinning) {
             // Do something while wheel is spinning...
             return;
         }
 
-        isSpinning = true;
-        rotationDurationMs = rand(4.5e3, 5e3);
-        rotationStepDeg = rand(12, 15);
-        startTime = performance.now();
-        wheelSpinHandler(startTime);
-        // Disable spin button when spin is being triggered
-        spinBtn.toggleAttribute('disabled', isSpinning);
+        wheelConfig.isSpinning = true;
+        wheelConfig.targetSectorIndex = rand(0, 13);
+        wheelConfig.startTimeMs = performance.now();
+        wheelSpinHandler(wheelConfig.startTimeMs);
+        spinBtn.toggleAttribute('disabled', wheelConfig.isSpinning);
     };
 
     if (hoverFeature.matches) {
@@ -121,59 +137,42 @@ window.addEventListener('resize', () => {
 
 // Wheel spin logic
 
-const getSectorData = function (rotationProgressDeg, sectorsCount) {
-    const sectorAngle = 360 - rotationProgressDeg;
-    const anglePerSectorDeg = Number(Number.prototype.toFixed.call(360 / sectorsCount, 2));
-    const sectorIndex = sectorAngle / anglePerSectorDeg;
-    const sectorIndexRounded = Math.round(sectorIndex);
-
-    return { 
-        index: sectorIndexRounded % sectorsCount, 
-        angle: sectorAngle,
-        offset: sectorIndexRounded - sectorIndex 
-    };
-}
-
 const wheelSpinHandler = function (timestamp) {
-    if (startTime == null) {
-        startTime = timestamp;
+    if (wheelConfig.startTimeMs == null) {
+        wheelConfig.startTimeMs = timestamp;
     }
 
-    const elapsedTimeMs = timestamp - startTime;
-    const easingFactor = easeIn(1 - (elapsedTimeMs / rotationDurationMs));
-    rotationProgressDeg += (rotationStepDeg * easingFactor);
+    const elapsedTimeMs = timestamp - wheelConfig.startTimeMs;
+    const easingFactor = easeIn(1 - (elapsedTimeMs / wheelConfig.rotationDurationMs));
+    wheelConfig.rotationProgressDeg += wheelConfig.rotationStepDeg * easingFactor;
 
-    if (rotationProgressDeg >= 360) {
-        rotationsCount++;
-        console.log(`${rotationsCount} rotation(s) occurred`);
-        rotationProgressDeg = rotationProgressDeg % 360;
-    }
-
-    if (elapsedTimeMs >= rotationDurationMs) {
-        let currentSectorDTO = getSectorData(rotationProgressDeg, sectorEls.length);
-        targetSectorIndex = currentSectorDTO.index;
-        targetSector = sectorEls[targetSectorIndex];
-        console.log(`Winning sector index: ${targetSectorIndex} \nWinning sector angle: ${currentSectorDTO.angle}`, '\nElement ref: ', targetSector);
-
-        let isMarginCase = Math.abs(currentSectorDTO.offset) > 0.4;
-        let isPositiveMargin = currentSectorDTO.offset > 0;
-        rotationProgressDeg = isMarginCase ? isPositiveMargin ? rotationProgressDeg - rotationOffset : rotationProgressDeg + rotationOffset : rotationProgressDeg;
+    if (wheelConfig.rotationProgressDeg >= 360) {
+        wheelConfig.rotationsCount++;
+        console.log(`${wheelConfig.rotationsCount} rotation(s) occurred`);
+        wheelConfig.rotationProgressDeg = wheelConfig.rotationProgressDeg % 360;
     }
 
     wheelSectorsContainerEl.style.setProperty(
         'transform',
-        `rotateZ(${rotationProgressDeg}deg)`
+        `rotateZ(${wheelConfig.rotationProgressDeg}deg)`
     );
 
-    if (elapsedTimeMs >= rotationDurationMs) {
-        isSpinning = false;
-        startTime = null;
-        rotationsCount = 0;
-        cancelAnimationFrame(animationHandle);
-        spinBtn.toggleAttribute('disabled', isSpinning);
+    if (elapsedTimeMs >= wheelConfig.rotationDurationMs) {
+        wheelConfig.targetSector = sectorEls[wheelConfig.targetSectorIndex];
+        console.log('Wheel rotation: ', wheelConfig.rotationProgressDeg);
+        console.log('Rotation duration: ', wheelConfig.rotationDurationMs);
+        console.log('Winning sector index: ', wheelConfig.targetSectorIndex);
+        console.log('Winning sector angle: ', wheelConfig.targetSectorAngleDeg);
+        console.log('Winning sector ref: ', wheelConfig.targetSector);
+        
+        wheelConfig.isSpinning = false;
+        wheelConfig.startTimeMs = null;
+        wheelConfig.rotationsCount = 0;
+        cancelAnimationFrame(wheelConfig.animationHandle);
+        spinBtn.toggleAttribute('disabled', wheelConfig.isSpinning);
         return;
     }
 
-    animationHandle = window.requestAnimationFrame(wheelSpinHandler);
+    wheelConfig.animationHandle = window.requestAnimationFrame(wheelSpinHandler);
 };
 
