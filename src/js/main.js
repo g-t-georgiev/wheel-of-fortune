@@ -16,8 +16,6 @@ const wheelConfig = {
     },
     targetSectorIndex: null,
     get totalDisplacementAngleDeg() {
-        // Calculate total displacement angle by subtracting the target sector angle,
-        // but take into account the offset position from the 0deg position.
         let positionOffsetDeg = 360 - this.rotationProgressDeg;
         let displacementAngleDeg = (360 + positionOffsetDeg) - this.targetSectorAngleDeg;
         return displacementAngleDeg % 360;
