@@ -4,31 +4,32 @@ import appConfig from './app.config.js';
 
 const wheelConfig = {
     sectorsCount: appConfig.data.length,
-    get anglePerSectorDeg() {
-        return Number(Number.prototype.toFixed.call(360 / this.sectorsCount, 2));
-    },
     animationHandle: null,
     isSpinning: false,
-    startTimeMs: null,
+    startAnimationTimeMs: null,
     targetSector: null,
+    targetSectorIndex: null,
+    rotationDurationMs: 5e3,
+    rotationProgressDeg: 0,
+    rotationOffset: 1.5,
+    rotationsCount: 0,
     get targetSectorAngleDeg() {
         return this.targetSectorIndex * this.anglePerSectorDeg;
     },
-    targetSectorIndex: null,
     get totalDisplacementAngleDeg() {
         let positionOffsetDeg = 360 - this.rotationProgressDeg;
         let displacementAngleDeg = (360 + positionOffsetDeg) - this.targetSectorAngleDeg;
         return displacementAngleDeg % 360;
     },
-    rotationDurationMs: 5e3,
+    get anglePerSectorDeg() {
+        return Number(Number.prototype.toFixed.call(360 / this.sectorsCount, 2));
+    },
     get rotationStepDeg() {
         let rotationDurationSec = this.rotationDurationMs / 1e3;
         let rotationDurationPerFrame = rotationDurationSec / 60;
-        return this.totalDisplacementAngleDeg / rotationDurationPerFrame;
+        let rotationStepDeg = this.totalDisplacementAngleDeg / rotationDurationPerFrame;
+        return rotationStepDeg;
     },
-    rotationProgressDeg: 0,
-    rotationOffset: 1.5,
-    rotationsCount: 0,
 };
 
 let appWrapper = document.querySelector('.app-wrapper');
@@ -116,8 +117,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         wheelConfig.isSpinning = true;
         wheelConfig.targetSectorIndex = rand(0, 13);
-        wheelConfig.startTimeMs = performance.now();
-        wheelSpinHandler(wheelConfig.startTimeMs);
+        wheelConfig.startAnimationTimeMs = performance.now();
+        wheelSpinHandler(wheelConfig.startAnimationTimeMs);
         spinBtn.toggleAttribute('disabled', wheelConfig.isSpinning);
     };
 
@@ -137,17 +138,17 @@ window.addEventListener('resize', () => {
 // Wheel spin logic
 
 const wheelSpinHandler = function (timestamp) {
-    if (wheelConfig.startTimeMs == null) {
-        wheelConfig.startTimeMs = timestamp;
+    if (wheelConfig.startAnimationTimeMs == null) {
+        wheelConfig.startAnimationTimeMs = timestamp;
     }
 
-    const elapsedTimeMs = timestamp - wheelConfig.startTimeMs;
-    const easingFactor = easeIn(1 - (elapsedTimeMs / wheelConfig.rotationDurationMs));
+    const elapsedTimeMs = timestamp - wheelConfig.startAnimationTimeMs;
+    const easingFactor = easeIn(1 - (elapsedTimeMs / wheelConfig.rotationDurationMs), 2);
     wheelConfig.rotationProgressDeg += wheelConfig.rotationStepDeg * easingFactor;
 
     if (wheelConfig.rotationProgressDeg >= 360) {
         wheelConfig.rotationsCount++;
-        console.log(`${wheelConfig.rotationsCount} rotation(s) occurred`);
+        // console.log(`${wheelConfig.rotationsCount} rotation(s) occurred`);
         wheelConfig.rotationProgressDeg = wheelConfig.rotationProgressDeg % 360;
     }
 
@@ -158,14 +159,14 @@ const wheelSpinHandler = function (timestamp) {
 
     if (elapsedTimeMs >= wheelConfig.rotationDurationMs) {
         wheelConfig.targetSector = sectorEls[wheelConfig.targetSectorIndex];
-        console.log('Wheel rotation: ', wheelConfig.rotationProgressDeg);
-        console.log('Rotation duration: ', wheelConfig.rotationDurationMs);
-        console.log('Winning sector index: ', wheelConfig.targetSectorIndex);
-        console.log('Winning sector angle: ', wheelConfig.targetSectorAngleDeg);
+        // console.log('Wheel rotation: ', wheelConfig.rotationProgressDeg);
+        // console.log('Rotation duration: ', wheelConfig.rotationDurationMs);
+        // console.log('Winning sector index: ', wheelConfig.targetSectorIndex);
+        // console.log('Winning sector angle: ', wheelConfig.targetSectorAngleDeg);
         console.log('Winning sector ref: ', wheelConfig.targetSector);
-        
+
         wheelConfig.isSpinning = false;
-        wheelConfig.startTimeMs = null;
+        wheelConfig.startAnimationTimeMs = null;
         wheelConfig.rotationsCount = 0;
         cancelAnimationFrame(wheelConfig.animationHandle);
         spinBtn.toggleAttribute('disabled', wheelConfig.isSpinning);
