@@ -23,7 +23,8 @@ const wheelConfig = {
     rotationDurationMs: 5e3,
     get rotationStepDeg() {
         let rotationDurationSec = this.rotationDurationMs / 1e3;
-        return this.totalDisplacementAngleDeg / rotationDurationSec;
+        let rotationDurationPerFrame = rotationDurationSec / 60;
+        return this.totalDisplacementAngleDeg / rotationDurationPerFrame;
     },
     rotationProgressDeg: 0,
     rotationOffset: 1.5,
