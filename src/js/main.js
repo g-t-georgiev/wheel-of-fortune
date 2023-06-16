@@ -10,28 +10,29 @@ const wheelConfig = {
     targetSector: null,
     targetSectorIndex: null,
     rotationDurationMs: 5e3,
+    // rotationStepDeg: 3,
     rotationProgressDeg: 0,
-    rotationOffset: 1.5,
-    rotationsCount: 0,
-    get targetSectorAngleDeg() {
-        return this.targetSectorIndex * this.anglePerSectorDeg;
+    rotationOffset: 10,
+    accelerationFactor: 5,
+    frameRate: 60,
+    get rotationsCount() {
+        let rotationDurationSec = this.rotationDurationMs / 1e3;
+        let result = Math.floor(rotationDurationSec * (this.rotationStepDeg * this.accelerationFactor * this.frameRate) / 360);
+        return result;
     },
-    get totalDisplacementAngleDeg() {
-        let positionOffsetDeg = 360 - this.rotationProgressDeg;
-        let displacementAngleDeg = (360 + positionOffsetDeg) - this.targetSectorAngleDeg;
-        return displacementAngleDeg % 360;
-        // return 360 - this.targetSectorAngleDeg;
+    get targetRotationAngleDeg() {
+        return Math.round((this.sectorsCount - (this.targetSectorIndex % this.sectorsCount)) * this.anglePerSectorDeg);
+    },
+    get totalRotationAngleDeg() {
+        return (this.rotationsCount * 360) + this.targetRotationAngleDeg;
     },
     get anglePerSectorDeg() {
         return Number(Number.prototype.toFixed.call(360 / this.sectorsCount, 2));
     },
-    get dynamicRotationStepDeg() {
+    get rotationStepDeg() {
         let rotationDurationSec = this.rotationDurationMs / 1e3;
-        let rotationDurationPerFrame = rotationDurationSec / 60;
-        let rotationStepDeg = this.totalDisplacementAngleDeg / rotationDurationPerFrame;
-        return rotationStepDeg;
-    },
-    rotationStepDeg: 25,
+        return this.targetRotationAngleDeg / this.accelerationFactor / rotationDurationSec / this.frameRate;
+    }
 };
 
 let appWrapper = document.querySelector('.app-wrapper');
@@ -139,42 +140,57 @@ window.addEventListener('resize', () => {
 
 // Wheel spin logic
 
+let prevAnimationTimeMs = null;
+
+// const calcFrameRate = function (currentTimestamp, prevTimestamp) {
+//     if (currentTimestamp == null || prevTimestamp == null) return;
+
+//     let fps = 1e3 / (currentTimestamp - prevTimestamp);
+//     console.log(fps);
+//     return fps;
+// }
+
 const wheelSpinHandler = function (timestamp) {
     if (wheelConfig.startAnimationTimeMs == null) {
         wheelConfig.startAnimationTimeMs = timestamp;
     }
 
+    // calcFrameRate(timestamp, prevAnimationTimeMs);
+
     const elapsedTimeMs = timestamp - wheelConfig.startAnimationTimeMs;
-    let easingFactor = easeIn(1 - (elapsedTimeMs / wheelConfig.rotationDurationMs), 2);
-    wheelConfig.rotationProgressDeg += wheelConfig.dynamicRotationStepDeg * easingFactor;
+    const startTimeProgress = 1 - (elapsedTimeMs / wheelConfig.rotationDurationMs);
+    const remainingTimeMs = Math.max(0, wheelConfig.rotationDurationMs * startTimeProgress);
 
-    if (wheelConfig.rotationProgressDeg >= 360) {
-        wheelConfig.rotationsCount++;
-        // console.log(`${wheelConfig.rotationsCount} rotation(s) occurred`);
+    if (remainingTimeMs === 0) {
         wheelConfig.rotationProgressDeg = wheelConfig.rotationProgressDeg % 360;
-    }
-
-    wheelSectorsContainerEl.style.setProperty(
-        'transform',
-        `rotateZ(${wheelConfig.rotationProgressDeg}deg)`
-    );
-
-    if (elapsedTimeMs >= wheelConfig.rotationDurationMs) {
         wheelConfig.targetSector = sectorEls[wheelConfig.targetSectorIndex];
-        // console.log('Wheel rotation: ', wheelConfig.rotationProgressDeg);
-        // console.log('Rotation duration: ', wheelConfig.rotationDurationMs);
-        // console.log('Winning sector index: ', wheelConfig.targetSectorIndex);
-        // console.log('Winning sector angle: ', wheelConfig.targetSectorAngleDeg);
-        // console.log('Winning sector ref: ', wheelConfig.targetSector);
+        console.log('Wheel rotation progress:', wheelConfig.rotationProgressDeg);
+        console.log('Wheel rotation angle:', wheelConfig.totalRotationAngleDeg);
+        console.log('Rotation duration:', wheelConfig.rotationDurationMs);
+        console.log('Winning sector index:', wheelConfig.targetSectorIndex);
+        console.log('Winning sector angle:', wheelConfig.targetRotationAngleDeg);
+        console.log('Winning sector ref:', wheelConfig.targetSector);
 
         wheelConfig.isSpinning = false;
         wheelConfig.startAnimationTimeMs = null;
-        wheelConfig.rotationsCount = 0;
+        prevAnimationTimeMs = null;
         cancelAnimationFrame(wheelConfig.animationHandle);
         spinBtn.toggleAttribute('disabled', wheelConfig.isSpinning);
         return;
     }
 
+    wheelConfig.rotationProgressDeg += wheelConfig.rotationStepDeg * wheelConfig.accelerationFactor;
+
+    if (Number.isInteger(wheelConfig.rotationProgressDeg / 360)) {
+        console.log(`${wheelConfig.rotationProgressDeg / 360} rotation(s)`);
+    }
+
+    wheelSectorsContainerEl.style.setProperty(
+        'transform',
+        `rotateZ(${wheelConfig.rotationProgressDeg % 360}deg)`
+    );
+
+    prevAnimationTimeMs = timestamp;
     wheelConfig.animationHandle = window.requestAnimationFrame(wheelSpinHandler);
 };
 
