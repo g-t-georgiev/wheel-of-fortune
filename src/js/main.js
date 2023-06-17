@@ -93,7 +93,9 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let i = 0; i < appConfig.data.length; i++) {
             const dataSrc = appConfig.data[i];
             const sector = document.createElement('div');
-            sector.classList.add('wheel-sector', `clr-${dataSrc.color}`);
+            sector.classList.add('wheel-sector');
+            sector.style.setProperty('--id', dataSrc.id);
+            sector.style.setProperty('--clr', dataSrc.color);
             sector.dataset.id = dataSrc.id;
             sector.dataset.value = dataSrc.value;
             const sectorHoverOverlay = document.createElement('div');
