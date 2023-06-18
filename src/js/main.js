@@ -55,7 +55,7 @@ const setWheelSectorsBlockSize = function (sector, index, parentContainer) {
     const rect = parentContainer.getBoundingClientRect();
     const radius = rect.width * 0.5;
     const sideLen = Math.floor(getSideLen(appConfig.data.length, radius));
-    sector.style.setProperty('--sector-block-size', `${sideLen}px`);
+    sector.style.setProperty('--sector-block-size', `${sideLen / rect.height * 100}%`); // `${sideLen}px`
 };
 
 const setWheelSectorPosition = function (sector, index, parentContainer) {
@@ -166,12 +166,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-window.addEventListener('resize', () => {
-    sectorEls.forEach((sector, index) => {
-        setWheelSectorsBlockSize(sector, index, sector.parentElement);
-        // setWheelSectorPosition(sector, index, sector.parentElement);
-    });
-});
+// window.addEventListener('resize', () => {
+//     sectorEls.forEach((sector, index) => {
+//         setWheelSectorsBlockSize(sector, index, sector.parentElement);
+//         setWheelSectorPosition(sector, index, sector.parentElement);
+//     });
+// });
 
 // Wheel spin logic
 
