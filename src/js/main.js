@@ -21,7 +21,9 @@ const wheelConfig = {
         return result;
     },
     get targetRotationAngleDeg() {
-        return Math.round((this.sectorsCount - (this.targetSectorIndex % this.sectorsCount)) * this.anglePerSectorDeg);
+        // Compensate for the 90deg offset of the first sector from the initial position
+        const sectorsOffset = 360 - 90;
+        return Math.round((this.sectorsCount - (this.targetSectorIndex % this.sectorsCount)) * this.anglePerSectorDeg) + sectorsOffset;
     },
     get totalRotationAngleDeg() {
         return (this.rotationsCount * 360) + this.targetRotationAngleDeg;
