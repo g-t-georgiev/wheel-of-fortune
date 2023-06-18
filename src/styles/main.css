@@ -70,15 +70,25 @@ body {
     content: '';
     display: inline-block;
     position: absolute;
+    top: calc((var(--wheel-arrow-height) * -1) - var(--wheel-border-width));
+    left: 50%;
+    translate: -50% 0;
+/* 
     top: 50%;
     right: calc((var(--wheel-arrow-height) * -1) - var(--wheel-border-width));
-    translate: -50% -50%;
+    translate: -50% -50%; 
+*/
     inline-size: 0;
     block-size: 0;
     border: var(--wheel-arrow-base) solid transparent;
+    border-bottom: none;
+    border-top-width: var(--wheel-arrow-height);
+    border-top-color: var(--clr-black);
+/* 
     border-left: none;
     border-right-width: var(--wheel-arrow-height);
-    border-right-color: rgba(0, 0, 0, 1);
+    border-right-color: var(--clr-black); 
+*/
     z-index: 1;
 }
 
