@@ -97,106 +97,21 @@ body {
     justify-content: flex-start;
     align-items: center;
     position: absolute;
+    top: var(--offset-y);
+    left: var(--offset-x);
+    rotate: z var(--rotate);
     translate: -50% -50%;
+    transform-origin: center center;
     inline-size: var(--wheel-sector-inline-size);
     block-size: var(--wheel-sector-block-size);
     padding: 15px 35px;
     clip-path: var(--wheel-sector-shape);
-    background-color: var(--clr);
-    color: var(--clr-txt-dark);
+    background-color: var(--bg-clr);
+    color: var(--txt-clr);
     font-weight: 600;
     font-size: clamp(.65rem, 1vw, 1.2rem);
     -webkit-user-select: none;
     user-select: none;
-}
-
-.wheel-sector[data-id="1"]{
-    top: 24.5%;
-    left: 50%;
-    rotate: z 90deg;
-}
-
-.wheel-sector[data-id="2"] {
-    color: var(--clr-txt-light);
-    top: 27.15%;
-    left: 60.9%;
-    rotate: z 115.75deg;
-}
-
-.wheel-sector[data-id="3"] {
-    top: 33.5%;
-    left: 70%;
-    rotate: z 141deg;
-}
-
-.wheel-sector[data-id="4"] {
-    top: 44.35%;
-    left: 74.5%;
-    rotate: z 167.5deg;
-}
-
-.wheel-sector[data-id="5"] {
-    top: 56%;
-    left: 75%;
-    rotate: z 193.5deg;
-}
-
-.wheel-sector[data-id="6"] {
-    top: 65.75%;
-    left: 69.75%;
-    rotate: z 218.55deg;
-}
-
-.wheel-sector[data-id="7"] {
-    color: var(--clr-txt-light);
-    top: 72.55%;
-    left: 60.85%;
-    rotate: z 243.95deg;
-}
-
-.wheel-sector[data-id="8"] {
-    top: 75.5%;
-    left: 50%;
-    rotate: z 270deg;
-}
-
-.wheel-sector[data-id="9"] {
-    top: 73.1%;
-    left: 38.7%;
-    rotate: z 295.5deg;
-}
-
-.wheel-sector[data-id="10"] {
-    color: var(--clr-txt-light);
-    top: 66%;
-    left: 30%;
-    rotate: z 321deg;
-}
-
-.wheel-sector[data-id="11"] {
-    color: var(--clr-txt-light);
-    top: 55.5%;
-    left: 25%;
-    rotate: z 348deg;
-}
-
-.wheel-sector[data-id="12"] {
-    color: var(--clr-txt-light);
-    top: 44.5%;
-    left: 25.5%;
-    rotate: z 373deg;
-}
-
-.wheel-sector[data-id="13"] {
-    top: 27%;
-    left: 39%;
-    rotate: z 425deg;
-}
-
-.wheel-sector[data-id="14"] {
-    top: 34%;
-    left: 30%;
-    rotate: z 399deg;
 }
 
 .wheel-sector:is(
