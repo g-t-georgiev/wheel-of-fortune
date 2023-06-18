@@ -48,7 +48,7 @@ const setWheelSectorsBlockSize = function (sector, index, parentContainer) {
     const rect = parentContainer.getBoundingClientRect();
     const radius = rect.width * 0.5;
     const sideLen = Math.floor(getSideLen(appConfig.data.length, radius));
-    sector.style.setProperty('--wheel-sector-block-size', `${sideLen}px`);
+    sector.style.setProperty('--sector-block-size', `${sideLen}px`);
 };
 
 const setWheelSectorPosition = function (sector, index, parentContainer) {
@@ -67,8 +67,8 @@ const setWheelSectorPosition = function (sector, index, parentContainer) {
     const x = centerX + radius * Math.cos(angleRad);
     const y = centerY + radius * Math.sin(angleRad);
 
-    sector.style.setProperty('--offset-x', `${x}px`);
-    sector.style.setProperty('--offset-y', `${y}px`);
+    sector.style.setProperty('--sector-offset-x', `${x}px`);
+    sector.style.setProperty('--sector-offset-y', `${y}px`);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -116,10 +116,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const dataSrc = appConfig.data[i];
             const sector = document.createElement('div');
             sector.classList.add('wheel-sector');
-            sector.style.setProperty('--id', dataSrc.id);
-            sector.style.setProperty('--bg-clr', dataSrc.backgroundColor);
-            sector.style.setProperty('--txt-clr', dataSrc.color);
-            sector.style.setProperty('--rotate', `${(wheelConfig.anglePerSectorDeg * i) + 180}deg`);
+            sector.style.setProperty('--sector-id', dataSrc.id);
+            sector.style.setProperty('--sector-bg-clr', dataSrc.backgroundColor);
+            sector.style.setProperty('--sector-txt-clr', dataSrc.color);
+            sector.style.setProperty('--sector-rotate', `${(wheelConfig.anglePerSectorDeg * i) + 180}deg`);
             sector.dataset.id = dataSrc.id;
             sector.dataset.value = dataSrc.value;
             const sectorHoverOverlay = document.createElement('div');
