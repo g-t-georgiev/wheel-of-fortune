@@ -42,12 +42,32 @@ let wheelSectorsContainerEl = wheelContainerEl?.querySelector('.wheel-container-
 let sectorEls = wheelSectorsContainerEl?.querySelectorAll('.wheel-sector');
 let hoverFeature = window.matchMedia('(hover: hover)');
 
-const setWheelSectorsBlockSize = function (sector, parentContainer) {
-    const wheelRect = parentContainer.getBoundingClientRect();
-    const wheelRadius = wheelRect.width / 2;
-    const sideLen = Math.floor(getSideLen(appConfig.data.length, wheelRadius));
+const setWheelSectorsBlockSize = function (sector, index, parentContainer) {
+    const rect = parentContainer.getBoundingClientRect();
+    const radius = rect.width * 0.5;
+    const sideLen = Math.floor(getSideLen(appConfig.data.length, radius));
     sector.style.setProperty('--wheel-sector-block-size', `${sideLen}px`);
 };
+
+const setWheelSectorPosition = function (sector, index, parentContainer) {
+    // Calculate the center coordinates of the circle container
+    const rect = parentContainer.getBoundingClientRect();
+    const centerX = rect.width * 0.5;
+    const centerY = rect.height * 0.5;
+
+    // Define the radius and spacing between the sectors
+    const radius = rect.width * 0.25;
+
+    // Calculate the angle in radians
+    const angleRad = (wheelConfig.anglePerSectorDeg * index * Math.PI) / 180;
+
+    // Calculate the X and Y coordinates of the sector
+    const x = centerX + radius * Math.cos(angleRad);
+    const y = centerY + radius * Math.sin(angleRad);
+
+    sector.style.setProperty('--offset-x', `${x}px`);
+    sector.style.setProperty('--offset-y', `${y}px`);
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     if (
@@ -95,7 +115,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const sector = document.createElement('div');
             sector.classList.add('wheel-sector');
             sector.style.setProperty('--id', dataSrc.id);
-            sector.style.setProperty('--clr', dataSrc.color);
+            sector.style.setProperty('--bg-clr', dataSrc.backgroundColor);
+            sector.style.setProperty('--txt-clr', dataSrc.color);
+            sector.style.setProperty('--rotate', `${(wheelConfig.anglePerSectorDeg * i) + 180}deg`);
             sector.dataset.id = dataSrc.id;
             sector.dataset.value = dataSrc.value;
             const sectorHoverOverlay = document.createElement('div');
@@ -110,8 +132,9 @@ document.addEventListener('DOMContentLoaded', () => {
         wheelSectorsContainerEl.append(...sectorEls);
     }
 
-    sectorEls.forEach(sector => {
-        setWheelSectorsBlockSize(sector, sector.parentElement);
+    sectorEls.forEach((sector, index) => {
+        setWheelSectorsBlockSize(sector, index, sector.parentElement);
+        setWheelSectorPosition(sector, index, sector.parentElement);
     });
 
     const startBtnClickHandler = function () {
@@ -135,8 +158,9 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 window.addEventListener('resize', () => {
-    sectorEls.forEach(sector => {
-        setWheelSectorsBlockSize(sector, sector.parentElement);
+    sectorEls.forEach((sector, index) => {
+        setWheelSectorsBlockSize(sector, index, sector.parentElement);
+        setWheelSectorPosition(sector, index, sector.parentElement);
     });
 });
 
