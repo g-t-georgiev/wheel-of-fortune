@@ -74,8 +74,8 @@ const setWheelSectorPosition = function (sector, index, parentContainer) {
     const x = centerX + radius * Math.cos(angleRad);
     const y = centerY + radius * Math.sin(angleRad);
 
-    sector.style.setProperty('--sector-offset-x', `${x}px`);
-    sector.style.setProperty('--sector-offset-y', `${y}px`);
+    sector.style.setProperty('--sector-offset-x', `${x / rect.width * 100}%`); // `${x}px`
+    sector.style.setProperty('--sector-offset-y', `${y / rect.height * 100}%`); // `${y}px`
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -169,7 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
 window.addEventListener('resize', () => {
     sectorEls.forEach((sector, index) => {
         setWheelSectorsBlockSize(sector, index, sector.parentElement);
-        setWheelSectorPosition(sector, index, sector.parentElement);
+        // setWheelSectorPosition(sector, index, sector.parentElement);
     });
 });
 
