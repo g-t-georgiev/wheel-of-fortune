@@ -28,9 +28,9 @@
     --wheel-box-shadow-width: clamp(4px, 4vw, 8px);
     --wheel-box-shadow-clr: rgba(255, 255, 255, 1);
 
-    --wheel-sector-shape: polygon(0 0, 0% 100%, 100% 50%);
-    --wheel-sector-inline-size: 50%;
-    --wheel-sector-block-size: 20%;
+    --sector-shape: polygon(0 0, 0% 100%, 100% 50%);
+    --sector-inline-size: 50%;
+    --sector-block-size: 20%;
 
     --wheel-arrow-height: 30px;
     --wheel-arrow-base: calc(var(--wheel-arrow-height) / 2);
@@ -107,17 +107,17 @@ body {
     justify-content: flex-start;
     align-items: center;
     position: absolute;
-    top: var(--offset-y);
-    left: var(--offset-x);
-    rotate: z var(--rotate);
+    top: var(--sector-offset-y);
+    left: var(--sector-offset-x);
+    rotate: z var(--sector-rotate);
     translate: -50% -50%;
     transform-origin: center center;
-    inline-size: var(--wheel-sector-inline-size);
-    block-size: var(--wheel-sector-block-size);
+    inline-size: var(--sector-inline-size);
+    block-size: var(--sector-block-size);
     padding: 15px 35px;
-    clip-path: var(--wheel-sector-shape);
-    background-color: var(--bg-clr);
-    color: var(--txt-clr);
+    clip-path: var(--sector-shape);
+    background-color: var(--sector-bg-clr);
+    color: var(--sector-txt-clr);
     font-weight: 600;
     font-size: clamp(.65rem, 1vw, 1.2rem);
     -webkit-user-select: none;
