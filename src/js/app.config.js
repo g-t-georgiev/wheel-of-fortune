@@ -14,6 +14,8 @@ const CLR_LIST = {
     DARKORANGE: '#ff4500',
     DARKBLUE: '#00008b',
     DARKRED: '#8b0000',
+    DARKGRAY: '#222222',
+    LIGHTGRAY: '#eeeeee'
 };
 
 export default {
@@ -22,85 +24,99 @@ export default {
             id: 1,
             value: 80,
             text: '80', 
-            color: CLR_LIST.RED,
+            backgroundColor: CLR_LIST.RED,
+            color: CLR_LIST.DARKGRAY,
         },
         {
             id: 2,
             value: 120,
             text: '120', 
-            color: CLR_LIST.BLUE,
+            backgroundColor: CLR_LIST.BLUE,
+            color: CLR_LIST.LIGHTGRAY,
         },
         {
             id: 3,
             value: 15,
             text: '15', 
-            color: CLR_LIST.GREEN,
+            backgroundColor: CLR_LIST.GREEN,
+            color: CLR_LIST.DARKGRAY,
         },
         {
             id: 4,
             value: 135,
             text: '135',
-            color: CLR_LIST.YELLOW,
+            backgroundColor: CLR_LIST.YELLOW,
+            color: CLR_LIST.DARKGRAY,
         },
         {
             id: 5,
             value: 58,
             text: '58', 
-            color: CLR_LIST.PINK,
+            backgroundColor: CLR_LIST.PINK,
+            color: CLR_LIST.DARKGRAY
         },
         {
             id: 6,
             value: 'freeSpins',
             text: 'Free Spins', 
-            color: CLR_LIST.LIGHTGRAY,
+            backgroundColor: CLR_LIST.LIGHTGRAY,
+            color: CLR_LIST.DARKGRAY
         },
         {
             id: 7,
             value: 65,
             text: '65', 
-            color: CLR_LIST.PURPLE,
+            backgroundColor: CLR_LIST.PURPLE,
+            color: CLR_LIST.LIGHTGRAY,
         },
         {
             id: 8,
             value: 145,
             text: '145', 
-            color: CLR_LIST.DARKORANGE,
+            backgroundColor: CLR_LIST.DARKORANGE,
+            color: CLR_LIST.DARKGRAY,
         },
         {
             id: 9,
             value: 220,
             text: '220', 
-            color: CLR_LIST.LIGHTGREEN,
+            backgroundColor: CLR_LIST.LIGHTGREEN,
+            color: CLR_LIST.DARKGRAY,
         },
         {
             id: 10,
             value: 20,
             text: '20',
-            color: CLR_LIST.DARKRED,
+            backgroundColor: CLR_LIST.DARKRED,
+            color: CLR_LIST.LIGHTGRAY,
         },
         {
             id: 11,
             value: 150,
             text: '150', 
-            color: CLR_LIST.DARKBLUE
+            backgroundColor: CLR_LIST.DARKBLUE,
+            color: CLR_LIST.LIGHTGRAY,
         },
         {
             id: 12,
             value: 'looseAll',
             text: 'Booooom!', 
-            color: CLR_LIST.BLACK,
+            backgroundColor: CLR_LIST.BLACK,
+            color: CLR_LIST.LIGHTGRAY,
         },
         {
             id: 13,
             value: 350,
             text: '350', 
-            color: CLR_LIST.SALMON,
+            backgroundColor: CLR_LIST.SALMON,
+            color: CLR_LIST.DARKGRAY,
         },
         {
             id: 14,
             value: 175,
             text: '175',
-            color: CLR_LIST.ORANGE,
+            backgroundColor: CLR_LIST.ORANGE,
+            color: CLR_LIST.DARKGRAY,
         },
     ]
 };
