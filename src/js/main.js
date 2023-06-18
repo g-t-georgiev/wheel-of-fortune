@@ -186,8 +186,9 @@ const wheelSpinHandler = function (timestamp) {
     // calcFrameRate(timestamp, prevAnimationTimeMs);
 
     const elapsedTimeMs = timestamp - wheelConfig.startAnimationTimeMs;
-    const startTimeProgress = 1 - (elapsedTimeMs / wheelConfig.rotationDurationMs);
-    const remainingTimeMs = Math.max(0, wheelConfig.rotationDurationMs * startTimeProgress);
+    const startTimeProgress = elapsedTimeMs / wheelConfig.rotationDurationMs;
+    const remainingTimeProgress = 1 - startTimeProgress;
+    const remainingTimeMs = Math.max(0, wheelConfig.rotationDurationMs * remainingTimeProgress);
 
     if (remainingTimeMs === 0) {
         wheelConfig.rotationProgressDeg = wheelConfig.rotationProgressDeg % 360;
