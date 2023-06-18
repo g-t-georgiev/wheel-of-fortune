@@ -10,30 +10,37 @@ const wheelConfig = {
     targetSector: null,
     targetSectorIndex: null,
     rotationDurationMs: 5e3,
-    // rotationStepDeg: 3,
     rotationProgressDeg: 0,
-    rotationOffset: 10,
-    accelerationFactor: 5,
     frameRate: 60,
     get rotationsCount() {
-        let rotationDurationSec = this.rotationDurationMs / 1e3;
-        let result = Math.floor(rotationDurationSec * (this.rotationStepDeg * this.accelerationFactor * this.frameRate) / 360);
-        return result;
+        return 360 / this.targetRotationAngleDeg;
     },
     get targetRotationAngleDeg() {
-        // Compensate for the 90deg offset of the first sector from the initial position
-        const sectorsOffset = 360 - 90;
-        return Math.round((this.sectorsCount - (this.targetSectorIndex % this.sectorsCount)) * this.anglePerSectorDeg) + sectorsOffset;
+        // const rotationStartingPoint = this.rotationProgressDeg;
+        // console.log('Rotation starting point', rotationStartingPoint);
+        // const wheelOffset = 360 - rotationStartingPoint;
+        // console.log('Wheel offset from starting point', wheelOffset);
+        // const sectorsOffset = wheelOffset - 90;
+        // console.log('Wheel starting point offset from first sector', sectorsOffset);
+        // const targetRotationAngleDeg = (this.sectorsCount - (this.targetSectorIndex % this.sectorsCount)) * this.anglePerSectorDeg;
+        // console.log('Target rotation angle', targetRotationAngleDeg);
+        // const normalizedTargetRotationAngleDeg = (Math.round(targetRotationAngleDeg) + (sectorsOffset % 360)) % 360;
+        // console.log('Target rotation angle normalized', normalizedTargetRotationAngleDeg);
+        // return normalizedTargetRotationAngleDeg;
+
+        const layoutOffset = 360 - 90;
+        const targetRotationAngleDeg = (this.sectorsCount - (this.targetSectorIndex % this.sectorsCount)) * this.anglePerSectorDeg;
+        return (targetRotationAngleDeg + layoutOffset) % 360;
     },
     get totalRotationAngleDeg() {
-        return (this.rotationsCount * 360) + this.targetRotationAngleDeg;
+        return (360 * this.rotationsCount) + this.targetRotationAngleDeg;
     },
     get anglePerSectorDeg() {
         return Number(Number.prototype.toFixed.call(360 / this.sectorsCount, 2));
     },
     get rotationStepDeg() {
-        let rotationDurationSec = this.rotationDurationMs / 1e3;
-        return this.targetRotationAngleDeg / this.accelerationFactor / rotationDurationSec / this.frameRate;
+        const rotationDurationSec = this.rotationDurationMs / 1e3;
+        return this.totalRotationAngleDeg / rotationDurationSec / this.frameRate;
     }
 };
 
@@ -208,7 +215,7 @@ const wheelSpinHandler = function (timestamp) {
         return;
     }
 
-    wheelConfig.rotationProgressDeg += wheelConfig.rotationStepDeg * wheelConfig.accelerationFactor;
+    wheelConfig.rotationProgressDeg += wheelConfig.rotationStepDeg;
 
     if (Number.isInteger(wheelConfig.rotationProgressDeg / 360)) {
         console.log(`${wheelConfig.rotationProgressDeg / 360} rotation(s)`);
