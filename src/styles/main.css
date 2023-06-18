@@ -62,7 +62,7 @@ body {
     inline-size: var(--wheel-size);
     border-radius: 50%;
     border: var(--wheel-border-width) solid var(--wheel-border-clr);
-    /* box-shadow: 0 0 0 var(--wheel-box-shadow-width) var(--wheel-box-shadow-clr); */
+    box-shadow: 0 0 0 var(--wheel-box-shadow-width) var(--wheel-box-shadow-clr);
     background-color: var(--wheel-bg-clr);
 }
 
