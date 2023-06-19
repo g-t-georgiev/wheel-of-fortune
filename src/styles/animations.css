@@ -3,6 +3,6 @@
 @keyframes button-pop {
     100% {
         --spin-btn-txt-clr: rgb(238, 238, 238);
-        scale: 1.2;
+        --spin-btn-txt-shadow: 0 0 10px rgba(255, 255, 255, .5);
     }   
 }
