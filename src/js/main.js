@@ -183,9 +183,9 @@ const wheelSpinHandler = function (timestamp) {
     const rotationStepDeg = wheelConfig.calcRotationStepDeg(0, wheelConfig.totalRotationAngleDeg, startTimeProgress);
     wheelConfig.rotationProgressDeg = rotationStepDeg;
 
-    if (Math.floor(wheelConfig.rotationProgressDeg / 360) !== currentRotationCount) {
+    if (Math.floor(wheelConfig.rotationProgressDeg / 360) !== wheelConfig.currentRotationCount) {
         wheelConfig.currentRotationCount++;
-        console.log(`Rotation ${currentRotationCount} of ${wheelConfig.totalRotationsCount}`);
+        console.log(`Rotation ${wheelConfig.currentRotationCount} of ${wheelConfig.totalRotationsCount}`);
     }
 
     wheelSectorsContainerEl.style.setProperty(
@@ -204,7 +204,7 @@ const wheelSpinHandler = function (timestamp) {
         wheelConfig.isSpinning = false;
         wheelConfig.startAnimationTimeMs = null;
         wheelConfig.prevAnimationTimeMs = null;
-        currentRotationCount = 0;
+        wheelConfig.currentRotationCount = 0;
         cancelAnimationFrame(wheelConfig.animationHandle);
         spinBtn.toggleAttribute('disabled', wheelConfig.isSpinning);
         return;
