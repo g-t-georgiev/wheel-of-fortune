@@ -201,15 +201,26 @@ body {
     transition: all .15s ease-in-out;
 }
 
-.wheel-start-btn:hover {
-    scale: 1.1;
+.wheel-start-btn:not(:is(
+    :disabled, 
+    [disabled])
+):hover {
+    scale: 1.05;
 }
 
-.wheel-start-btn:is(:active, :focus, :focus-visible, :focus-within) {
+.wheel-start-btn:is(
+    :active, 
+    :focus, 
+    :focus-visible, 
+    :focus-within
+) {
     outline: 3px solid rgba(255, 255, 255, 1);
 }
 
-.wheel-start-btn:is(:disabled, [disabled]) {
+.wheel-start-btn:is(
+    :disabled, 
+    [disabled]
+) {
     --spin-btn-bg-clr: rgb(102, 6, 6);
     --spin-btn-txt-clr: #cfcfcf;
 }
