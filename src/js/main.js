@@ -43,6 +43,12 @@ const wheelConfig = {
     },
     roundRotationAngleDeg(rotationAngleDeg, fraction = 2) {
         return Number(Number.prototype.toFixed.call(rotationAngleDeg, fraction));
+    },
+    setWheelSectorsBlockSize(sector, index, parentContainer) {
+        const rect = parentContainer.getBoundingClientRect();
+        const radius = rect.width * 0.5;
+        const sideLen = Math.floor(getSideLen(appConfig.data.length, radius));
+        sector.style.setProperty('--sector-block-size', `${sideLen / rect.height * 100}%`);
     }
 };
 
@@ -52,13 +58,6 @@ let spinBtn = wheelContainerEl?.querySelector('.wheel-start-btn');
 let wheelSectorsContainerEl = wheelContainerEl?.querySelector('.wheel-container-inner');
 let sectorEls = wheelSectorsContainerEl?.querySelectorAll('.wheel-sector');
 let hoverFeature = window.matchMedia('(hover: hover)');
-
-const setWheelSectorsBlockSize = function (sector, index, parentContainer) {
-    const rect = parentContainer.getBoundingClientRect();
-    const radius = rect.width * 0.5;
-    const sideLen = Math.floor(getSideLen(appConfig.data.length, radius));
-    sector.style.setProperty('--sector-block-size', `${sideLen / rect.height * 100}%`);
-};
 
 const setWheelSectorPosition = function (sector, index, parentContainer) {
     // Calculate the center coordinates of the circle container
@@ -144,7 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     sectorEls.forEach((sector, index) => {
-        setWheelSectorsBlockSize(sector, index, sector.parentElement);
+        wheelConfig.setWheelSectorsBlockSize(sector, index, sector.parentElement);
         setWheelSectorPosition(sector, index, sector.parentElement);
     });
 
