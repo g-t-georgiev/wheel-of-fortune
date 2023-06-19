@@ -157,7 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
         wheelConfig.isSpinning = true;
         wheelConfig.targetSectorIndex = rand(0, 13);
         wheelConfig.targetSector = sectorEls[wheelConfig.targetSectorIndex];
-        wheelConfig.fullRotationsCount = rand(9, 12);
+        wheelConfig.fullRotationsCount = rand(7, 10);
         wheelConfig.startAnimationTimeMs = performance.now();
         wheelSpinHandler(wheelConfig.startAnimationTimeMs);
         wheelContainerEl.toggleAttribute('data-spin', wheelConfig.isSpinning);
