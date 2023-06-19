@@ -84,7 +84,9 @@ export function easeOut(t, exponent = 1) {
 /**
  * Calculats gradually increasing and decreasing easing factor index.
  * @param {number} t time progress
+ * @param {number} exponent1 exponent factor 1
+ * @param {number} [exponent2] exponent factor 2
  */
-export function easeInOut(t) {
-    return lerp(easeIn(t), easeOut(t), t);
+export function easeInOut(t, exponent1 = 1, exponent2) {
+    return lerp(easeIn(t, exponent1), easeOut(t, exponent2 ?? exponent1), t);
 }
