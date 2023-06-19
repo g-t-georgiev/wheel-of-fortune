@@ -48,6 +48,8 @@
     --spin-btn-box-shadow-width: clamp(2px, 3vw, 5px);
     --spin-btn-bg-clr: var(--clr-brown);
     --spin-btn-txt-clr: var(--clr-txt-light);
+    --spin-btn-txt-shadow: none;
+    --spin-btn-outline: none;
 }
 
 body {
@@ -209,6 +211,7 @@ body {
     border-radius: 50%;
     background-color: var(--spin-btn-bg-clr);
     color: var(--spin-btn-txt-clr);
+    outline: var(--spin-btn-outline);
     box-shadow: 
         0 0 0 var(--spin-btn-box-shadow-width) var(--spin-btn-box-shadow-clr),
         inset 0 0 5px rgba(255, 255, 255, .35);
@@ -216,12 +219,21 @@ body {
     font-weight: 600;
     text-align: center;
     text-transform: uppercase;
+    text-shadow: var(--spin-btn-txt-shadow);
     -webkit-user-select: none;
     user-select: none;
     cursor: pointer;
     transition: 
         color .15s ease-in-out,
         text-shadow .15s ease-in-out;
+}
+
+.wheel-start-btn:is(
+    :disabled, 
+    [disabled]
+) {
+    --spin-btn-bg-clr: rgb(102, 6, 6);
+    --spin-btn-txt-clr: rgb(207, 207, 207);
 }
 
 .wheel-start-btn:not(
@@ -233,7 +245,7 @@ body {
     :hover,
     :active
 ) {
-    text-shadow: 0 0 10px rgba(255, 255, 255, .5);
+    --spin-btn-txt-shadow: 0 0 10px rgba(255, 255, 255, .5);
 }
 
 .wheel-start-btn:not(
@@ -246,16 +258,8 @@ body {
     :focus-visible, 
     :focus-within
 ) {
-    outline: 3px solid transparent;
-    text-shadow: 0 0 10px rgba(255, 255, 255, .5);
-}
-
-.wheel-start-btn:is(
-    :disabled, 
-    [disabled]
-) {
-    --spin-btn-bg-clr: rgb(102, 6, 6);
-    --spin-btn-txt-clr: rgb(207, 207, 207);
+    --spin-btn-outline: 3px solid transparent;
+    --spin-btn-txt-shadow: 0 0 10px rgba(255, 255, 255, .5);
 }
 
 /* Spin button animation */
