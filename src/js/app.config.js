@@ -99,8 +99,8 @@ export default {
         },
         {
             id: 12,
-            value: 'looseAll',
-            text: 'Booooom!', 
+            value: 0,
+            text: '0', 
             backgroundColor: CLR_LIST.BLACK,
             color: CLR_LIST.LIGHTGRAY,
         },
