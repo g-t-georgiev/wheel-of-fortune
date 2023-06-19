@@ -49,6 +49,25 @@ const wheelConfig = {
         const radius = rect.width * 0.5;
         const sideLen = Math.floor(getSideLen(appConfig.data.length, radius));
         sector.style.setProperty('--sector-block-size', `${sideLen / rect.height * 100}%`);
+    },
+    setWheelSectorPosition(sector, index, parentContainer) {
+        // Calculate the center coordinates of the circle container
+        const rect = parentContainer.getBoundingClientRect();
+        const centerX = rect.width * 0.5;
+        const centerY = rect.height * 0.5;
+    
+        // Define the radius and spacing between the sectors
+        const radius = rect.width * 0.25;
+    
+        // Calculate the angle in radians
+        const angleRad = (wheelConfig.anglePerSectorDeg * index * Math.PI) / 180;
+    
+        // Calculate the X and Y coordinates of the sector
+        const x = centerX + radius * Math.cos(angleRad);
+        const y = centerY + radius * Math.sin(angleRad);
+    
+        sector.style.setProperty('--sector-offset-x', `${x / rect.width * 100}%`);
+        sector.style.setProperty('--sector-offset-y', `${y / rect.height * 100}%`);
     }
 };
 
@@ -58,26 +77,6 @@ let spinBtn = wheelContainerEl?.querySelector('.wheel-start-btn');
 let wheelSectorsContainerEl = wheelContainerEl?.querySelector('.wheel-container-inner');
 let sectorEls = wheelSectorsContainerEl?.querySelectorAll('.wheel-sector');
 let hoverFeature = window.matchMedia('(hover: hover)');
-
-const setWheelSectorPosition = function (sector, index, parentContainer) {
-    // Calculate the center coordinates of the circle container
-    const rect = parentContainer.getBoundingClientRect();
-    const centerX = rect.width * 0.5;
-    const centerY = rect.height * 0.5;
-
-    // Define the radius and spacing between the sectors
-    const radius = rect.width * 0.25;
-
-    // Calculate the angle in radians
-    const angleRad = (wheelConfig.anglePerSectorDeg * index * Math.PI) / 180;
-
-    // Calculate the X and Y coordinates of the sector
-    const x = centerX + radius * Math.cos(angleRad);
-    const y = centerY + radius * Math.sin(angleRad);
-
-    sector.style.setProperty('--sector-offset-x', `${x / rect.width * 100}%`);
-    sector.style.setProperty('--sector-offset-y', `${y / rect.height * 100}%`);
-}
 
 document.addEventListener('DOMContentLoaded', () => {
     if (
@@ -144,7 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     sectorEls.forEach((sector, index) => {
         wheelConfig.setWheelSectorsBlockSize(sector, index, sector.parentElement);
-        setWheelSectorPosition(sector, index, sector.parentElement);
+        wheelConfig.setWheelSectorPosition(sector, index, sector.parentElement);
     });
 
     const startBtnClickHandler = function () {
