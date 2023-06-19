@@ -55,6 +55,8 @@ body {
     background-color: var(--clr-cyanblue);
 }
 
+/* App wrapper */
+
 .app-wrapper {
     display: flex;
     justify-content: center;
@@ -62,6 +64,8 @@ body {
     padding: clamp(3rem, 30vw, 5rem);
     background-color: rgba(255, 255, 255, 0);
 }
+
+/* Wheel container */
 
 .wheel-container-outer {
     position: relative;
@@ -71,6 +75,8 @@ body {
     box-shadow: 0 0 0 var(--wheel-box-shadow-width) var(--wheel-box-shadow-clr);
     background-color: var(--wheel-bg-clr);
 }
+
+/* Sector pointer */
 
 .wheel-container-outer::before {
     content: '';
@@ -98,6 +104,8 @@ body {
     z-index: 1;
 }
 
+/* Sectors container */
+
 .wheel-container-inner {
     position: relative;
     inline-size: 100%;
@@ -107,6 +115,8 @@ body {
     transform-origin: center center;
     overflow: hidden;
 }
+
+/* Sector */
 
 .wheel-sector {
     display: flex;
@@ -135,6 +145,8 @@ body {
     text-transform: uppercase;
 }
 
+/* Sector overlay */
+
 .wheel-sector-overlay {
     position: absolute;
     top: 0;
@@ -150,6 +162,8 @@ body {
 .wheel-sector:hover .wheel-sector-overlay {
     opacity: 1;
 }
+
+/* Sector content */
 
 .wheel-sector-content {
     display: inline-flex;
@@ -181,6 +195,8 @@ body {
 /* .wheel-sector:is(
     [data-value="freeSpins"],
 ) .wheel-sector-content { } */
+
+/* Spin button */
 
 .wheel-start-btn {
     position: absolute;
@@ -229,3 +245,6 @@ body {
     --spin-btn-bg-clr: rgb(102, 6, 6);
     --spin-btn-txt-clr: #cfcfcf;
 }
+
+/* Spin button animation */
+
