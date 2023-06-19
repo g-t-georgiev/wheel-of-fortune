@@ -118,9 +118,6 @@ body {
     padding: 15px 35px;
     clip-path: var(--sector-shape);
     background-color: var(--sector-bg-clr);
-    color: var(--sector-txt-clr);
-    font-weight: 600;
-    font-size: clamp(.65rem, 1vw, 1.2rem);
     -webkit-user-select: none;
     user-select: none;
 }
@@ -153,6 +150,9 @@ body {
     display: inline-flex;
     justify-content: center;
     align-items: center;
+    color: var(--sector-txt-clr);
+    font-weight: 600;
+    font-size: clamp(.65rem, 1vw, 1.2rem);
     text-align: center;
     vertical-align: middle;
 }
