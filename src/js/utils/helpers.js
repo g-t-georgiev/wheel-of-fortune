@@ -82,7 +82,10 @@ export function easeOut(t, exponent = 1) {
 }
 
 /**
- * Calculats gradually increasing and decreasing easing factor index.
+ * Calculats gradually increasing and decreasing easing factor index. 
+ * If the exponent factors are omitted, the default behavior is linear.
+ * If only the one exponent is passed it is used for both easing-in and easing-out effect.
+ * Otherwise, the first exponent is used for the ease-in and the secont for the ease-out effect.
  * @param {number} t time progress
  * @param {number} exponent1 exponent factor 1
  * @param {number} [exponent2] exponent factor 2
