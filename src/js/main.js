@@ -154,6 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         wheelConfig.isSpinning = true;
         wheelConfig.targetSectorIndex = rand(0, 13);
+        wheelConfig.targetSector = sectorEls[wheelConfig.targetSectorIndex];
         wheelConfig.startAnimationTimeMs = performance.now();
         wheelSpinHandler(wheelConfig.startAnimationTimeMs);
         wheelContainerEl.toggleAttribute('data-spin', wheelConfig.isSpinning);
@@ -182,7 +183,7 @@ const wheelSpinHandler = function (timestamp) {
     const rotationStepDeg = wheelConfig.calcRotationStepDeg(0, wheelConfig.totalRotationAngleDeg, startTimeProgress);
     wheelConfig.rotationProgressDeg = rotationStepDeg;
 
-    if (Math.floor(wheelConfig.rotationProgressDeg / 360) !== wheelConfig.currentRotationCount) {
+    if (Math.floor(wheelConfig.rotationProgressDeg / 360) > wheelConfig.currentRotationCount) {
         wheelConfig.currentRotationCount++;
         console.log(`Rotation ${wheelConfig.currentRotationCount} of ${wheelConfig.totalRotationsCount}`);
     }
@@ -194,13 +195,14 @@ const wheelSpinHandler = function (timestamp) {
 
     if (remainingTimeMs === 0) {
         wheelConfig.rotationProgressDeg = wheelConfig.normalizeRotationProgressDeg(wheelConfig.rotationProgressDeg);
-        wheelConfig.targetSector = sectorEls[wheelConfig.targetSectorIndex];
 
         console.log('Wheel rotation progress:', wheelConfig.rotationProgressDeg);
         console.log('Winning sector angle:', wheelConfig.targetRotationAngleDeg);
         console.log('Winning sector ref:', wheelConfig.targetSector);
 
         wheelConfig.isSpinning = false;
+        wheelConfig.targetSector = null;
+        wheelConfig.targetSectorIndex = null;
         wheelConfig.startAnimationTimeMs = null;
         wheelConfig.prevAnimationTimeMs = null;
         wheelConfig.currentRotationCount = 0;
