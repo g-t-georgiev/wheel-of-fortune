@@ -11,7 +11,7 @@ const wheelConfig = {
     prevAnimationTimeMs: null,
     targetSector: null,
     targetSectorIndex: null,
-    rotationDurationMs: 30e3,
+    rotationDurationMs: 5e3,
     rotationProgressDeg: 0,
     rotationStartPositionDeg: 0,
     currentRotationCount: 0,
@@ -197,7 +197,7 @@ const wheelSpinHandler = function (timestamp) {
     if (remainingTimeMs === 0) {
         wheelConfig.rotationProgressDeg = wheelConfig.normalizeRotationProgressDeg(wheelConfig.rotationProgressDeg);
         wheelConfig.rotationStartPositionDeg = wheelConfig.rotationProgressDeg;
-        
+
         wheelSectorsContainerEl.style.setProperty(
             'transform',
             `rotateZ(${wheelConfig.rotationProgressDeg}deg)`
