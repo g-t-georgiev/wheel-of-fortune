@@ -1,4 +1,4 @@
-import { getSideLen } from './utils/polygon.js';
+import { Polygon } from './utils/helpers.js';
 
 export const wheelConfig = {
     sectorsCount: 0,
@@ -37,9 +37,6 @@ export const wheelConfig = {
         this.sectorsCount = config?.sectors ?? 0;
         this.rotationDurationMs = config?.duration ?? 0;
     },
-    calcRotationStepDeg(startPosition, endPosition, timeframe) {
-        return startPosition + (endPosition - startPosition) * timeframe;
-    },
     calcFrameRate(currentTimestamp, prevTimestamp) {
         if (currentTimestamp == null || prevTimestamp == null) return;
     
@@ -55,7 +52,7 @@ export const wheelConfig = {
     setWheelSectorsBlockSize(sector, index, parentContainer) {
         const rect = parentContainer.getBoundingClientRect();
         const radius = rect.width * 0.5;
-        const sideLen = Math.floor(getSideLen(this.sectorsCount, radius));
+        const sideLen = Math.floor(Polygon.getSideLen(this.sectorsCount, radius));
         sector.style.setProperty('--sector-block-size', `${sideLen / rect.height * 100}%`);
     },
     setWheelSectorPosition(sector, index, parentContainer) {
