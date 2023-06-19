@@ -230,12 +230,17 @@ body {
 }
 
 .wheel-start-btn:is(
-    :active, 
     :focus, 
     :focus-visible, 
     :focus-within
 ) {
-    outline: 3px solid rgba(255, 255, 255, 1);
+    outline: 3px solid transparent;
+}
+
+.wheel-start-btn:is(
+    :active
+) {
+    outline-color: rgba(255, 255, 255, 1);
 }
 
 .wheel-start-btn:is(
