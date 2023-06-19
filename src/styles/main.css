@@ -211,7 +211,7 @@ body {
     color: var(--spin-btn-txt-clr);
     box-shadow: 
         0 0 0 var(--spin-btn-box-shadow-width) var(--spin-btn-box-shadow-clr),
-        inset 0 0 15px rgba(255, 255, 255, .7);
+        inset 0 0 5px rgba(255, 255, 255, .35);
     font-size: var(--spin-btn-font-size);
     font-weight: 600;
     text-align: center;
@@ -219,28 +219,35 @@ body {
     -webkit-user-select: none;
     user-select: none;
     cursor: pointer;
-    transition: all .15s ease-in-out;
+    transition: 
+        color .15s ease-in-out,
+        text-shadow .15s ease-in-out;
 }
 
-.wheel-start-btn:not(:is(
-    :disabled, 
-    [disabled])
-):hover {
-    scale: 1.05;
+.wheel-start-btn:not(
+    :is(
+        :disabled, 
+        [disabled]
+    )
+):is(
+    :hover,
+    :active
+) {
+    text-shadow: 0 0 10px rgba(255, 255, 255, .5);
 }
 
-.wheel-start-btn:is(
+.wheel-start-btn:not(
+    :is(
+        :disabled,
+        [disabled]
+    )
+):is(
     :focus, 
     :focus-visible, 
     :focus-within
 ) {
     outline: 3px solid transparent;
-}
-
-.wheel-start-btn:is(
-    :active
-) {
-    outline-color: rgba(255, 255, 255, 1);
+    text-shadow: 0 0 10px rgba(255, 255, 255, .5);
 }
 
 .wheel-start-btn:is(
