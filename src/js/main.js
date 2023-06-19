@@ -11,8 +11,9 @@ const wheelConfig = {
     prevAnimationTimeMs: null,
     targetSector: null,
     targetSectorIndex: null,
-    rotationDurationMs: 5e3,
+    rotationDurationMs: 30e3,
     rotationProgressDeg: 0,
+    rotationStartPositionDeg: 0,
     currentRotationCount: 0,
     get totalRotationsCount() {
         return Math.floor(this.totalRotationAngleDeg / 360);
@@ -180,7 +181,7 @@ const wheelSpinHandler = function (timestamp) {
     const remainingTimeProgress = 1 - startTimeProgress;
     const remainingTimeMs = Math.max(0, wheelConfig.rotationDurationMs * remainingTimeProgress);
 
-    const rotationStepDeg = wheelConfig.calcRotationStepDeg(0, wheelConfig.totalRotationAngleDeg, startTimeProgress);
+    const rotationStepDeg = wheelConfig.calcRotationStepDeg(wheelConfig.rotationStartPositionDeg, wheelConfig.totalRotationAngleDeg, startTimeProgress);
     wheelConfig.rotationProgressDeg = rotationStepDeg;
 
     if (Math.floor(wheelConfig.rotationProgressDeg / 360) > wheelConfig.currentRotationCount) {
@@ -195,6 +196,8 @@ const wheelSpinHandler = function (timestamp) {
 
     if (remainingTimeMs === 0) {
         wheelConfig.rotationProgressDeg = wheelConfig.normalizeRotationProgressDeg(wheelConfig.rotationProgressDeg);
+        wheelConfig.rotationStartPositionDeg = wheelConfig.rotationProgressDeg;
+        
         wheelSectorsContainerEl.style.setProperty(
             'transform',
             `rotateZ(${wheelConfig.rotationProgressDeg}deg)`
