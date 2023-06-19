@@ -105,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 spinBtn = document.createElement('button'),
                 spinBtn.setAttribute('type', 'button'),
                 spinBtn.classList.add('wheel-start-btn'),
-                spinBtn.textContent = 'Go',
+                spinBtn.textContent = 'Spin',
                 wheelContainerEl.append(spinBtn)
             );
 

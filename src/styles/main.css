@@ -35,7 +35,8 @@
     --wheel-arrow-height: 30px;
     --wheel-arrow-base: calc(var(--wheel-arrow-height) / 2);
 
-    --spin-btn-font-size: clamp(1rem, 2vw, 1.3rem);
+    --spin-btn-font-size: clamp(.85rem, 2vw, 1.3rem);
+    --spin-btn-padding: clamp(3px, 5vw, 12px);
     --spin-btn-border-clr: rgba(255, 255, 255, 1);
     --spin-btn-border-width: clamp(1px, 2vw, 2px);
     --spin-btn-box-shadow-clr: rgba(0, 0, 0, .35);
@@ -183,7 +184,7 @@ body {
     translate: -50% -50%;
     inline-size: 10%;
     aspect-ratio: 1 / 1;
-    padding: clamp(5px, 5vw, 15px);
+    padding: var(--spin-btn-padding);
     border-radius: 50%;
     background-color: var(--spin-btn-bg-clr);
     color: var(--spin-btn-txt-clr);
@@ -197,7 +198,7 @@ body {
     -webkit-user-select: none;
     user-select: none;
     cursor: pointer;
-    transition: all .3s ease-in-out;
+    transition: all .15s ease-in-out;
 }
 
 .wheel-start-btn:hover {
