@@ -14,6 +14,7 @@ const wheelConfig = {
     rotationDurationMs: 5e3,
     rotationProgressDeg: 0,
     rotationStartPositionDeg: 0,
+    fullRotationsCount: 10,
     currentRotationCount: 0,
     get totalRotationsCount() {
         return Math.floor(this.totalRotationAngleDeg / 360);
@@ -25,7 +26,7 @@ const wheelConfig = {
         return this.roundRotationAngleDeg(adjustedRotationTargetRotationAngleDeg);
     },
     get totalRotationAngleDeg() {
-        return (360 * 10) + this.targetRotationAngleDeg;
+        return (360 * this.fullRotationsCount) + this.targetRotationAngleDeg;
     },
     get anglePerSectorDeg() {
         return this.roundRotationAngleDeg(360 / this.sectorsCount);
@@ -156,6 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
         wheelConfig.isSpinning = true;
         wheelConfig.targetSectorIndex = rand(0, 13);
         wheelConfig.targetSector = sectorEls[wheelConfig.targetSectorIndex];
+        wheelConfig.fullRotationsCount = rand(9, 12);
         wheelConfig.startAnimationTimeMs = performance.now();
         wheelSpinHandler(wheelConfig.startAnimationTimeMs);
         wheelContainerEl.toggleAttribute('data-spin', wheelConfig.isSpinning);
