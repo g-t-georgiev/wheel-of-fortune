@@ -152,6 +152,8 @@ body {
     display: inline-flex;
     justify-content: center;
     align-items: center;
+    text-align: center;
+    vertical-align: middle;
 }
 
 .wheel-sector:not(:is(
@@ -168,7 +170,6 @@ body {
     border-color: currentColor;
     padding: clamp(2px, 2vw, 5px);
     margin-block: auto;
-    margin-inline: 10% auto;
 }
 
 /* .wheel-sector:is(
