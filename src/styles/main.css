@@ -35,6 +35,7 @@
     --wheel-arrow-height: 30px;
     --wheel-arrow-base: calc(var(--wheel-arrow-height) / 2);
 
+    --spin-btn-font-size: clamp(1rem, 2vw, 1.3rem);
     --spin-btn-border-clr: rgba(255, 255, 255, 1);
     --spin-btn-border-width: clamp(1px, 2vw, 2px);
     --spin-btn-box-shadow-clr: rgba(0, 0, 0, .35);
@@ -189,7 +190,7 @@ body {
     box-shadow: 
         0 0 0 var(--spin-btn-box-shadow-width) var(--spin-btn-box-shadow-clr),
         inset 0 0 15px rgba(255, 255, 255, .7);
-    font-size: clamp(.65rem, 1.5vw, 1.5rem);
+    font-size: var(--spin-btn-font-size);
     font-weight: 600;
     text-align: center;
     text-transform: uppercase;
