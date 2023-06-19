@@ -243,8 +243,15 @@ body {
     [disabled]
 ) {
     --spin-btn-bg-clr: rgb(102, 6, 6);
-    --spin-btn-txt-clr: #cfcfcf;
+    --spin-btn-txt-clr: rgb(207, 207, 207);
 }
 
 /* Spin button animation */
 
+.wheel-container-outer[data-spin] .wheel-start-btn {
+    pointer-events: none;
+    animation-name: button-pop;
+    animation-duration: 1s;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+}
