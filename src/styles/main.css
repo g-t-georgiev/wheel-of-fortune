@@ -32,6 +32,11 @@
     --sector-inline-size: 50%;
     --sector-block-size: 20%;
 
+    --sector-content-font-weight: 600;
+    --sector-content-font-size: max(.55rem, 1.2vw);
+    --sector-content-text-align: center;
+    --sector-content-vertical-align: middle;
+
     --wheel-arrow-height: 30px;
     --wheel-arrow-base: calc(var(--wheel-arrow-height) / 2);
 
@@ -151,10 +156,10 @@ body {
     justify-content: center;
     align-items: center;
     color: var(--sector-txt-clr);
-    font-weight: 600;
-    font-size: clamp(.65rem, 1vw, 1.2rem);
-    text-align: center;
-    vertical-align: middle;
+    font-weight: var(--sector-content-font-weight);
+    font-size: var(--sector-content-font-size);
+    text-align: var(--sector-content-text-align);
+    vertical-align: var(--sector-content-vertical-align);
 }
 
 .wheel-sector:not(:is(
