@@ -35,19 +35,28 @@ export function rand(min, max) {
 }
 
 /**
- * Interpolates between start and end value over a set time index from 0 to 1.
- * @param {number} startPosition 
- * @param {number} endPosition 
- * @param {number} timeframe 
+ * Flips direction of x value.
+ * @param {number} x 
  * @returns 
  */
-export function lerp(startPosition, endPosition, timeframe) {
-    return startPosition + (endPosition - startPosition) * timeframe;
+export function flip(x) {
+    return 1 - x;
 }
 
 /**
- * Calculates increasing easing factor index.
- * @param {number} t time progress 
+ * Interpolates between start and end value over a set time index from 0 to 1.
+ * @param {number} a start value
+ * @param {number} b end value
+ * @param {number} t time progress [0..1]
+ * @returns 
+ */
+export function lerp(a, b, t) {
+    return a + (b - a) * t;
+}
+
+/**
+ * Calculates gradually increasing easing factor index.
+ * @param {number} t time progress [0..1]
  * @param {number} exponent exponent factor
  * @returns 
  */
@@ -59,17 +68,8 @@ export function easeIn(t, exponent = 1) {
 }
 
 /**
- * Flips direction of x value.
- * @param {number} x 
- * @returns 
- */
-export function flip(x) {
-    return 1 - x;
-}
-
-/**
- * Calculates decreasing easing factor index.
- * @param {number} t time progress 
+ * Calculates gradually decreasing easing factor index.
+ * @param {number} t time progress [0..1]
  * @param {number} exponent exponent factor
  * @returns 
  */
@@ -79,4 +79,12 @@ export function easeOut(t, exponent = 1) {
     let easingFactor = flip((t) ** exponent);
     // console.log('Easing factor:', easingFactor);
     return easingFactor;
+}
+
+/**
+ * Calculats gradually increasing and decreasing easing factor index.
+ * @param {number} t time progress
+ */
+export function easeInOut(t) {
+    return lerp(easeIn(t), easeOut(t), t);
 }
