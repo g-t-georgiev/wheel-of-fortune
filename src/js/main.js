@@ -156,6 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
         wheelConfig.targetSectorIndex = rand(0, 13);
         wheelConfig.startAnimationTimeMs = performance.now();
         wheelSpinHandler(wheelConfig.startAnimationTimeMs);
+        wheelContainerEl.toggleAttribute('data-spin', wheelConfig.isSpinning);
         spinBtn.toggleAttribute('disabled', wheelConfig.isSpinning);
     };
 
@@ -204,6 +205,7 @@ const wheelSpinHandler = function (timestamp) {
         wheelConfig.prevAnimationTimeMs = null;
         wheelConfig.currentRotationCount = 0;
         cancelAnimationFrame(wheelConfig.animationHandle);
+        wheelContainerEl.toggleAttribute('data-spin', wheelConfig.isSpinning);
         spinBtn.toggleAttribute('disabled', wheelConfig.isSpinning);
         return;
     }
