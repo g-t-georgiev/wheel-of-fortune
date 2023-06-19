@@ -190,11 +190,15 @@ const wheelSpinHandler = function (timestamp) {
 
     wheelSectorsContainerEl.style.setProperty(
         'transform',
-        `rotateZ(${wheelConfig.normalizeRotationProgressDeg(wheelConfig.rotationProgressDeg)}deg)`
+        `rotateZ(${wheelConfig.rotationProgressDeg}deg)`
     );
 
     if (remainingTimeMs === 0) {
         wheelConfig.rotationProgressDeg = wheelConfig.normalizeRotationProgressDeg(wheelConfig.rotationProgressDeg);
+        wheelSectorsContainerEl.style.setProperty(
+            'transform',
+            `rotateZ(${wheelConfig.rotationProgressDeg}deg)`
+        );
 
         console.log('Wheel rotation progress:', wheelConfig.rotationProgressDeg);
         console.log('Winning sector angle:', wheelConfig.targetRotationAngleDeg);
