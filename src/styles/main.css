@@ -156,7 +156,6 @@ body {
 
 .wheel-sector:not(:is(
     [data-value="freeSpins"],
-    [data-value="looseAll"]
 )) .wheel-sector-content {
     max-inline-size: 50px;
     inline-size: 3vw;
@@ -174,7 +173,6 @@ body {
 
 /* .wheel-sector:is(
     [data-value="freeSpins"],
-    [data-value="looseAll"]
 ) .wheel-sector-content { } */
 
 .wheel-start-btn {
@@ -205,7 +203,7 @@ body {
     scale: 1.1;
 }
 
-.wheel-start-btn:is(:focus, :focus-visible, :focus-within) {
+.wheel-start-btn:is(:active, :focus, :focus-visible, :focus-within) {
     outline: 3px solid rgba(255, 255, 255, 1);
 }
 
