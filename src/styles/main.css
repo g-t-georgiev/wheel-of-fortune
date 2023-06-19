@@ -21,7 +21,7 @@
     --clr-txt-dark: rgb(34, 34, 34);
     --clr-txt-light: rgb(238, 238, 238);
 
-    --wheel-size: clamp(350px, 35vw, 960px);
+    --wheel-size: clamp(350px, 35vw, 760px);
     --wheel-bg-clr: rgba(51, 51, 51, 1);
     --wheel-border-width: clamp(3px, 1vw, 6px);
     --wheel-border-clr: rgba(51, 51, 51, 1);
