@@ -1,6 +1,6 @@
 import appConfig from './app.config.js';
 import { wheelConfig } from './wheel.config.js';
-import { rand, easeIn } from './utils/helpers.js';
+import { rand, lerp, easeInOut } from './utils/helpers.js';
 
 wheelConfig.initialize({
     sectors: appConfig.data.length,
@@ -117,7 +117,7 @@ const wheelSpinHandler = function (timestamp) {
     const remainingTimeProgress = 1 - startTimeProgress;
     const remainingTimeMs = Math.max(0, wheelConfig.rotationDurationMs * remainingTimeProgress);
 
-    const rotationStepDeg = wheelConfig.calcRotationStepDeg(wheelConfig.rotationStartPositionDeg, wheelConfig.totalRotationAngleDeg, startTimeProgress);
+    const rotationStepDeg = lerp(wheelConfig.rotationStartPositionDeg, wheelConfig.totalRotationAngleDeg, easeInOut(startTimeProgress, 2));
     wheelConfig.rotationProgressDeg = rotationStepDeg;
 
     if (Math.floor(wheelConfig.rotationProgressDeg / 360) > wheelConfig.currentRotationCount) {
