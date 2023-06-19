@@ -1,0 +1,8 @@
+/* Spin button animation during wheel spinning */
+
+@keyframes button-pop {
+    100% {
+        --spin-btn-txt-clr: rgb(238, 238, 238);
+        scale: 1.2;
+    }   
+}
