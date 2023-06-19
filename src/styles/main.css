@@ -232,8 +232,7 @@ body {
     :disabled, 
     [disabled]
 ) {
-    --spin-btn-bg-clr: rgb(102, 6, 6);
-    --spin-btn-txt-clr: rgb(207, 207, 207);
+    --spin-btn-txt-clr: hsl(0, 0%, 89%);
 }
 
 .wheel-start-btn:not(
