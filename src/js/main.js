@@ -1,9 +1,9 @@
-import appConfig from './app.config.js';
+import * as api from '../../api/index.js';
 import { wheelConfig } from './wheel.config.js';
 import { rand, lerp, easeInOut } from './utils/helpers.js';
 
 wheelConfig.initialize({
-    sectors: appConfig.data.length,
+    sectors: api.data.length,
     duration: 5e3,
 });
 
@@ -55,8 +55,8 @@ document.addEventListener('DOMContentLoaded', () => {
     sectorEls = [...wheelSectorsContainerEl.querySelectorAll('.wheel-sector')];
 
     if (!sectorEls.length) {
-        for (let i = 0; i < appConfig.data.length; i++) {
-            const dataSrc = appConfig.data[i];
+        for (let i = 0; i < api.data.length; i++) {
+            const dataSrc = api.data[i];
             const sector = document.createElement('div');
             sector.classList.add('wheel-sector');
             sector.style.setProperty('--sector-id', dataSrc.id);
