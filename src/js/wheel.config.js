@@ -1,4 +1,4 @@
-import { Polygon } from './utils/helpers.js';
+import { Polygon } from './helpers.js';
 
 export const wheelConfig = {
     sectorsCount: 0,
