@@ -1,6 +1,6 @@
 import * as api from '../../api/index.js';
 import { wheelConfig } from './wheel.config.js';
-import { rand, lerp, easeInOut } from './utils/helpers.js';
+import { rand, lerp, easeInOut } from './helpers.js';
 
 wheelConfig.initialize({
     sectors: api.data.length,
