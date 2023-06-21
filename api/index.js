@@ -1,7 +1,7 @@
 import {
     getRandomInteger,
     shuffleArray,
-    getDistinctSubsets
+    getCombinations
 } from './utils.js';
 export * from './data.js';
 
@@ -11,7 +11,7 @@ let gameObject = null;
 function* gameManager() {
     sectors = shuffleArray(sectors);
     let subsetSize = Math.min(sectors.length, 2);
-    let winningSectors = shuffleArray(getDistinctSubsets(sectors, subsetSize));
+    let winningSectors = shuffleArray(getCombinations(sectors, subsetSize));
     let winningSectorsGroup = winningSectors[getRandomInteger(0, winningSectors.length - 1)];
     let randomSectors = sectors.filter(v => v !== winningSectorsGroup[0] && v !== winningSectorsGroup[1]);
     let currentGame = null;
