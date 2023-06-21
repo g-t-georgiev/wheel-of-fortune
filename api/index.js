@@ -23,7 +23,7 @@ function* gameManager() {
             sectors = shuffleArray(sectors)
             winningSectorsGroup = winningSectors[getRandomInteger(0, winningSectors.length - 1)];
             randomSectors = sectors.filter(v => v !== winningSectorsGroup[0] && v !== winningSectorsGroup[1]);
-            currentGame = 1;
+            currentGame = currentGame % 10;
             totalGames++;
         }
 
