@@ -1,6 +1,6 @@
 /**
- * Returns a random number between the interval of a min and max value.
- * The min and max tresholds are inclusive.
+ * Returns a random number between the interval of a `min` and `max` value.
+ * The *min* and *max* tresholds are **inclusive**.
  * @param {number} min 
  * @param {number} max 
  * @returns 
@@ -32,7 +32,7 @@ export function shuffleArray(array) {
 }
 
 /**
- * Calculates the binomial coefficient C(n, r).
+ * Calculates the binomial coefficient `C(n, r)`.
  * @param {number} n 
  * @param {number} r 
  * @returns {number}
@@ -81,7 +81,7 @@ function factorial(num) {
  * @param {number} length 
  * @returns 
  */
-function combinations(n, r) {
+function combinations(n, length) {
     // return factorial(n) / (factorial(n - length) * factorial(length));
     return binomialCoefficient(n, length);
 }
@@ -91,7 +91,6 @@ function combinations(n, r) {
  * from total of `n` elements.
  * @param {number} n 
  * @param {number} length 
- * @param {boolean} o 
  * @returns 
  */
 function permutations(n, length) {
