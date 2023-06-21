@@ -30,3 +30,26 @@ export function shuffleArray(array) {
 
     return array;
 }
+
+/**
+ * Returns a fixed length set of distinct item pairs from a list. 
+ * The length of the set is calculated by the formula `n(n-1)/2`,
+ * where `n` is the length of the list argument.
+ * @param {any[]} list 
+ * @returns {any[][]}
+ */
+export function getDistinctListItemPairs(list) {
+    let pairs = Array.from({ length: list.length * (list.length - 1) / 2 });
+    let i = 0;
+    let j = 0;
+    let k = j + 1;
+
+    while (j < list.length - 1) {
+        pairs[i++] = [ list[j], list[k++] ];
+        // pairs.push([ list[j], list[k++] ]);
+        j = k % list.length ? j : j + 1;
+        k =  k % list.length ? k : j + 1;
+    }
+
+    return pairs;
+}
