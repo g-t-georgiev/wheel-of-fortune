@@ -63,6 +63,14 @@ function factorial(num) {
     if (num === 0) return 1;
     if (num < 0) return -1;
 
+    // let result = 1;
+
+    // for (let i = 2; i <= num; i++) {
+    //     result *= i;
+    // }
+
+    // return result;
+
     return num * factorial(num - 1);
 }
 
@@ -82,34 +90,71 @@ function combinations(n, r) {
  * Counts the distinct permutations of a subset of `r` 
  * from total of `n` elements.
  * @param {number} n 
- * @param {number} r 
+ * @param {number} length 
  * @param {boolean} o 
  * @returns 
  */
-function permutations(n, r) {
-    return factorial(n) / (factorial(n - r));
+function permutations(n, length) {
+    return factorial(n) / (factorial(n - length));
 }
 
 /**
- * Returns a group of fixed length distinct 
- * subsets of items from a given collection.
+ * Returns an array of distinct combinations of a given length
+ * from a collection of items.
  * @param {any[]} collection 
- * @param {number} subset 
- * @param {boolean} filterByOrder  
+ * @param {number} length 
  * @returns {any[][]}
  */
-export function getDistinctSubsets(collection, subset) {
-    const maxLen = combinations(collection.length, subset); // collection.length * (collection.length - 1) / 2
-    let groups = Array.from({ length: maxLen });
-    let i = 0;
-    let j = 0;
-    let k = j + 1;
+function getCombinations(collection, length) {
+    const subsets = [];
+    const subset = [];
 
-    while (i < maxLen) {
-        groups[i++] = [ collection[j], collection[k++] ];
-        j = k % collection.length ? j : j + 1;
-        k =  k % collection.length ? k : j + 1;
+    function backtrack(startIdx) {
+        if (subset.length === length) {
+            subsets.push(subset.slice());
+            return;
+        }
+
+        for (let i = startIdx; i < collection.length; i++) {
+            subset.push(collection[i]);
+            backtrack(i + 1);
+            subset.pop();
+        }
     }
 
-    return groups;
+    backtrack(0);
+    return subsets;
+}
+
+/**
+ * Returns an array of distinct permutations of a given length
+ * from a collection of items.
+ * @param {any[]} collection 
+ * @param {number} length 
+ * @returns {any[][]}
+ */
+function getPermutations(collection, length) {
+    const subsets = [];
+    const subset = [];
+    const visited = new Array(collection.length).fill(false);
+
+    function backtrack() {
+        if (subset.length === length) {
+            subsets.push(subset.slice());
+            return;
+        }
+
+        for (let i = 0; i < collection.length; i++) {
+            if (!visited[i]) {
+                visited[i] = true;
+                subset.push(collection[i]);
+                backtrack();
+                subset.pop();
+                visited[i] = false;
+            }
+        }
+    }
+
+    backtrack();
+    return subsets;
 }
