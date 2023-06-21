@@ -47,7 +47,7 @@ export function factorial(num) {
 
 /**
  * Counts the distinct combinations of a subset of `r` 
- * from total of `n` elements. When `o` is `true`, a 
+ * from total of `n` elements. When `o` is `true`, 
  * permutations are calculated (where order matters). 
  * Otherwise combinations are calculated (where order does not matter), 
  * which is the default behavior.
@@ -63,24 +63,27 @@ export function calcDistinctItemGroupings(n, r, o = false) {
 }
 
 /**
- * Returns a fixed length set of distinct item pairs from a list. 
- * The length of the set is calculated by the formula `n(n-1)/2`,
- * where `n` is the length of the list argument.
- * @param {any[]} list 
+ * Returns a group of fixed length distinct subsets of items from 
+ * a given collection. When *filterByOrder* is *true*, length is 
+ * calculated as permutation of subsets. By default the value is *false*,
+ * calculating the length as combination of subsets.
+ * @param {any[]} collection 
+ * @param {number} subset 
+ * @param {boolean} filterByOrder  
  * @returns {any[][]}
  */
-export function getDistinctListItemPairs(list) {
-    let pairs = Array.from({ length: list.length * (list.length - 1) / 2 });
+export function getDistinctSubsets(collection, subset, filterByOrder = false) {
+    let groups = Array.from({ length: calcDistinctItemGroupings(collection.length, subset, filterByOrder) });
     let i = 0;
     let j = 0;
     let k = j + 1;
 
-    while (j < list.length - 1) {
-        pairs[i++] = [ list[j], list[k++] ];
+    while (j < collection.length - (subset - 1)) {
+        groups[i++] = [ collection[j], collection[k++] ];
         // pairs.push([ list[j], list[k++] ]);
-        j = k % list.length ? j : j + 1;
-        k =  k % list.length ? k : j + 1;
+        j = k % collection.length ? j : j + 1;
+        k =  k % collection.length ? k : j + 1;
     }
 
-    return pairs;
+    return groups;
 }
