@@ -14,6 +14,22 @@ let wheelSectorsContainerEl = wheelContainerEl?.querySelector('.wheel-container-
 let sectorEls = wheelSectorsContainerEl?.querySelectorAll('.wheel-sector');
 let hoverFeature = window.matchMedia('(hover: hover)');
 
+const startBtnClickHandler = function () {
+    if (wheelConfig.isSpinning) {
+        // Do something while wheel is spinning...
+        return;
+    }
+
+    wheelConfig.isSpinning = true;
+    wheelConfig.targetSectorIndex = api.requestGameData();
+    wheelConfig.targetSector = sectorEls[wheelConfig.targetSectorIndex];
+    wheelConfig.fullRotationsCount = rand(7, 10);
+    wheelConfig.startAnimationTimeMs = performance.now();
+    wheelSpinHandler(wheelConfig.startAnimationTimeMs);
+    wheelContainerEl.toggleAttribute('data-spin', wheelConfig.isSpinning);
+    spinBtn.toggleAttribute('disabled', wheelConfig.isSpinning);
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     if (
         !wheelContainerEl ||
@@ -82,27 +98,12 @@ document.addEventListener('DOMContentLoaded', () => {
         wheelConfig.setWheelSectorPosition(sector, index, sector.parentElement);
     });
 
-    const startBtnClickHandler = function () {
-        if (wheelConfig.isSpinning) {
-            // Do something while wheel is spinning...
-            return;
-        }
-
-        wheelConfig.isSpinning = true;
-        wheelConfig.targetSectorIndex = api.requestGameData();
-        wheelConfig.targetSector = sectorEls[wheelConfig.targetSectorIndex];
-        wheelConfig.fullRotationsCount = rand(7, 10);
-        wheelConfig.startAnimationTimeMs = performance.now();
-        wheelSpinHandler(wheelConfig.startAnimationTimeMs);
-        wheelContainerEl.toggleAttribute('data-spin', wheelConfig.isSpinning);
-        spinBtn.toggleAttribute('disabled', wheelConfig.isSpinning);
-    };
-
     if (hoverFeature.matches) {
         spinBtn.addEventListener('click', startBtnClickHandler);
     } else {
         spinBtn.addEventListener('pointerdown', startBtnClickHandler);
     }
+    
 });
 
 // Wheel spin logic
