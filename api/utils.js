@@ -46,6 +46,23 @@ export function factorial(num) {
 }
 
 /**
+ * Counts the distinct combinations of a subset of `r` 
+ * from total of `n` elements. When `o` is `true`, a 
+ * permutations are calculated (where order matters). 
+ * Otherwise combinations are calculated (where order does not matter), 
+ * which is the default behavior.
+ * @param {number} n 
+ * @param {number} r 
+ * @param {boolean} o 
+ * @returns 
+ */
+export function calcDistinctItemGroupings(n, r, o = false) {
+    return !o 
+        ? factorial(n) / (factorial(n - r) * factorial(r)) 
+        : factorial(n) / (factorial(n - r));
+}
+
+/**
  * Returns a fixed length set of distinct item pairs from a list. 
  * The length of the set is calculated by the formula `n(n-1)/2`,
  * where `n` is the length of the list argument.
