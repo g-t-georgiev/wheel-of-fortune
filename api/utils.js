@@ -38,7 +38,7 @@ export function shuffleArray(array) {
  * @param {number} num 
  * @returns {number}
  */
-export function factorial(num) {
+function factorial(num) {
     if (num === 0) return 1;
     if (num < 0) return -1;
 
@@ -47,40 +47,43 @@ export function factorial(num) {
 
 /**
  * Counts the distinct combinations of a subset of `r` 
- * from total of `n` elements. When `o` is `true`, 
- * permutations are calculated (where order matters). 
- * Otherwise combinations are calculated (where order does not matter), 
- * which is the default behavior.
+ * from total of `n` elements.
+ * @param {number} n 
+ * @param {number} r 
+ * @returns 
+ */
+function combinations(n, r) {
+    return factorial(n) / (factorial(n - r) * factorial(r)) 
+}
+
+/**
+ * Counts the distinct permutations of a subset of `r` 
+ * from total of `n` elements.
  * @param {number} n 
  * @param {number} r 
  * @param {boolean} o 
  * @returns 
  */
-export function calcDistinctItemGroupings(n, r, o = false) {
-    return !o 
-        ? factorial(n) / (factorial(n - r) * factorial(r)) 
-        : factorial(n) / (factorial(n - r));
+function permutations(n, r) {
+    return factorial(n) / (factorial(n - r));
 }
 
 /**
- * Returns a group of fixed length distinct subsets of items from 
- * a given collection. When *filterByOrder* is *true*, length is 
- * calculated as permutation of subsets. By default the value is *false*,
- * calculating the length as combination of subsets.
+ * Returns a group of fixed length distinct 
+ * subsets of items from a given collection.
  * @param {any[]} collection 
  * @param {number} subset 
  * @param {boolean} filterByOrder  
  * @returns {any[][]}
  */
-export function getDistinctSubsets(collection, subset, filterByOrder = false) {
-    let groups = Array.from({ length: calcDistinctItemGroupings(collection.length, subset, filterByOrder) });
+export function getDistinctSubsets(collection, subset) {
+    let groups = Array.from({ length: combinations(collection.length, subset) });
     let i = 0;
     let j = 0;
     let k = j + 1;
 
     while (j < collection.length - (subset - 1)) {
         groups[i++] = [ collection[j], collection[k++] ];
-        // pairs.push([ list[j], list[k++] ]);
         j = k % collection.length ? j : j + 1;
         k =  k % collection.length ? k : j + 1;
     }
