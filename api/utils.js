@@ -77,12 +77,13 @@ function permutations(n, r) {
  * @returns {any[][]}
  */
 export function getDistinctSubsets(collection, subset) {
-    let groups = Array.from({ length: combinations(collection.length, subset) });
+    const maxLen = combinations(collection.length, subset); // collection.length * (collection.length - 1) / 2
+    let groups = Array.from({ length: maxLen });
     let i = 0;
     let j = 0;
     let k = j + 1;
 
-    while (j < collection.length - (subset - 1)) {
+    while (i < maxLen) {
         groups[i++] = [ collection[j], collection[k++] ];
         j = k % collection.length ? j : j + 1;
         k =  k % collection.length ? k : j + 1;
