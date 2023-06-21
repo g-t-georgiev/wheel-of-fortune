@@ -105,7 +105,7 @@ function permutations(n, length) {
  * @param {number} length 
  * @returns {any[][]}
  */
-function getCombinations(collection, length) {
+export function getCombinations(collection, length) {
     const subsets = [];
     const subset = [];
 
@@ -133,7 +133,7 @@ function getCombinations(collection, length) {
  * @param {number} length 
  * @returns {any[][]}
  */
-function getPermutations(collection, length) {
+export function getPermutations(collection, length) {
     const subsets = [];
     const subset = [];
     const visited = new Array(collection.length).fill(false);
