@@ -32,6 +32,20 @@ export function shuffleArray(array) {
 }
 
 /**
+ * Calculates a factorial of a natural number `num`. 
+ * If `num = 0` `1` is returned, and if `num < 0`, `-1` 
+ * is returned as indication for invalid input.
+ * @param {number} num 
+ * @returns {number}
+ */
+export function factorial(num) {
+    if (num === 0) return 1;
+    if (num < 0) return -1;
+
+    return num * factorial(num - 1);
+}
+
+/**
  * Returns a fixed length set of distinct item pairs from a list. 
  * The length of the set is calculated by the formula `n(n-1)/2`,
  * where `n` is the length of the list argument.
