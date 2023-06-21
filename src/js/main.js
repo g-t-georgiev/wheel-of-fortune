@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         wheelConfig.isSpinning = true;
-        wheelConfig.targetSectorIndex = rand(0, 13);
+        wheelConfig.targetSectorIndex = api.requestGameData();
         wheelConfig.targetSector = sectorEls[wheelConfig.targetSectorIndex];
         wheelConfig.fullRotationsCount = rand(7, 10);
         wheelConfig.startAnimationTimeMs = performance.now();
