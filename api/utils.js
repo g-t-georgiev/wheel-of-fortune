@@ -32,6 +32,27 @@ export function shuffleArray(array) {
 }
 
 /**
+ * Calculates the binomial coefficient C(n, r).
+ * @param {number} n 
+ * @param {number} r 
+ * @returns {number}
+ */
+function binomialCoefficient(n, r) {
+    if (r > n - r) {
+        r = n - r;
+    }
+
+    let result = 1;
+
+    for (let i = 0; i < r; i++) {
+        result *= (n - i);
+        result /= (i + 1);
+    }
+
+    return result;
+}
+
+/**
  * Calculates a factorial of a natural number `num`. 
  * If `num = 0` `1` is returned, and if `num < 0`, `-1` 
  * is returned as indication for invalid input.
@@ -49,11 +70,12 @@ function factorial(num) {
  * Counts the distinct combinations of a subset of `r` 
  * from total of `n` elements.
  * @param {number} n 
- * @param {number} r 
+ * @param {number} length 
  * @returns 
  */
 function combinations(n, r) {
-    return factorial(n) / (factorial(n - r) * factorial(r)) 
+    // return factorial(n) / (factorial(n - length) * factorial(length));
+    return binomialCoefficient(n, length);
 }
 
 /**
