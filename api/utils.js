@@ -108,9 +108,10 @@ export function getCombinations(collection, length) {
     const subsets = [];
     const subset = [];
 
+
     function backtrack(startIdx) {
         if (subset.length === length) {
-            subsets.push(subset.slice());
+            subsets.push([ ...subset ]);
             return;
         }
 
@@ -139,7 +140,7 @@ export function getPermutations(collection, length) {
 
     function backtrack() {
         if (subset.length === length) {
-            subsets.push(subset.slice());
+            subsets.push([ ...subset ]);
             return;
         }
 
