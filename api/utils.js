@@ -18,13 +18,13 @@ export function getRandomInteger(min, max) {
  * @returns 
  */
 export function shuffleArray(array) {
-    array = [ ...array ];
+    array = [...array];
     let i = array.length - 1;
     let j;
 
     while (i >= 0) {
         j = Math.floor(Math.random() * (i + 1));
-        [ array[i], array[j] ] = [ array[j], array[i] ];
+        [array[i], array[j]] = [array[j], array[i]];
         i--;
     }
 
@@ -75,7 +75,7 @@ function factorial(num) {
 }
 
 /**
- * Counts the distinct combinations of a subset of `r` 
+ * Counts the distinct combinations of a subset of `length` 
  * from total of `n` elements.
  * @param {number} n 
  * @param {number} length 
@@ -87,7 +87,7 @@ function combinations(n, length) {
 }
 
 /**
- * Counts the distinct permutations of a subset of `r` 
+ * Counts the distinct permutations of a subset of `length` 
  * from total of `n` elements.
  * @param {number} n 
  * @param {number} length 
@@ -104,14 +104,14 @@ function permutations(n, length) {
  * @param {number} length 
  * @returns {any[][]}
  */
-export function getCombinations(collection, length) {
+export function getCombinations(collection, length, limit = Number.MAX_SAFE_INTEGER) {
     const subsets = [];
     const subset = [];
-
+    const maxSize = combinations(collection.length, length);
 
     function backtrack(startIdx) {
         if (subset.length === length) {
-            subsets.push([ ...subset ]);
+            subsets.push([...subset]);
             return;
         }
 
@@ -119,6 +119,13 @@ export function getCombinations(collection, length) {
             subset.push(collection[i]);
             backtrack(i + 1);
             subset.pop();
+
+            if (
+                maxSize > limit && 
+                subsets.length === limit
+            ) {
+                break;
+            }
         }
     }
 
@@ -133,24 +140,32 @@ export function getCombinations(collection, length) {
  * @param {number} length 
  * @returns {any[][]}
  */
-export function getPermutations(collection, length) {
+export function getPermutations(collection, length, limit = Number.MAX_SAFE_INTEGER) {
     const subsets = [];
     const subset = [];
     const visited = new Array(collection.length).fill(false);
+    const maxSize = permutations(collection.length, length);
 
-    function backtrack() {
+    function backtrack(startIdx = 0) {
         if (subset.length === length) {
-            subsets.push([ ...subset ]);
+            subsets.push([...subset]);
             return;
         }
 
-        for (let i = 0; i < collection.length; i++) {
+        for (let i = startIdx; i < collection.length; i++) {
             if (!visited[i]) {
                 visited[i] = true;
                 subset.push(collection[i]);
                 backtrack();
                 subset.pop();
                 visited[i] = false;
+
+                if (
+                    maxSize > limit && 
+                    subsets.length === limit
+                ) {
+                    break;
+                }
             }
         }
     }
