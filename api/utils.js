@@ -102,9 +102,11 @@ function permutations(n, length) {
  * from a collection of items.
  * @param {any[]} collection 
  * @param {number} length 
+ * @param {number} [limit] 
+ * @param {number} [startIdx]
  * @returns {any[][]}
  */
-export function getCombinations(collection, length, limit = Number.MAX_SAFE_INTEGER) {
+export function getCombinations(collection, length, limit = Number.MAX_SAFE_INTEGER, startIdx) {
     const subsets = [];
     const subset = [];
     const maxSize = combinations(collection.length, length);
@@ -129,7 +131,7 @@ export function getCombinations(collection, length, limit = Number.MAX_SAFE_INTE
         }
     }
 
-    backtrack(0);
+    backtrack(startIdx ?? 0);
     return subsets;
 }
 
@@ -138,9 +140,11 @@ export function getCombinations(collection, length, limit = Number.MAX_SAFE_INTE
  * from a collection of items.
  * @param {any[]} collection 
  * @param {number} length 
+ * @param {number} [limit] 
+ * @param {number} [startIdx]
  * @returns {any[][]}
  */
-export function getPermutations(collection, length, limit = Number.MAX_SAFE_INTEGER) {
+export function getPermutations(collection, length, limit = Number.MAX_SAFE_INTEGER, startIdx) {
     const subsets = [];
     const subset = [];
     const visited = new Array(collection.length).fill(false);
@@ -170,6 +174,6 @@ export function getPermutations(collection, length, limit = Number.MAX_SAFE_INTE
         }
     }
 
-    backtrack();
+    backtrack(startIdx);
     return subsets;
 }
