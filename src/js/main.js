@@ -15,7 +15,7 @@ let sectorEls = wheelSectorsContainerEl?.querySelectorAll('.wheel-sector');
 let hoverFeature = window.matchMedia('(hover: hover)');
 
 const startBtnClickHandler = function () {
-    if (wheelConfig.autoplay) return;
+    if (wheelConfig.autoPlay) return;
 
     if (wheelConfig.isSpinning) {
         // Do something while wheel is spinning...
@@ -26,40 +26,36 @@ const startBtnClickHandler = function () {
     wheelConfig.targetSectorIndex = api.requestGameData();
     wheelConfig.targetSector = sectorEls[wheelConfig.targetSectorIndex];
     wheelConfig.fullRotationsCount = rand(7, 10);
+    wheelContainerEl.toggleAttribute('data-spin', wheelConfig.isSpinning);
     wheelConfig.startAnimationTimeMs = performance.now();
     wheelSpinHandler(wheelConfig.startAnimationTimeMs);
-    wheelContainerEl.toggleAttribute('data-spin', wheelConfig.isSpinning);
+    console.log('Start button click handler');
 };
 
-const startAutoPlay = function (executionCount) {
-    wheelConfig.autoplay = true;
-    wheelConfig.fullRotationsCount = rand(7, 10);
-    wheelContainerEl.toggleAttribute('data-autoplay', wheelConfig.autoplay);
+const startAutoPlay = function (repeatCount) {
+    if (!wheelConfig.autoPlay) {
+        console.log('---- Free spins (auto-play) start ----');
+        startAutoPlay.internalCalls = 0;
+        wheelConfig.autoPlay = true;
+        wheelContainerEl.toggleAttribute('data-autoplay', wheelConfig.autoPlay);
+    }
 
-    let delay = 2e3;
-    let executorCb = function () {
+    if (startAutoPlay.internalCalls < repeatCount) {
+        startAutoPlay.internalCalls++;
+        console.log(`---- Free spins (auto-play) ${startAutoPlay.internalCalls} / ${repeatCount} ----`);
         wheelConfig.isSpinning = true;
+        wheelConfig.fullRotationsCount = rand(7, 10);
         wheelConfig.targetSectorIndex = 5;
         wheelConfig.targetSector = sectorEls[wheelConfig.targetSectorIndex];
         wheelContainerEl.toggleAttribute('data-spin', wheelConfig.isSpinning);
-
-  
         wheelConfig.startAnimationTimeMs = performance.now();
         wheelSpinHandler(wheelConfig.startAnimationTimeMs);
-        clearTimeout(timerId);
-        executionCount--;
-
-        if (executionCount > 0) {
-            delay = wheelConfig.rotationDurationMs + 1e3;
-            timerId = setTimeout(executorCb, delay);
-            return;
-        }
-
-        wheelConfig.autoplay = false;
-        wheelContainerEl.toggleAttribute('data-autoplay', wheelConfig.autoplay);
-    };
-
-    let timerId = setTimeout(executorCb, delay);
+    } else {
+        console.log('---- Free spins (auto-play) end ----');
+        startAutoPlay.internalCalls = 0;
+        wheelConfig.autoPlay = false;
+        wheelContainerEl.toggleAttribute('data-autoplay', wheelConfig.autoPlay);
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -183,8 +179,6 @@ const wheelSpinHandler = function (timestamp) {
         console.log('Winning sector angle:', targetRotationAngleDeg);
         console.log('Winning sector ref:', targetSector);
 
-        // TODO: Implement auto-play functionality
-
         wheelConfig.isSpinning = false;
         wheelConfig.targetSector = null;
         wheelConfig.targetSectorIndex = null;
@@ -193,6 +187,13 @@ const wheelSpinHandler = function (timestamp) {
         wheelConfig.currentRotationCount = 0;
         cancelAnimationFrame(wheelConfig.animationHandle);
         wheelContainerEl.toggleAttribute('data-spin', wheelConfig.isSpinning);
+
+        if (targetSectorIndex === 5) {
+            // console.log('Free spin starting point', rotationStartPositionDeg);
+            startAutoPlay(wheelConfig.autoSpins);
+            return;
+        }
+    
         return;
     }
 
