@@ -171,7 +171,6 @@ export function requestGameData() {
     }
 
     let { value, done } = gameObject.next();
-    console.log('API response:', value);
     return value;
 
 }
