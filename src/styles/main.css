@@ -228,34 +228,31 @@ body {
         text-shadow .15s ease-in-out;
 }
 
-.wheel-start-btn:is(
-    :disabled, 
-    [disabled]
-) {
+.wheel-container-outer:is(
+    [data-autoplay]
+) .wheel-start-btn {
     --spin-btn-txt-clr: hsl(0, 0%, 89%);
+    pointer-events: none;
 }
 
-.wheel-start-btn:not(
-    :is(
-        :disabled, 
-        [disabled]
-    )
-):is(
+.wheel-container-outer:not(:is(
+    [data-spin], 
+    [data-autoplay]
+)) .wheel-start-btn:is(
     :hover,
     :active
 ) {
     --spin-btn-txt-shadow: 0 0 10px rgba(255, 255, 255, .5);
 }
 
-.wheel-start-btn:not(
-    :is(
-        :disabled,
-        [disabled]
-    )
-):is(
-    :focus, 
-    :focus-visible, 
-    :focus-within
+
+.wheel-container-outer:not(:is(
+    [data-spin], 
+    [data-autoplay]
+)) .wheel-start-btn:is(
+    :focus,
+    :focus-within,
+    :focus-visible
 ) {
     --spin-btn-outline: 3px solid transparent;
     --spin-btn-txt-shadow: 0 0 10px rgba(255, 255, 255, .5);
@@ -263,7 +260,9 @@ body {
 
 /* Spin button animation */
 
-.wheel-container-outer[data-spin] .wheel-start-btn {
+.wheel-container-outer:is(
+    [data-spin],
+) .wheel-start-btn {
     pointer-events: none;
     animation-name: button-pop;
     animation-duration: 1s;
