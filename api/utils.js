@@ -23,7 +23,7 @@ export function shuffleArray(array) {
     let j;
 
     while (i >= 0) {
-        j = Math.floor(Math.random() * (i + 1));
+        j = getRandomInteger(0, i);
         [array[i], array[j]] = [array[j], array[i]];
         i--;
     }
@@ -59,7 +59,7 @@ function binomialCoefficient(n, r) {
  * @param {number} num 
  * @returns {number}
  */
-function factorial(num) {
+function factorial(num, memo = {}) {
     if (num === 0) return 1;
     if (num < 0) return -1;
 
@@ -71,7 +71,13 @@ function factorial(num) {
 
     // return result;
 
-    return num * factorial(num - 1);
+    if (Object.prototype.hasOwnProperty.call(memo, num)) {
+        return memo[num];
+    }
+
+    let result = num * factorial(num - 1);
+    memo[num] = result;
+    return result;
 }
 
 /**
@@ -82,8 +88,9 @@ function factorial(num) {
  * @returns 
  */
 function combinations(n, length) {
+    let result = binomialCoefficient(n, length);
     // return factorial(n) / (factorial(n - length) * factorial(length));
-    return binomialCoefficient(n, length);
+    return result;
 }
 
 /**
@@ -94,7 +101,8 @@ function combinations(n, length) {
  * @returns 
  */
 function permutations(n, length) {
-    return factorial(n) / (factorial(n - length));
+    let result = factorial(n) / (factorial(n - length));
+    return result;
 }
 
 /**
