@@ -4,6 +4,7 @@ export const wheelConfig = {
     sectorsCount: 0,
     animationHandle: null,
     isSpinning: false,
+    autoplay: false,
     frameRate: 60,
     startAnimationTimeMs: null,
     prevAnimationTimeMs: null,
