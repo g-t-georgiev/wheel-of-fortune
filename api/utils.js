@@ -87,9 +87,16 @@ function factorial(num, memo = {}) {
  * @param {number} length 
  * @returns 
  */
-function combinations(n, length) {
+function combinations(n, length, memo = {}) {
+    let key = `${n}-${length}`;
     let result = binomialCoefficient(n, length);
     // return factorial(n) / (factorial(n - length) * factorial(length));
+
+    if (Object.prototype.hasOwnProperty.call(memo, key)) {
+        return memo[key];
+    }
+
+    memo[key] = result;
     return result;
 }
 
@@ -100,8 +107,15 @@ function combinations(n, length) {
  * @param {number} length 
  * @returns 
  */
-function permutations(n, length) {
+function permutations(n, length, memo = {}) {
+    let key = `${n}-${length}`;
     let result = factorial(n) / (factorial(n - length));
+
+    if (Object.prototype.hasOwnProperty.call(memo, key)) {
+        return memo[key];
+    }
+
+    memo[key] = result;
     return result;
 }
 
