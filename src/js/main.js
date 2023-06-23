@@ -190,7 +190,10 @@ const wheelSpinHandler = function (timestamp) {
 
         if (targetSectorIndex === 5) {
             // console.log('Free spin starting point', rotationStartPositionDeg);
-            startAutoPlay(wheelConfig.autoSpins);
+            let timerId = window.setTimeout(function () {
+                clearInterval(timerId);
+                startAutoPlay(wheelConfig.autoSpins);
+            }, wheelConfig.autoPlayIdleTime);
             return;
         }
     
