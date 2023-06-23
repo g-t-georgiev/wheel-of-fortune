@@ -15,6 +15,8 @@ let sectorEls = wheelSectorsContainerEl?.querySelectorAll('.wheel-sector');
 let hoverFeature = window.matchMedia('(hover: hover)');
 
 const startBtnClickHandler = function () {
+    if (wheelConfig.autoplay) return;
+
     if (wheelConfig.isSpinning) {
         // Do something while wheel is spinning...
         return;
@@ -27,8 +29,38 @@ const startBtnClickHandler = function () {
     wheelConfig.startAnimationTimeMs = performance.now();
     wheelSpinHandler(wheelConfig.startAnimationTimeMs);
     wheelContainerEl.toggleAttribute('data-spin', wheelConfig.isSpinning);
-    spinBtn.toggleAttribute('disabled', wheelConfig.isSpinning);
 };
+
+const startAutoPlay = function (executionCount) {
+    wheelConfig.autoplay = true;
+    wheelConfig.fullRotationsCount = rand(7, 10);
+    wheelContainerEl.toggleAttribute('data-autoplay', wheelConfig.autoplay);
+
+    let delay = 2e3;
+    let executorCb = function () {
+        wheelConfig.isSpinning = true;
+        wheelConfig.targetSectorIndex = 5;
+        wheelConfig.targetSector = sectorEls[wheelConfig.targetSectorIndex];
+        wheelContainerEl.toggleAttribute('data-spin', wheelConfig.isSpinning);
+
+  
+        wheelConfig.startAnimationTimeMs = performance.now();
+        wheelSpinHandler(wheelConfig.startAnimationTimeMs);
+        clearTimeout(timerId);
+        executionCount--;
+
+        if (executionCount > 0) {
+            delay = wheelConfig.rotationDurationMs + 1e3;
+            timerId = setTimeout(executorCb, delay);
+            return;
+        }
+
+        wheelConfig.autoplay = false;
+        wheelContainerEl.toggleAttribute('data-autoplay', wheelConfig.autoplay);
+    };
+
+    let timerId = setTimeout(executorCb, delay);
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     if (
@@ -152,7 +184,6 @@ const wheelSpinHandler = function (timestamp) {
         wheelConfig.currentRotationCount = 0;
         cancelAnimationFrame(wheelConfig.animationHandle);
         wheelContainerEl.toggleAttribute('data-spin', wheelConfig.isSpinning);
-        spinBtn.toggleAttribute('disabled', wheelConfig.isSpinning);
         return;
     }
 
