@@ -164,17 +164,26 @@ const wheelSpinHandler = function (timestamp) {
     );
 
     if (remainingTimeMs === 0) {
+        let targetSector = wheelConfig.targetSector;
+        let targetSectorIndex = wheelConfig.targetSectorIndex;
+        let targetRotationAngleDeg = wheelConfig.targetRotationAngleDeg;
+        
         wheelConfig.rotationProgressDeg = wheelConfig.normalizeRotationProgressDeg(wheelConfig.rotationProgressDeg);
         wheelConfig.rotationStartPositionDeg = wheelConfig.rotationProgressDeg;
+
+        let rotationProgressDeg = wheelConfig.rotationProgressDeg;
+        let rotationStartPositionDeg = wheelConfig.rotationStartPositionDeg;
 
         wheelSectorsContainerEl.style.setProperty(
             'transform',
             `rotateZ(${wheelConfig.rotationProgressDeg}deg)`
         );
 
-        console.log('Wheel rotation progress:', wheelConfig.rotationProgressDeg);
-        console.log('Winning sector angle:', wheelConfig.targetRotationAngleDeg);
-        console.log('Winning sector ref:', wheelConfig.targetSector);
+        console.log('Wheel rotation progress:', rotationProgressDeg);
+        console.log('Winning sector angle:', targetRotationAngleDeg);
+        console.log('Winning sector ref:', targetSector);
+
+        // TODO: Implement auto-play functionality
 
         wheelConfig.isSpinning = false;
         wheelConfig.targetSector = null;
