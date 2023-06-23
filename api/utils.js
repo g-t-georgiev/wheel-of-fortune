@@ -131,6 +131,7 @@ function permutations(n, length, memo = {}) {
 export function getCombinations(collection, length, limit = Number.MAX_SAFE_INTEGER, startIdx) {
     const subsets = [];
     const subset = [];
+    const shuffledCollection = shuffleArray(collection);
     const maxSize = combinations(collection.length, length);
 
     function backtrack(startIdx) {
@@ -139,8 +140,8 @@ export function getCombinations(collection, length, limit = Number.MAX_SAFE_INTE
             return;
         }
 
-        for (let i = startIdx; i < collection.length; i++) {
-            subset.push(collection[i]);
+        for (let i = startIdx; i < shuffledCollection.length; i++) {
+            subset.push(shuffledCollection[i]);
             backtrack(i + 1);
             subset.pop();
 
@@ -170,6 +171,7 @@ export function getPermutations(collection, length, limit = Number.MAX_SAFE_INTE
     const subsets = [];
     const subset = [];
     const visited = new Array(collection.length).fill(false);
+    const shuffledCollection = shuffleArray(collection);
     const maxSize = permutations(collection.length, length);
 
     function backtrack(startIdx = 0) {
@@ -178,10 +180,10 @@ export function getPermutations(collection, length, limit = Number.MAX_SAFE_INTE
             return;
         }
 
-        for (let i = startIdx; i < collection.length; i++) {
+        for (let i = startIdx; i < shuffledCollection.length; i++) {
             if (!visited[i]) {
                 visited[i] = true;
-                subset.push(collection[i]);
+                subset.push(shuffledCollection[i]);
                 backtrack();
                 subset.pop();
                 visited[i] = false;
