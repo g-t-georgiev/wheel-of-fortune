@@ -12,12 +12,11 @@ let gameSet = 10;
 let gameObject = null;
 let randomSectorIdx = 0;
 
-function initWinningSectors(sectorsList, subsetsCount, subsetSize, gameSetOccuranceRates) {
-    let results = getPermutations(
-        sectorsList,
-        subsetSize,
-        subsetsCount,
-        getRandomInteger(0, sectorsList.length - 1)
+function initWinningSectors({ min, max }, { length, size, interval, ratio, timeLimit }, ...elementsToSkip) {
+    let results = getRandomNumSubsets(
+        { min, max },
+        { length, size, interval, ratio, timeLimit },
+        ...elementsToSkip
     );
 
     console.log('Current winning sectors set:', results);
@@ -33,12 +32,11 @@ function getWinningSectors(winningSectors) {
     return chosenSectorsGroup;
 }
 
-function initRandomSectors(sectorsList, subsetsCount, subsetSize, gameSetOccuranceRates) {
-    let results = getPermutations(
-        sectorsList,
-        subsetSize,
-        subsetsCount,
-        getRandomInteger(0, sectorsList.length - 1)
+function initRandomSectors({ min, max }, { length, size, interval, ratio, timeLimit }, ...elementsToSkip) {
+    let results = getRandomNumSubsets(
+        { min, max },
+        { length, size, interval, ratio, timeLimit },
+        ...elementsToSkip
     );
 
     console.log('Current random sectors set:', results);
@@ -57,45 +55,65 @@ function getRandomSectors(randomSectors) {
 function initGameData(sectors) {
     sectors = shuffleArray(sectors);
 
-    if ([ 
-        'winningSectorsCount', 
-        'winningSectorsOccurance', 
-        'winningSectorsSubsetsCount', 
-        'randomSectorsOccurance', 
-        'randomSectorsSectorsSubsetsCount'
-    ].every(
+    if ([ 'winningSectorsConfig', 'nonWinningSectorsConfig',].every(
         prop => !Object.prototype.hasOwnProperty.call(gameManager, prop)
     )) {
-        gameManager.winningSectorsCount = 2;
-        gameManager.winningSectorsOccurance = 5;
-        gameManager.winningSectorsSubsetsCount = 10;
+        gameManager.winningSectorsConfig = {
+            totalLen: 10,
+            subsetSize: 2, 
+            interval: 5, 
+            get gameSetOccurances() {
+                return gameSet * 0.5;
+            },
+            get ratio() {
+                return 1 / this.totalLen;
+            },
+        };
 
-        gameManager.randomSectorsOccurance = gameSet * (gameManager.winningSectorsOccurance / gameSet);
-        gameManager.randomSectorsSectorsSubsetsCount = 10;
+        gameManager.nonWinningSectorsConfig = {
+            totalLen: 10,
+            subsetSize: 5, 
+            interval: 2,
+            get gameSetOccurances() {
+                return gameSet * 0.5;
+            },
+            get ratio() {
+                return 3 / this.totalLen;
+            },
+        };
     }
 
     if (((gameStats?.totalGames ?? 0) === 0) ||
-        gameManager.winningSectors.length === 0) {
-            gameManager.winningSectors = initWinningSectors(
-                sectors,
-                gameManager.winningSectorsSubsetsCount,
-                Math.min(sectors.length, gameManager.winningSectorsCount)
-            );
+        gameManager.winningSectors.length === 0
+    ) {
+        gameManager.winningSectors = initWinningSectors(
+            { min: 0, max: 13 },
+            { 
+                length: gameManager.winningSectorsConfig.totalLen,
+                size: gameManager.winningSectorsConfig.subsetSize,
+                interval: gameManager.winningSectorsConfig.interval,
+                ratio: gameManager.winningSectorsConfig.ratio,
+                timeLimit: 5e3
+            }
+        );
     }
 
     let winningSectorsGroup = getWinningSectors(gameManager.winningSectors);
 
     if (((gameStats?.totalGames ?? 0) === 0) || 
-        gameManager.randomSectors.length === 0) {
-            gameManager.randomSectors = shuffleArray(
-                sectors.filter(v => v !== winningSectorsGroup[0] && v !== winningSectorsGroup[1])
-            );
-            
-            gameManager.randomSectors = initRandomSectors(
-                gameManager.randomSectors,
-                gameManager.randomSectorsSectorsSubsetsCount,
-                Math.max(0, gameManager.randomSectorsOccurance)
-            );
+        gameManager.randomSectors.length === 0
+    ) {
+        gameManager.randomSectors = initRandomSectors(
+            { min: 0, max: 13 },
+            {
+                length: gameManager.nonWinningSectorsConfig.totalLen,
+                size: gameManager.nonWinningSectorsConfig.subsetSize,
+                interval: gameManager.nonWinningSectorsConfig.interval,
+                ratio: gameManager.nonWinningSectorsConfig.ratio, 
+                timeLimit: 5e3
+            },
+            ...winningSectorsGroup
+        );
     }
 
     let randomSectorsGroup = getRandomSectors(gameManager.randomSectors);
@@ -144,7 +162,7 @@ function* gameManager() {
             let result = randomSectorsGroup[randomSectorIdx];
             console.log('Collection', randomSectorsGroup, 'ID', randomSectorIdx, 'Item', result);
             randomSectorIdx++
-            randomSectorIdx = randomSectorIdx % gameManager.randomSectorsOccurance;
+            randomSectorIdx = randomSectorIdx % gameManager.nonWinningSectorsConfig.gameSetOccurances;
             gameStats.update(gameSet);
             yield result;
         }
