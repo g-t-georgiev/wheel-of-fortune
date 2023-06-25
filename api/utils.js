@@ -201,3 +201,99 @@ export function getPermutations(collection, length, limit = Number.MAX_SAFE_INTE
     backtrack(startIdx);
     return subsets;
 }
+
+/**
+ * Returns a sequence of the specified length,
+ * containing the numbers between min and max value. 
+ * Additional config options can be passed, as well as
+ * filter values.
+ * @param {{ min: number, max: number }} range 
+ * @param {{ length: number, size: number, interval: number, ratio: number, timeLimit: number }} config 
+ * @param {...any} elementsToSkip 
+ * @returns 
+ */
+export function getRandomNumSubsets({ min, max }, { length, size, interval = 1, ratio: ratioTreshold = 0.5, timeLimit = 3e3 }, ...elementsToSkip) {
+    if (min > max || 
+        length < 1 || 
+        size < 1 || 
+        interval < 1 ||
+        ratioTreshold < 0.1 ||
+        timeLimit < 500
+    ) {
+        throw new RangeError('Invalid treshold values.');
+    }
+
+    if (length > max + 1) {
+        throw new RangeError('Sequence length is out of boundaries.');
+    }
+
+    let startTime = null;
+    let currentTime = 0;
+    let elapsedTimeRatio = 0;
+
+    const set = []
+    const subset = new Set();
+    let lastElement;
+    let randNum = getRandomInteger(min, max);
+    let isEmpty;
+    let isIncluded;
+    let isInInterval;
+    let isTooRepeatitive;
+
+    const calcAppearanceRatio = function (value, collection, startIdx = 0) {
+        if (startIdx < 0) {
+            throw new RangeError('The "startIdx" value cannot be negative number.');
+        }
+
+        const calculateRatio = function (part, total) {
+            return part / total;
+        };
+
+        const reducer = function (count, entry) {
+            // console.log(`Checking ${value} for entry`, entry);
+            return entry.has(value) ? count + 1 : count;
+        };
+
+        const appearances = collection.slice(startIdx).reduce(reducer, 0);
+        return collection.length > 0 ? calculateRatio(appearances, collection.length) : 0;
+    }
+
+
+    while (set.length < length) {
+        if (startTime == null) {
+            startTime = performance.now();
+        }
+
+        currentTime = performance.now();
+        elapsedTimeRatio = (currentTime - startTime) / timeLimit;
+        // console.log(`Elapsed / limit processing time ratio: ${elapsedTimeRatio}`);
+        
+        if (subset.size === size) {
+            set.push(new Set(subset));
+            subset.clear();
+        }
+
+        if (elapsedTimeRatio > 1) break;
+
+        isTooRepeatitive = calcAppearanceRatio(randNum, set) > ratioTreshold;
+        isIncluded = subset.has(randNum) || isTooRepeatitive;
+        isEmpty = subset.size === 0;
+        isInInterval = Math.abs(lastElement - randNum) >= interval;
+        skipElement = elementsToSkip.length > 0 && compareElements(randNum, ...elementsToSkip);
+        // console.log(`Element ${randNum} checking...`);
+        if (skipElement || isIncluded || (!isEmpty && !isInInterval)) {
+            // console.log(`Element ${randNum} was skipped.`);
+            randNum = getRandomInteger(min, max);
+            continue;
+        }
+        
+        subset.add(randNum);
+        lastElement = randNum;
+        // console.log(`Element ${randNum} was added.`);
+        randNum = getRandomInteger(min, max);
+    }
+
+    
+
+    return [ ...set ];
+}
