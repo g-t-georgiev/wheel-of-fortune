@@ -2,7 +2,8 @@ import {
     getRandomInteger,
     shuffleArray,
     getCombinations,
-    getPermutations,
+    getPermutations, 
+    getRandomNumSubsets
 } from './utils.js';
 export * from './data.js';
 
@@ -73,7 +74,7 @@ function initGameData(sectors) {
         gameManager.randomSectorsSectorsSubsetsCount = 10;
     }
 
-    if ((gameStats?.totalGames === 0 ?? 0) ||
+    if (((gameStats?.totalGames ?? 0) === 0) ||
         gameManager.winningSectors.length === 0) {
             gameManager.winningSectors = initWinningSectors(
                 sectors,
@@ -84,7 +85,7 @@ function initGameData(sectors) {
 
     let winningSectorsGroup = getWinningSectors(gameManager.winningSectors);
 
-    if ((gameStats?.totalGames === 0 ?? 0) || 
+    if (((gameStats?.totalGames ?? 0) === 0) || 
         gameManager.randomSectors.length === 0) {
             gameManager.randomSectors = shuffleArray(
                 sectors.filter(v => v !== winningSectorsGroup[0] && v !== winningSectorsGroup[1])
