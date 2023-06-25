@@ -239,8 +239,18 @@ export function getRandomNumSubsets({ min, max }, { length, size, interval = 1, 
     let isIncluded;
     let isInInterval;
     let isTooRepeatitive;
+    let skipElement;
 
-    const calcAppearanceRatio = function (value, collection, startIdx = 0) {
+    /**
+     * Calculates the repetition ratio of value for 
+     * the current collection size. Optional start index 
+     * can be passed to reduce the look behind tracing steps.
+     * @param {number} value 
+     * @param {Array<Set<number>>} collection 
+     * @param {number} [startIdx] 
+     * @returns 
+     */
+    const getRepetitionRatio = function (value, collection, startIdx = 0) {
         if (startIdx < 0) {
             throw new RangeError('The "startIdx" value cannot be negative number.');
         }
@@ -256,6 +266,17 @@ export function getRandomNumSubsets({ min, max }, { length, size, interval = 1, 
 
         const appearances = collection.slice(startIdx).reduce(reducer, 0);
         return collection.length > 0 ? calculateRatio(appearances, collection.length) : 0;
+    }
+
+    /**
+     * Returns *true* if a target value is equal to 
+     * a comparison value or a set of comparison values.
+     * @param {any} target 
+     * @param  {...any} comparisons 
+     * @returns 
+     */
+    const compareElements = function (target, ...comparisons) {
+        return comparisons.includes(target);
     }
 
 
@@ -275,7 +296,7 @@ export function getRandomNumSubsets({ min, max }, { length, size, interval = 1, 
 
         if (elapsedTimeRatio > 1) break;
 
-        isTooRepeatitive = calcAppearanceRatio(randNum, set) > ratioTreshold;
+        isTooRepeatitive = getRepetitionRatio(randNum, set) > ratioTreshold;
         isIncluded = subset.has(randNum) || isTooRepeatitive;
         isEmpty = subset.size === 0;
         isInInterval = Math.abs(lastElement - randNum) >= interval;
@@ -295,5 +316,5 @@ export function getRandomNumSubsets({ min, max }, { length, size, interval = 1, 
 
     
 
-    return [ ...set ];
+    return [ ...set.map(subset => [ ...subset ]) ];
 }
