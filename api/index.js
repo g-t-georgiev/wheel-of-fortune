@@ -78,7 +78,8 @@ class Game {
             if (winningSectorsCache.length === 0) {
                 winningSectorsCache = getRandomNumSubsets(
                     { min: 0, max: 13 },
-                    { length: 5, size: 2, interval: 5, ratio: 1 / 5, timeLimit: 1e3 }
+                    { length: 5, size: 2, interval: 5, ratio: 1 / 10, timeLimit: 1e3 },
+                    5 // exclude `freeSpins` sector from the winning sectors algorithm
                 );
 
                 console.log('Winning sectors cache:', winningSectorsCache);
@@ -90,7 +91,7 @@ class Game {
 
             randomSectorsCache = getRandomNumSubsets(
                 { min: 0, max: 13 },
-                { length: 1, size: 5, interval: 2, ratio: 1 / 5,  timeLimit: 2e3 },
+                { length: 1, size: 5, interval: 2, ratio: 1 / 10,  timeLimit: 2e3 },
                 ...this.#winningSectors
             );
 
