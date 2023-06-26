@@ -14,8 +14,12 @@ let wheelSectorsContainerEl = wheelContainerEl?.querySelector('.wheel-container-
 let sectorEls = wheelSectorsContainerEl?.querySelectorAll('.wheel-sector');
 let hoverFeature = window.matchMedia('(hover: hover)');
 
-const startBtnClickHandler = function () {
-    if (wheelConfig.autoPlay) return;
+const startBtnClickHandler = function (ev) {
+    if (ev && wheelConfig.autoPlay) { // Filter event triggers from UI
+        // Show helpful message to the user
+        // Do something else...
+        return;
+    }
 
     if (wheelConfig.isSpinning) {
         // Do something while wheel is spinning...
@@ -43,13 +47,7 @@ const startAutoPlay = function (repeatCount) {
     if (startAutoPlay.internalCalls < repeatCount) {
         startAutoPlay.internalCalls++;
         console.log(`---- Free spins (auto-play) ${startAutoPlay.internalCalls} / ${repeatCount} ----`);
-        wheelConfig.isSpinning = true;
-        wheelConfig.fullRotationsCount = rand(7, 10);
-        wheelConfig.targetSectorIndex = 5;
-        wheelConfig.targetSector = sectorEls[wheelConfig.targetSectorIndex];
-        wheelContainerEl.toggleAttribute('data-spin', wheelConfig.isSpinning);
-        wheelConfig.startAnimationTimeMs = performance.now();
-        wheelSpinHandler(wheelConfig.startAnimationTimeMs);
+        startBtnClickHandler();
     } else {
         console.log('---- Free spins (auto-play) end ----');
         startAutoPlay.internalCalls = 0;
