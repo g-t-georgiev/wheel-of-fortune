@@ -209,7 +209,7 @@ export function getPermutations(collection, length, limit = Number.MAX_SAFE_INTE
  * filter values.
  * @param {{ min: number, max: number }} range 
  * @param {{ length: number, size: number, interval: number, ratio: number, timeLimit: number }} config 
- * @param {...any} elementsToSkip 
+ * @param {...number} elementsToSkip 
  * @returns 
  */
 export function getRandomNumSubsets({ min, max }, { length, size, interval = 1, ratio: ratioTreshold = 0.5, timeLimit = 3e3 }, ...elementsToSkip) {
@@ -279,6 +279,23 @@ export function getRandomNumSubsets({ min, max }, { length, size, interval = 1, 
         return comparisons.includes(target);
     }
 
+    /**
+     * @param {number} interval 
+     * @param {number} value 
+     * @param {Set<number>} subset 
+     * @param {Array<number>} elementsToSkip 
+     * @returns 
+     */
+    const validateIntervals = function (interval, value, subset) {
+        const subsetArray = [ ...subset ];
+        const predicate = entry => {
+            let condition = Math.abs(entry - value) >= interval;
+            return condition;
+        };
+        const result = subsetArray.every(predicate);
+        return result;
+    }
+
 
     while (set.length < length) {
         if (startTime == null) {
@@ -299,7 +316,7 @@ export function getRandomNumSubsets({ min, max }, { length, size, interval = 1, 
         isTooRepeatitive = getRepetitionRatio(randNum, set) > ratioTreshold;
         isIncluded = subset.has(randNum) || isTooRepeatitive;
         isEmpty = subset.size === 0;
-        isInInterval = Math.abs(lastElement - randNum) >= interval;
+        isInInterval = length < max && length < 5 ? validateIntervals(interval, randNum, subset) : Math.abs(lastElement - randNum) >= interval;
         skipElement = elementsToSkip.length > 0 && compareElements(randNum, ...elementsToSkip);
         // console.log(`Element ${randNum} checking...`);
         if (skipElement || isIncluded || (!isEmpty && !isInInterval)) {
