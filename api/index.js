@@ -7,171 +7,128 @@ import {
 } from './utils.js';
 export * from './data.js';
 
-let sectors = Array.from({ length: 14 }, (_, i) => i);
-let gameSet = 10;
+
 let gameObject = null;
-let randomSectorIdx = 0;
+let winningSectorsCache = [];
+let randomSectorsCache = [];
 
-function initWinningSectors({ min, max }, { length, size, interval, ratio, timeLimit }, ...elementsToSkip) {
-    let results = getRandomNumSubsets(
-        { min, max },
-        { length, size, interval, ratio, timeLimit },
-        ...elementsToSkip
-    );
+class Game {
+    #totalGames = 0;
+    #currentGame = 0;
+    #gameSet = null;
+    #winningSectors = null;
+    #randomSectors = null;
 
-    console.log('Current winning sectors set:', results);
-    return results;
-}
-
-function getWinningSectors(winningSectors) {
-    let idx = getRandomInteger(0, winningSectors.length - 1);
-    let chosenSectorsGroup = winningSectors[idx];
-    const removed = winningSectors.splice(idx, 1);
-    console.log('Current chosen group of winning sectors:', chosenSectorsGroup);
-    console.log(`Removed entry`, ...removed, `with #id(${idx}) from`, winningSectors);
-    return chosenSectorsGroup;
-}
-
-function initRandomSectors({ min, max }, { length, size, interval, ratio, timeLimit }, ...elementsToSkip) {
-    let results = getRandomNumSubsets(
-        { min, max },
-        { length, size, interval, ratio, timeLimit },
-        ...elementsToSkip
-    );
-
-    console.log('Current random sectors set:', results);
-    return results;
-}
-
-function getRandomSectors(randomSectors) {
-    let idx = getRandomInteger(0, randomSectors.length - 1);
-    let chosenSectorsGroup = randomSectors[idx];
-    const removed = randomSectors.splice(idx, 1);
-    console.log('Current chosen group of random sectors:', chosenSectorsGroup);
-    console.log(`Removed entry`, ...removed, `with #id(${idx}) from`, randomSectors);
-    return chosenSectorsGroup;
-}
-
-function initGameData(sectors) {
-    sectors = shuffleArray(sectors);
-
-    if ([ 'winningSectorsConfig', 'nonWinningSectorsConfig',].every(
-        prop => !Object.prototype.hasOwnProperty.call(gameManager, prop)
-    )) {
-        gameManager.winningSectorsConfig = {
-            totalLen: 10,
-            subsetSize: 2, 
-            interval: 5, 
-            get gameSetOccurances() {
-                return gameSet * 0.5;
-            },
-            get ratio() {
-                return 1 / this.totalLen;
-            },
-        };
-
-        gameManager.nonWinningSectorsConfig = {
-            totalLen: 10,
-            subsetSize: 5, 
-            interval: 2,
-            get gameSetOccurances() {
-                return gameSet * 0.5;
-            },
-            get ratio() {
-                return 3 / this.totalLen;
-            },
-        };
+    constructor() {
+        this.#gameSet = Array.from(
+            { length: 10 }, 
+            (_, i) => i
+        );
     }
 
-    if (((gameStats?.totalGames ?? 0) === 0) ||
-        gameManager.winningSectors.length === 0
-    ) {
-        gameManager.winningSectors = initWinningSectors(
-            { min: 0, max: 13 },
-            { 
-                length: gameManager.winningSectorsConfig.totalLen,
-                size: gameManager.winningSectorsConfig.subsetSize,
-                interval: gameManager.winningSectorsConfig.interval,
-                ratio: gameManager.winningSectorsConfig.ratio,
-                timeLimit: 5e3
+    #arrangeGameSetSectors() {
+        let winningSectorsIds = getRandomNumSubsets(
+            { min: 0, max: 9 },
+            { length: 1, size: 5, interval: 2, ratio: 3 / 10,  timeLimit: 3e3 }
+        );
+
+        // loop until yields a combination for `winningSectorsIds`
+        while(!winningSectorsIds.length) {
+            winningSectorsIds = getRandomNumSubsets(
+                { min: 0, max: 9 },
+                { length: 1, size: 5, interval: 2, ratio: 3 / 10,  timeLimit: 3e3 }
+            )
+        }
+
+        console.log('Winning sectors indeces:', winningSectorsIds[0]);
+
+        let j = 0;
+        this.#gameSet = this.#gameSet.map((_, index) => {
+            const sectorIdx = winningSectorsIds[0].findIndex(n => n === index);
+            if (sectorIdx !== -1) {
+                return this.#winningSectors[sectorIdx < 3 ? 0 : 1]; // replace with winning sector index
             }
-        );
+
+            return this.#randomSectors[j++];
+        });
     }
 
-    let winningSectorsGroup = getWinningSectors(gameManager.winningSectors);
-
-    if (((gameStats?.totalGames ?? 0) === 0) || 
-        gameManager.randomSectors.length === 0
-    ) {
-        gameManager.randomSectors = initRandomSectors(
-            { min: 0, max: 13 },
-            {
-                length: gameManager.nonWinningSectorsConfig.totalLen,
-                size: gameManager.nonWinningSectorsConfig.subsetSize,
-                interval: gameManager.nonWinningSectorsConfig.interval,
-                ratio: gameManager.nonWinningSectorsConfig.ratio, 
-                timeLimit: 5e3
-            },
-            ...winningSectorsGroup
-        );
+    #getWinningSectors(cache) {
+        let idx = getRandomInteger(0, cache.length - 1);
+        let chosenSectorsGroup = cache[idx];
+        const removed = cache.splice(idx, 1);
+        console.log('Current chosen group of winning sectors:', chosenSectorsGroup);
+        console.log(`Removed entry`, ...removed, `with #id(${idx}) from`, cache);
+        return chosenSectorsGroup;
     }
 
-    let randomSectorsGroup = getRandomSectors(gameManager.randomSectors);
-
-    return [ randomSectorsGroup, winningSectorsGroup ];
-}
-
-function gameStats() {
-    gameStats.currentGame = 0;
-    gameStats.totalGames = 0;
-    gameStats.update = function (currentGameSet) {
-        this.currentGame = (this.currentGame + 1) % currentGameSet;
-        this.totalGames++;
+    #getRandomSectors(cache) {
+        let idx = getRandomInteger(0, cache.length - 1);
+        let chosenSectorsGroup = cache[idx];
+        const removed = cache.splice(idx, 1);
+        console.log('Current chosen group of random sectors:', chosenSectorsGroup);
+        console.log(`Removed entry`, ...removed, `with #id(${idx}) from`, cache);
+        return chosenSectorsGroup;
     }
 
-    const { currentGame, totalGames } = gameStats;
-    return { currentGame, totalGames };
+    getGameSetData() {
+
+        if (!(this.#totalGames % 10)) {
+
+            if (winningSectorsCache.length === 0) {
+                winningSectorsCache = getRandomNumSubsets(
+                    { min: 0, max: 13 },
+                    { length: 5, size: 2, interval: 5, ratio: 1 / 5, timeLimit: 1e3 }
+                );
+
+                console.log('Winning sectors cache:', winningSectorsCache);
+            }
+            
+
+            this.#winningSectors = this.#getWinningSectors(winningSectorsCache);
+            console.log('Current winning sectors set:', this.#winningSectors);
+
+            randomSectorsCache = getRandomNumSubsets(
+                { min: 0, max: 13 },
+                { length: 1, size: 5, interval: 2, ratio: 1 / 5,  timeLimit: 2e3 },
+                ...this.#winningSectors
+            );
+
+            console.log('Random sectors cache:', randomSectorsCache);
+
+            this.#randomSectors = this.#getRandomSectors(randomSectorsCache);
+            console.log('Current random sectors set:', this.#randomSectors);
+
+            this.#arrangeGameSetSectors();
+
+        }
+
+        console.log('Current combined chosen group of sectors:', this.#gameSet);
+
+        return this.#gameSet[this.#currentGame];
+    }
+
+    updateGameStats() {
+        console.log(`Game ${this.#currentGame} of ${this.#gameSet.length} / Total: ${this.#totalGames}`);
+        this.#currentGame = (this.#currentGame + 1) % this.#gameSet.length;
+        this.#totalGames++;
+    }
+
+    loop() {
+        return this.#currentGame < this.#gameSet.length;
+    }
+    
 }
 
 function* gameManager() {
 
-    let randomSectorsGroup, 
-        winningSectorsGroup;
+    const game = new Game();
 
-    const { currentGame, totalGames } = gameStats();
-
-    for (currentGame, totalGames; gameStats.currentGame < gameSet;) {
-        console.log(`Game ${gameStats.currentGame} of ${gameSet} / Total: ${gameStats.totalGames}`);
-        if (!(gameStats.totalGames % gameSet)) {
-            console.log('Update/Init chosen sectors for current game set.');
-            // Reset game variables
-            [ randomSectorsGroup, winningSectorsGroup ] = initGameData(sectors);
-        }
-
-        if ([2, 6, 9].includes(gameStats.currentGame)) {
-            let result = winningSectorsGroup[0];
-            console.log('Collection', winningSectorsGroup, 'ID', 0, 'Item', result);
-            gameStats.update(gameSet);
-            yield result;
-        } else if ([4, 8].includes(gameStats.currentGame)) {
-            let result = winningSectorsGroup[1];
-            console.log('Collection', winningSectorsGroup, 'ID', 1, 'Item', result);
-            gameStats.update(gameSet);
-            yield result;
-        } else {
-            let result = randomSectorsGroup[randomSectorIdx];
-            console.log('Collection', randomSectorsGroup, 'ID', randomSectorIdx, 'Item', result);
-            randomSectorIdx++
-            randomSectorIdx = randomSectorIdx % gameManager.nonWinningSectorsConfig.gameSetOccurances;
-            gameStats.update(gameSet);
-            yield result;
-        }
+    while (game.loop()) {
+        let sector = game.getGameSetData();
+        game.updateGameStats();
+        yield sector;
     }
-
-    return (
-        gameStats.currentGame = null,
-        { ...(gameStats()) }
-    );
 }
 
 function startNewGame() {
@@ -179,9 +136,8 @@ function startNewGame() {
 }
 
 function finishCurrentGame() {
-    let result = gameObject?.return();
+    gameObject.return();
     gameObject = null;
-    return result;
 }
 
 export function requestGameData() {
