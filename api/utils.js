@@ -261,7 +261,8 @@ export function getRandomNumSubsets({ min, max }, { length, size, interval = 1, 
 
         const reducer = function (count, entry) {
             // console.log(`Checking ${value} for entry`, entry);
-            return entry.has(value) ? count + 1 : count;
+            let includes = Array.isArray(entry) ? entry.includes(value) : entry.has(value);
+            return includes ? count + 1 : count;
         };
 
         const appearances = collection.slice(startIdx).reduce(reducer, 0);
@@ -313,7 +314,7 @@ export function getRandomNumSubsets({ min, max }, { length, size, interval = 1, 
 
         if (elapsedTimeRatio > 1) break;
 
-        isTooRepeatitive = getRepetitionRatio(randNum, set) > ratioTreshold;
+        isTooRepeatitive = getRepetitionRatio(randNum, set.slice()) > ratioTreshold;
         isIncluded = subset.has(randNum) || isTooRepeatitive;
         isEmpty = subset.size === 0;
         isInInterval = length < max && length < 5 ? validateIntervals(interval, randNum, subset) : Math.abs(lastElement - randNum) >= interval;
@@ -331,7 +332,6 @@ export function getRandomNumSubsets({ min, max }, { length, size, interval = 1, 
         randNum = getRandomInteger(min, max);
     }
 
-    
-
-    return [ ...set.map(subset => [ ...subset ]) ];
+    let clonedArray = [ ...set.map(subset => [ ...subset ])];
+    return clonedArray;
 }
