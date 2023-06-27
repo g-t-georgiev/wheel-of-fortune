@@ -31,6 +31,7 @@ const startBtnClickHandler = function (ev) {
     wheelConfig.targetSectorIndex = api.requestGameData();
     wheelConfig.targetSector = sectorEls[wheelConfig.targetSectorIndex];
     wheelConfig.fullRotationsCount = rand(7, 10);
+    spinBtn.toggleAttribute('disabled', wheelConfig.isSpinning || wheelConfig.autoPlay);
     wheelContainerEl.toggleAttribute('data-spin', wheelConfig.isSpinning);
     wheelConfig.startAnimationTimeMs = performance.now();
     wheelSpinHandler(wheelConfig.startAnimationTimeMs);
@@ -43,6 +44,9 @@ const startAutoPlay = function (repeatCount) {
         startAutoPlay.internalCalls = 0;
         wheelConfig.autoPlay = true;
         wheelContainerEl.toggleAttribute('data-autoplay', wheelConfig.autoPlay);
+        if (!spinBtn.hasAttribute('disabled')) {
+            spinBtn.toggleAttribute('disabled', wheelConfig.autoPlay);
+        }
     }
 
     if (startAutoPlay.internalCalls < repeatCount) {
@@ -54,6 +58,7 @@ const startAutoPlay = function (repeatCount) {
         startAutoPlay.internalCalls = 0;
         wheelConfig.autoPlay = false;
         wheelContainerEl.toggleAttribute('data-autoplay', wheelConfig.autoPlay);
+        spinBtn.toggleAttribute('disabled', wheelConfig.autoPlay);
     }
 }
 
@@ -196,6 +201,7 @@ const wheelSpinHandler = function (timestamp) {
             return;
         }
     
+        spinBtn.toggleAttribute('disabled', wheelConfig.isSpinning || wheelConfig.autoPlay);
         return;
     }
 
