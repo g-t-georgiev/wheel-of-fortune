@@ -208,17 +208,17 @@ export function getPermutations(collection, length, limit = Number.MAX_SAFE_INTE
  * Additional config options can be passed, as well as
  * filter values.
  * @param {{ min: number, max: number }} range 
- * @param {{ length: number, size: number, interval: number, ratio: number, timeLimit: number }} config 
+ * @param {{ length: number, size: number, interval?: number, ratio?: number, timeLimit?: number }} config 
  * @param {...number} elementsToSkip 
  * @returns 
  */
-export function getRandomNumSubsets({ min, max }, { length, size, interval = 1, ratio: ratioTreshold = 0.5, timeLimit = 3e3 }, ...elementsToSkip) {
+export function getRandomNumSubsets({ min, max }, { length, size, interval, ratio: ratioTreshold, timeLimit }, ...elementsToSkip) {
     if (min > max || 
         length < 1 || 
         size < 1 || 
-        interval < 1 ||
-        ratioTreshold < 0.1 ||
-        timeLimit < 500
+        (interval && interval < 1) ||
+        (ratioTreshold && ratioTreshold < 0.1) ||
+        (timeLimit && timeLimit < 500)
     ) {
         throw new RangeError('Invalid treshold values.');
     }
@@ -314,10 +314,10 @@ export function getRandomNumSubsets({ min, max }, { length, size, interval = 1, 
 
         if (elapsedTimeRatio > 1) break;
 
-        isTooRepeatitive = getRepetitionRatio(randNum, set.slice()) > ratioTreshold;
+        isTooRepeatitive = ratioTreshold && getRepetitionRatio(randNum, set.slice()) > ratioTreshold;
         isIncluded = subset.has(randNum) || isTooRepeatitive;
         isEmpty = subset.size === 0;
-        isInInterval = length < max && length < 5 ? validateIntervals(interval, randNum, subset) : Math.abs(lastElement - randNum) >= interval;
+        isInInterval = interval && length < max && length < 5 ? validateIntervals(interval, randNum, subset) : Math.abs(lastElement - randNum) >= interval;
         skipElement = elementsToSkip.length > 0 && compareElements(randNum, ...elementsToSkip);
         // console.log(`Element ${randNum} checking...`);
         if (skipElement || isIncluded || (!isEmpty && !isInInterval)) {
