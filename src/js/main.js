@@ -16,7 +16,8 @@ let sectorEls = wheelSectorsContainerEl?.querySelectorAll('.wheel-sector');
 let hoverFeature = window.matchMedia('(hover: hover)');
 
 const startBtnClickHandler = function (ev) {
-    if (ev && wheelConfig.autoPlay) { // Filter event triggers from UI
+    // console.log(ev);
+    if ((ev && ev instanceof PointerEvent) && wheelConfig.autoPlay) { // Filter event triggers from UI
         // Show helpful message to the user
         // Do something else...
         return;
