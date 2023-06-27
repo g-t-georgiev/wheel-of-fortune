@@ -37,14 +37,14 @@ class Game {
     #arrangeGameSetSectors() {
         let winningSectorsIds = getRandomNumSubsets(
             { min: 0, max: 9 },
-            { length: 1, size: 5, interval: 2, ratio: 3 / 10,  timeLimit: 3e3 }
+            { length: 1, size: 5, interval: 2,  timeLimit: 3e3 }
         );
 
         // loop until yields a combination for `winningSectorsIds`
         while(!winningSectorsIds.length) {
             winningSectorsIds = getRandomNumSubsets(
                 { min: 0, max: 9 },
-                { length: 1, size: 5, interval: 2, ratio: 3 / 10,  timeLimit: 3e3 }
+                { length: 1, size: 5, interval: 2,  timeLimit: 3e3 }
             )
         }
 
@@ -123,7 +123,7 @@ class Game {
 
             randomSectorsCache = getRandomNumSubsets(
                 { min: 0, max: 13 },
-                { length: 1, size: 5, interval: 2, ratio: 1 / 10,  timeLimit: 2e3 },
+                { length: 1, size: 5, interval: 2,  timeLimit: 2e3 },
                 ...this.#winningSectors
             );
 
