@@ -1,3 +1,4 @@
+import { _requestAnimationFrame } from './requestanimationframe.js';
 import * as api from '../../api/index.js';
 import { wheelConfig } from './wheel.config.js';
 import { rand, lerp, easeInOut } from './helpers.js';
@@ -189,7 +190,7 @@ const wheelSpinHandler = function (timestamp) {
         if (targetSectorIndex === 5 || wheelConfig.autoPlay) {
             // console.log('Free spin starting point', rotationStartPositionDeg);
             let timerId = window.setTimeout(function () {
-                clearInterval(timerId);
+                window.clearInterval(timerId);
                 startAutoPlay(wheelConfig.autoSpins);
             }, wheelConfig.autoPlayIdleTime);
             return;
@@ -199,6 +200,6 @@ const wheelSpinHandler = function (timestamp) {
     }
 
     wheelConfig.prevAnimationTimeMs = timestamp;
-    wheelConfig.animationHandle = window.requestAnimationFrame(wheelSpinHandler);
+    wheelConfig.animationHandle = _requestAnimationFrame(wheelSpinHandler);
 };
 
