@@ -186,7 +186,7 @@ const wheelSpinHandler = function (timestamp) {
         cancelAnimationFrame(wheelConfig.animationHandle);
         wheelContainerEl.toggleAttribute('data-spin', wheelConfig.isSpinning);
 
-        if (targetSectorIndex === 5) {
+        if (targetSectorIndex === 5 || wheelConfig.autoPlay) {
             // console.log('Free spin starting point', rotationStartPositionDeg);
             let timerId = window.setTimeout(function () {
                 clearInterval(timerId);
