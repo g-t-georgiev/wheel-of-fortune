@@ -7,17 +7,25 @@ import {
 } from './utils.js';
 export * from './data.js';
 
-
 let gameObject = null;
 let winningSectorsCache = [];
 let randomSectorsCache = [];
+let autoPlaySectorsCache = [];
+// let sectorsDemoArray = [ 10, 13, 8, 10, 0, 7, 10, 1, 8, 5 ];
 
 class Game {
     #totalGames = 0;
     #currentGame = 0;
+    #autoPlayMode = 'disabled';
+    #autoPlayModeManager = null;
+    #autoSpins = 3;
     #gameSet = null;
     #winningSectors = null;
     #randomSectors = null;
+    #autoPlayModeSectors = null;
+    #currentCollection = null;
+    #currentSector = null;
+    #previousSector = null;
 
     constructor() {
         this.#gameSet = Array.from(
@@ -71,9 +79,33 @@ class Game {
         return chosenSectorsGroup;
     }
 
+    #getAutoPlaySectors(cache) {
+        let idx = getRandomInteger(0, cache.length - 1);
+        let chosenSectorsGroup = cache[idx];
+        const removed = cache.splice(idx, 1);
+        console.log('Current chosen group of auto-play mode sectors', chosenSectorsGroup);
+        console.log(`Removed entry`, ...removed, `with #id(${idx}) from`, cache);
+        return chosenSectorsGroup;
+    }
+
     getGameSetData() {
 
-        if (!(this.#totalGames % 10)) {
+        if (this.#previousSector === 5) {
+            if (autoPlaySectorsCache.length === 0) {
+                autoPlaySectorsCache = getRandomNumSubsets(
+                    { min: 0, max: 13 },
+                    { length: 1, size: this.#autoSpins, interval: 2, timeLimit: 3e3 },
+                    ...this.#winningSectors, 5
+                );  
+            }
+
+            this.#autoPlayModeSectors = this.#getAutoPlaySectors(autoPlaySectorsCache);
+            this.#autoPlayMode = 'enabled';
+            this.#autoPlayModeManager = this.#getFreeSpins();
+            console.log('Auto-play mode is enabled.');
+        }
+
+        if (!(this.#totalGames % 10) && this.#autoPlayMode !== 'enabled') {
 
             if (winningSectorsCache.length === 0) {
                 winningSectorsCache = getRandomNumSubsets(
@@ -104,15 +136,45 @@ class Game {
 
         }
 
-        console.log('Current combined chosen group of sectors:', this.#gameSet);
+        if (this.#autoPlayMode === 'enabled') {
+            let { value, done } = this.#autoPlayModeManager.next();
+            console.log('Auto-play finished:', done);
 
-        return this.#gameSet[this.#currentGame];
+            this.#currentCollection = this.#autoPlayModeSectors;
+            this.#currentSector = value;
+            this.#previousSector = this.#currentSector;
+            console.log(`Current sector ${this.#currentSector}`, this.#currentCollection);
+
+            if (done) {
+                this.#autoPlayMode = 'disabled';
+                this.#autoPlayModeManager = null;
+            };
+
+            return this.#currentSector;
+        }
+
+        this.#currentCollection = this.#gameSet;
+        this.#currentSector =  this.#currentCollection[this.#currentGame];
+        console.log(`Current sector ${this.#currentSector}`, this.#currentCollection);
+        console.log(`Game ${this.#currentGame} of ${this.#currentCollection.length} / Total: ${this.#totalGames}`);
+        this.#previousSector = this.#currentSector;
+        this.#currentGame = (this.#currentGame + 1) % this.#currentCollection.length;
+        this.#totalGames++;
+        return this.#currentSector;
     }
 
-    updateGameStats() {
-        console.log(`Game ${this.#currentGame} of ${this.#gameSet.length} / Total: ${this.#totalGames}`);
-        this.#currentGame = (this.#currentGame + 1) % this.#gameSet.length;
-        this.#totalGames++;
+    #getFreeSpins() {
+        let sectorIdx = 0;
+        let autoPlayModeSectors = [ ...this.#autoPlayModeSectors ];
+
+        function next() {
+            console.log('Current auto-play spin sector index', sectorIdx);
+            let value = autoPlayModeSectors[sectorIdx++];
+            let done = !(sectorIdx < autoPlayModeSectors.length);
+            return { value, done };
+        }
+
+        return { next };
     }
 
     loop() {
@@ -127,7 +189,6 @@ function* gameManager() {
 
     while (game.loop()) {
         let sector = game.getGameSetData();
-        game.updateGameStats();
         yield sector;
     }
 }
