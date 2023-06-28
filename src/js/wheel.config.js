@@ -1,5 +1,9 @@
 import { Polygon } from './helpers.js';
 
+export class WheelComponent {
+    constructor() {}
+}
+
 export const wheelConfig = {
     sectorsCount: 0,
     animationHandle: null,
@@ -52,29 +56,49 @@ export const wheelConfig = {
     roundRotationAngleDeg(rotationAngleDeg, fraction = 2) {
         return Number(Number.prototype.toFixed.call(rotationAngleDeg, fraction));
     },
-    setWheelSectorsBlockSize(sector, index, parentContainer) {
-        const rect = parentContainer.getBoundingClientRect();
-        const radius = rect.width * 0.5;
-        const sideLen = Math.floor(Polygon.getSideLen(this.sectorsCount, radius));
-        sector.style.setProperty('--sector-block-size', `${sideLen / rect.height * 100}%`);
+    /**
+     * Calculates a sector elements's height as percentage value.
+     * @param {DOMRect} parentElementClientRect 
+     * @param {(polygonSideLen: number) => void} callback 
+     */
+    setWheelSectorsBlockSize(parentElementClientRect, callback) {
+        // Calculate innter radius in pixels
+        const radius = parentElementClientRect.width * 0.5;
+        // Calculate polygon side length in pixels
+        let polygonSideLen = Math.floor(Polygon.getSideLen(this.sectorsCount, radius));
+        // Convert polygon side length in percentage value
+        polygonSideLen = polygonSideLen / parentElementClientRect.height * 100
+        callback(polygonSideLen);
     },
-    setWheelSectorPosition(sector, index, parentContainer) {
+    /**
+     * Calculates a sector element's X,Y,Z positions inside the wheel component as percentage values.
+     * @param {number} index 
+     * @param {DOMRect} parentElementClientRect 
+     * @param {(x: number, y: number, rotate: number) => void} callback 
+     */
+    setWheelSectorPosition(index, parentElementClientRect, callback) {
         // Calculate the center coordinates of the circle container
-        const rect = parentContainer.getBoundingClientRect();
-        const centerX = rect.width * 0.5;
-        const centerY = rect.height * 0.5;
+        const centerX = parentElementClientRect.width * 0.5;
+        const centerY = parentElementClientRect.height * 0.5;
     
         // Define the radius and spacing between the sectors
-        const radius = rect.width * 0.25;
+        const radius = parentElementClientRect.width * 0.25;
     
         // Calculate the angle in radians
         const angleRad = (wheelConfig.anglePerSectorDeg * index * Math.PI) / 180;
     
-        // Calculate the X and Y coordinates of the sector
-        const x = centerX + radius * Math.cos(angleRad);
-        const y = centerY + radius * Math.sin(angleRad);
+        // Calculate the X and Y coordinates of the sector in pixels
+        let x = centerX + radius * Math.cos(angleRad);
+        let y = centerY + radius * Math.sin(angleRad);
+
+        // Convert X and Y coordinates to percentage values
+        x = x / parentElementClientRect.width * 100;
+        y = y / parentElementClientRect.height * 100;
+        
+        // Calculate central axis rotation in degrees 
+        // adjusting with 180deg to point towards center of the circle
+        const rotate = (this.anglePerSectorDeg * index) + 180;
     
-        sector.style.setProperty('--sector-offset-x', `${x / rect.width * 100}%`);
-        sector.style.setProperty('--sector-offset-y', `${y / rect.height * 100}%`);
+        callback(x, y, rotate);
     }
 };
