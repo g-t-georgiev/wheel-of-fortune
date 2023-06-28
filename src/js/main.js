@@ -64,72 +64,71 @@ const startAutoPlay = function (repeatCount) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    if (
-        !wheelContainerEl ||
-        !wheelSectorsContainerEl ||
-        !spinBtn
-    ) {
-        // create wheel outer container if not defined
-        !wheelContainerEl &&
-            (
-                wheelContainerEl = document.createElement('div'),
-                wheelContainerEl.classList.add('wheel-container-outer')
-            );
+    // create wheel outer container if not defined
+    !wheelContainerEl &&
+        (
+            wheelContainerEl = document.createElement('div'),
+            wheelContainerEl.classList.add('wheel-container-outer')
+        );
+    // create wheel inner container if not defined
+    !wheelSectorsContainerEl &&
+        (
+            wheelSectorsContainerEl = document.createElement('div'),
+            wheelSectorsContainerEl.classList.add('wheel-container-inner'),
+            wheelContainerEl.append(wheelSectorsContainerEl)
+        );
+    // create wheel start button if not defined
+    !spinBtn &&
+        (
+            spinBtn = document.createElement('button'),
+            spinBtn.setAttribute('type', 'button'),
+            spinBtn.classList.add('wheel-start-btn'),
+            spinBtn.textContent = 'Spin',
+            wheelContainerEl.append(spinBtn)
+        );
+    // console.log(wheelContainerEl, wheelSectorsContainerEl, spinBtn);
+    // append elements in their respective parent elements if not already connected to the DOM
+    !wheelContainerEl.isConnected && appWrapper.append(wheelContainerEl);
 
-        // create wheel inner container if not defined
-        !wheelSectorsContainerEl &&
-            (
-                wheelSectorsContainerEl = document.createElement('div'),
-                wheelSectorsContainerEl.classList.add('wheel-container-inner'),
-                wheelContainerEl.append(wheelSectorsContainerEl)
-            );
+    sectorEls = Array.from(
+        { length: api.data.length }, 
+        (_, index) => {
+            const dataSrc = api.data[index];
 
-        // create wheel start button if not defined
-        !spinBtn &&
-            (
-                spinBtn = document.createElement('button'),
-                spinBtn.setAttribute('type', 'button'),
-                spinBtn.classList.add('wheel-start-btn'),
-                spinBtn.textContent = 'Spin',
-                wheelContainerEl.append(spinBtn)
-            );
-
-        // console.log(wheelContainerEl, wheelSectorsContainerEl, spinBtn);
-
-
-        // append elements in their respective parent elements if not already connected to the DOM
-        !wheelContainerEl.isConnected && appWrapper.append(wheelContainerEl);
-    }
-
-    sectorEls = [...wheelSectorsContainerEl.querySelectorAll('.wheel-sector')];
-
-    if (!sectorEls.length) {
-        for (let i = 0; i < api.data.length; i++) {
-            const dataSrc = api.data[i];
             const sector = document.createElement('div');
             sector.classList.add('wheel-sector');
             sector.style.setProperty('--sector-id', dataSrc.id);
             sector.style.setProperty('--sector-bg-clr', dataSrc.backgroundColor);
             sector.style.setProperty('--sector-txt-clr', dataSrc.color);
-            sector.style.setProperty('--sector-rotate', `${(wheelConfig.anglePerSectorDeg * i) + 180}deg`);
             sector.dataset.id = dataSrc.id;
             sector.dataset.value = dataSrc.value;
+
             const sectorHoverOverlay = document.createElement('div');
             sectorHoverOverlay.classList.add('wheel-sector-overlay');
+
             const sectorContent = document.createElement('div');
             sectorContent.classList.add('wheel-sector-content');
             sectorContent.textContent = dataSrc.text;
+
             sector.append(sectorHoverOverlay, sectorContent);
+
+            const parentElementClientRect = sector.parentElement.getBoundingClientRect();
+            
+            wheelConfig.setWheelSectorsBlockSize(parentElementClientRect, (height) => {
+                sector.style.setProperty('--sector-block-size', `${height}%`);
+            });
+
+            wheelConfig.setWheelSectorPosition(index, parentElementClientRect, (x, y, rotate) => {
+                sector.style.setProperty('--sector-offset-x', `${x}%`);
+                sector.style.setProperty('--sector-offset-y', `${y}%`);
+                sector.style.setProperty('--sector-rotate', `${rotate}deg`);
+            });
+
             sectorEls.push(sector);
         }
+    );
 
-        wheelSectorsContainerEl.append(...sectorEls);
-    }
-
-    sectorEls.forEach((sector, index) => {
-        wheelConfig.setWheelSectorsBlockSize(sector, index, sector.parentElement);
-        wheelConfig.setWheelSectorPosition(sector, index, sector.parentElement);
-    });
+    wheelSectorsContainerEl.append(...sectorEls);
 
     if (hoverFeature.matches) {
         spinBtn.addEventListener('click', startBtnClickHandler);
