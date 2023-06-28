@@ -72,7 +72,6 @@ export class WheelComponent {
         }
     
         this.isSpinning = true;
-        console.log(this.playAnimationButtonRef);
         this.playAnimationButtonRef.toggleAttribute('disabled', this.isSpinning || this.autoPlay);
         this.targetSectorIndex = api.requestGameData();
         this.targetSector = this.sectorElementsRefList[this.targetSectorIndex];
@@ -86,6 +85,7 @@ export class WheelComponent {
             start: this.rotationStartPositionDeg, 
             end: this.totalRotationAngleDeg, 
             onUpdate(progress, remainingTime) {
+                // console.log(progress, remainingTime);
                 this.target.rotationProgressDeg = progress;
 
                 if (Math.floor(this.target.rotationProgressDeg / 360) > this.target.currentRotationCount) {
@@ -128,7 +128,7 @@ export class WheelComponent {
         
                 if (targetSectorIndex === 5 || this.target.autoPlay) {
                     // console.log('Free spin starting point', rotationStartPositionDeg);
-                    let timerId = window.setTimeout(function () {
+                    let timerId = window.setTimeout(() => {
                         window.clearInterval(timerId);
                         this.target.startAutoPlay(this.target.autoSpins);
                     }, this.target.autoPlayIdleTime);
@@ -247,7 +247,7 @@ export class WheelComponent {
             'Play'
         );
 
-        this.sectorElementsRefList.push(wheelSectorsData.map((dataSrc, index) => {
+        wheelSectorsData.forEach((dataSrc, index) => {
             const sector = createElement(
                 {
                     name: 'div',
@@ -278,14 +278,14 @@ export class WheelComponent {
                 sector.style.setProperty('--sector-rotate', `${rotate}deg`);
             });
 
-            return sector;
-        }));
+            this.sectorElementsRefList.push(sector);
+        });
+        
 
-        console.log(this.playAnimationButtonRef);
         if (window.matchMedia('(hover: hover)').matches) {
-            this.playAnimationButtonRef.addEventListener('click', this.playButtonClickHandler);
+            this.playAnimationButtonRef.addEventListener('click', this.playButtonClickHandler.bind(this));
         } else {
-            this.playAnimationButtonRef.addEventListener('pointerdown', this.playButtonClickHandler);
+            this.playAnimationButtonRef.addEventListener('pointerdown', this.playButtonClickHandler.bind(this));
         }
     }
 }
