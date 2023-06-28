@@ -30,10 +30,10 @@ const startBtnClickHandler = function (ev) {
 
     wheelConfig.isSpinning = true;
     spinBtn.toggleAttribute('disabled', wheelConfig.isSpinning || wheelConfig.autoPlay);
-    wheelContainerEl.toggleAttribute('data-spin', wheelConfig.isSpinning);
     wheelConfig.targetSectorIndex = api.requestGameData();
     wheelConfig.targetSector = sectorEls[wheelConfig.targetSectorIndex];
     wheelConfig.fullRotationsCount = rand(7, 10);
+    wheelContainerEl.toggleAttribute('data-spin', wheelConfig.isSpinning);
     wheelConfig.startAnimationTimeMs = performance.now();
     wheelSpinHandler(wheelConfig.startAnimationTimeMs);
     console.log('Start button click handler');
