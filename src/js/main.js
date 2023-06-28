@@ -111,9 +111,9 @@ document.addEventListener('DOMContentLoaded', () => {
             sectorContent.textContent = dataSrc.text;
 
             sector.append(sectorHoverOverlay, sectorContent);
-
+            wheelSectorsContainerEl.append(sector);
             const parentElementClientRect = sector.parentElement.getBoundingClientRect();
-            
+
             wheelConfig.setWheelSectorsBlockSize(parentElementClientRect, (height) => {
                 sector.style.setProperty('--sector-block-size', `${height}%`);
             });
@@ -124,11 +124,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 sector.style.setProperty('--sector-rotate', `${rotate}deg`);
             });
 
-            sectorEls.push(sector);
+            return sector;
         }
     );
-
-    wheelSectorsContainerEl.append(...sectorEls);
 
     if (hoverFeature.matches) {
         spinBtn.addEventListener('click', startBtnClickHandler);
