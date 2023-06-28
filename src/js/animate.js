@@ -57,9 +57,9 @@ class Animation {
      * @returns 
      */
     static easeOut(t, exponent = 1) {
-        t = flip(t);
+        t = this.flip(t);
         // console.log(`Time progression: `, t);
-        let easingFactor = flip((t) ** exponent);
+        let easingFactor = this.flip((t) ** exponent);
         // console.log('Easing factor:', easingFactor);
         return easingFactor;
     }
@@ -74,7 +74,7 @@ class Animation {
      * @param {number} [exponent2] exponent factor 2
      */
     static easeInOut(t, exponent1 = 1, exponent2) {
-        return lerp(easeIn(t, exponent1), easeOut(t, exponent2 ?? exponent1), t);
+        return this.lerp(this.easeIn(t, exponent1), this.easeOut(t, exponent2 ?? exponent1), t);
     }
 
 }
@@ -104,7 +104,7 @@ export function animate(animation) {
             return animation.target;
         },
         get animationDuration() {
-            return animation.duration * 1e3;
+            return animation.duration;
         },
         get startAnimationPosition() {
             return animation.start;
@@ -145,7 +145,7 @@ export function animate(animation) {
         }
     };
 
-    animate.play = (function (timestamp = performance.now()) {
+    function play(timestamp = performance.now()) {
         if (config.startAnimationTime == null) {
             config.startAnimationTime = timestamp;
         }
@@ -174,7 +174,9 @@ export function animate(animation) {
         }
     
         config.prevAnimationTime = timestamp;
-        config.animationFrameId = _requestAnimationFrame(this.play);
-    }).bind(animate);
+        config.animationFrameId = _requestAnimationFrame(play);
+    }
+
+    play();
 
 }
