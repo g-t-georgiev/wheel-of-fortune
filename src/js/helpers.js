@@ -22,6 +22,41 @@ export class Polygon {
 }
 
 /**
+ * Rounds a given number to the specified fraction length.
+ * @param {number} value 
+ * @param {number} [fraction] 
+ * @returns 
+ */
+export function roundNumberToFractionLen(value, fraction = 2) {
+    if (fraction < 0) {
+        throw new RangeError('Invalid fraction length value. Fraction length cannot be negative.');
+    }
+
+    if (fraction == null || fraction === 0) {
+        return Math.trunc(value);
+    }
+
+    return Number(Number.prototype.toFixed.call(value, fraction));
+}
+
+/**
+ * A rotation angle value, measured in degrees is 
+ * normalized to a range between 0 and 360. 
+ * @param {number} rotation 
+ * @returns 
+ */
+export function normalizeRotationAngleDeg(rotation) {
+    return rotation % 360;
+}
+
+export function calcFrameRate(currentTimestamp, prevTimestamp) {
+    if (currentTimestamp == null || prevTimestamp == null) return;
+
+    let fps = Math.floor(1e3 / (currentTimestamp - prevTimestamp));
+    return fps;
+}
+
+/**
  * Returns a random number between the interval of a min and max value.
  * The min and max tresholds are inclusive.
  * @param {number} min 
@@ -35,61 +70,47 @@ export function rand(min, max) {
 }
 
 /**
- * Flips direction of x value.
- * @param {number} x 
+ * Creates an HTMLElement with the given attributes, properties, child nodes and optionally, 
+ * appended to a parent element.
+ * @param {{ name: string, attributes?: {}, properties?: {}, parentElement?: HTMLElement }} config 
+ * @param  {...any} childNodes 
  * @returns 
  */
-export function flip(x) {
-    return 1 - x;
-}
+export function createElement({ name, attributes = {}, properties = {}, parentElement = null }, ...childNodes) {
+    const element = document.createElement(name);
 
-/**
- * Interpolates between start and end value over a set time index from 0 to 1.
- * @param {number} a start value
- * @param {number} b end value
- * @param {number} t time progress [0..1]
- * @returns 
- */
-export function lerp(a, b, t) {
-    return a + (b - a) * t;
-}
+    for (const attributeName in attributes) {
+        const attributeValue = attributes[attributeName];
+        
+        if (attributeName === 'classList') {
+            element.classList.add(...(Array.isArray(attributeValue) ? attributeValue : [ attributeValue ]));
+        } else if (attributeName === 'dataSet') {
+            let dataSetEntries = Object.entries(attributeValue);
+            dataSetEntries.forEach(([ prop, val ]) => element.dataset[prop] = val);
+        } else if (attributeName === 'stylesList') {
+            let stylesListEntries = Object.entries(attributeValue);
+            stylesListEntries.forEach(([ prop, val ]) => element.style.setProperty(prop, val));
+        } else {
+            element.setAttribute(attributeName, attributeValue)
+        }
+    }
 
-/**
- * Calculates gradually increasing easing factor index.
- * @param {number} t time progress [0..1]
- * @param {number} exponent exponent factor
- * @returns 
- */
-export function easeIn(t, exponent = 1) {
-    // console.log(`Time progression: `, t);
-    let easingFactor = (t) ** exponent;
-    // console.log('Easing factor:', easingFactor);
-    return easingFactor;
-}
+    for (const propertyName in properties) {
+        const propoertyValue = properties[propertyName];
+        element[propertyName] = propoertyValue;
+    }
 
-/**
- * Calculates gradually decreasing easing factor index.
- * @param {number} t time progress [0..1]
- * @param {number} exponent exponent factor
- * @returns 
- */
-export function easeOut(t, exponent = 1) {
-    t = flip(t);
-    // console.log(`Time progression: `, t);
-    let easingFactor = flip((t) ** exponent);
-    // console.log('Easing factor:', easingFactor);
-    return easingFactor;
-}
+    childNodes.forEach(childNode => {
+        if (childNode instanceof HTMLElement) {
+            element.append(childNode);
+        } else if ([ 'input', 'textarea' ].includes(name)) {
+            element.value = childNode;
+        } else {
+            element.textContent = childNode;
+        }
+    });
 
-/**
- * Calculats gradually increasing and decreasing easing factor index. 
- * If the exponent factors are omitted, the default behavior is linear.
- * If only the one exponent is passed it is used for both easing-in and easing-out effect.
- * Otherwise, the first exponent is used for the ease-in and the secont for the ease-out effect.
- * @param {number} t time progress
- * @param {number} exponent1 exponent factor 1
- * @param {number} [exponent2] exponent factor 2
- */
-export function easeInOut(t, exponent1 = 1, exponent2) {
-    return lerp(easeIn(t, exponent1), easeOut(t, exponent2 ?? exponent1), t);
+    if (parentElement) parentElement.append(element);
+
+    return element;
 }
