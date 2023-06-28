@@ -137,10 +137,7 @@ export class WheelComponent {
             
                 this.target.playAnimationButtonRef.toggleAttribute('disabled', this.target.isSpinning || this.target.autoPlay);
             },
-            ease: {
-                type: 'easeInOut',
-                power: [2, 4]
-            }
+            ease: { type: 'easeInOut', power: [2, 4] }
         });
     }
 
