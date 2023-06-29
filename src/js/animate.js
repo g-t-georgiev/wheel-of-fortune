@@ -1,25 +1,17 @@
 import { requestAnimationFrame, cancelAnimationFrame } from './animation-frame.js';
 
-/**
- * Abstract class library for animation timing functions
- * @class Animation
- * @abstract
- */
-class Animation {
+export class Transition {
 
-    /**
-     * @constructor 
-     * @abstract
-     */
     constructor() {
-        if (this.constructor.name === 'Animation') {
-            throw new Error('Abstract class cannot be instantiated')
+        if (this.constructor.name === 'Power') {
+            throw new Error('Abstract class cannot be instantiated');
         }
     }
 
     /**
      * Flips direction of x value.
      * @param {number} x 
+     * @static
      * @returns 
      */
     static flip(x) {
@@ -31,6 +23,7 @@ class Animation {
      * @param {number} a start value
      * @param {number} b end value
      * @param {number} t time progress [0..1]
+     * @static
      * @returns 
      */
     static lerp(a, b, t) {
@@ -39,29 +32,39 @@ class Animation {
 
     /**
      * Calculates gradually increasing easing factor index.
-     * @param {number} t time progress [0..1]
      * @param {number} exponent exponent factor
+     * @static
      * @returns 
      */
-    static easeIn(t, exponent = 1) {
-        // console.log(`Time progression: `, t);
-        let easingFactor = (t) ** exponent;
-        // console.log('Easing factor:', easingFactor);
-        return easingFactor;
+    static easeIn(exponent = 1) {
+        /**
+         * @param {number} t
+         */
+        return (t) => {
+            // console.log(`Time progression: `, t);
+            let easingFactor = (t) ** exponent;
+            // console.log('Easing factor:', easingFactor);
+            return easingFactor;
+        }
     }
 
     /**
      * Calculates gradually decreasing easing factor index.
-     * @param {number} t time progress [0..1]
      * @param {number} exponent exponent factor
+     * @static
      * @returns 
      */
-    static easeOut(t, exponent = 1) {
-        t = this.flip(t);
-        // console.log(`Time progression: `, t);
-        let easingFactor = this.flip((t) ** exponent);
-        // console.log('Easing factor:', easingFactor);
-        return easingFactor;
+    static easeOut(exponent = 1) {
+        /**
+         * @param {number} t time progress [0..1]
+         */
+        return (t) => {
+            t = this.flip(t);
+            // console.log(`Time progression: `, t);
+            let easingFactor = this.flip((t) ** exponent);
+            // console.log('Easing factor:', easingFactor);
+            return easingFactor;
+        }
     }
 
     /**
@@ -69,114 +72,139 @@ class Animation {
      * If the exponent factors are omitted, the default behavior is linear.
      * If only the one exponent is passed it is used for both easing-in and easing-out effect.
      * Otherwise, the first exponent is used for the ease-in and the secont for the ease-out effect.
-     * @param {number} t time progress
      * @param {number} exponent1 exponent factor 1
-     * @param {number} [exponent2] exponent factor 2
+     * @param {number} [exponent2] exponent factor 2 
+     * @static
+     * @returns
      */
-    static easeInOut(t, exponent1 = 1, exponent2) {
-        return this.lerp(this.easeIn(t, exponent1), this.easeOut(t, exponent2 ?? exponent1), t);
+    static easeInOut(exponent1 = 1, exponent2) {
+        /**
+         * @param {number} t time progress [0..1]
+         */
+        return (t) => {
+            const easeInFactor = this.easeIn(exponent1)(t);
+            const easeOutFactor = this.easeOut(exponent2 ?? exponent1)(t);
+            return this.lerp(easeInFactor, easeOutFactor, t);
+        }
     }
-
 }
 
-/**
- * 
- * @param {{ 
- *      target: object | HTMLElement,
- *      duration: number, 
- *      start: number, 
- *      end: number, 
- *      onUpdate: (animationProgress: number, remainingTime: number) => void, 
- *      onStart?: () => void, 
- *      onComplete?: () => void, 
- *      ease: {
- *          type: 'none' | 'easeIn' | 'easeOut' | 'easeInOut',
- *          power: number | Array<number>
- *      }
- * }} animation 
- * @returns 
- */
-export function animate(animation) {
+export class Animation {
 
-    const config = {
-        animationFrameId: null,
-        get target() {
-            return animation.target;
-        },
-        get animationDuration() {
-            return animation.duration;
-        },
-        get startAnimationPosition() {
-            return animation.start;
-        },
-        get completedAnimationPosition() {
-            return animation.end;
-        },
-        animationProgress: null,
-        startAnimationTime: null,
-        prevAnimationTime: null,
-        get easingFunction() {
-            let { type: easeType, power: easePower } = animation.ease;
-            let easingFunctionPower = Array.isArray(easePower) ? easePower: [ easePower ];
-            let easingFunction = (t) => t;
-        
-            switch (easeType) {
-                case 'easeIn': {
-                    easingFunction = (t) => {
-                        return Animation.easeIn(t, ...easingFunctionPower);
-                    };
-                    break;
-                }
-                case 'easeOut': {
-                    easingFunction = (t) => {
-                        return Animation.easeOut(t, ...easingFunctionPower);
-                    }
-                    break;
-                }
-                case 'easeInOut': {
-                    easingFunction = (t) => {
-                        return Animation.easeInOut(t, ...easingFunctionPower);
-                    }
-                    break;
-                }
-            }
+    #actionsQueue = new Map();
 
-            return easingFunction;
-        }
-    };
-
-    function play(timestamp = performance.now()) {
-        if (config.startAnimationTime == null) {
-            config.startAnimationTime = timestamp;
-        }
+    #animationFrameId = null;
+    #startAnimationTime = null;
+    #previousFrameAnimationTime = null;
+    #animationProgress = null;
     
-        const elapsedTime = timestamp - config.startAnimationTime;
-        const startTimeProgress = Math.min(1, elapsedTime / config.animationDuration);
-        const remainingTimeProgress = 1 - startTimeProgress;
-        const remainingTime = Math.max(0, config.animationDuration * remainingTimeProgress);
+    constructor() { }
 
-        if (elapsedTime === 0) {
-            animation.onStart?.();
-        }
-    
-        const rotationStepDeg = Animation.lerp(config.startAnimationPosition, config.completedAnimationPosition, config.easingFunction(startTimeProgress));
-        config.animationProgress = rotationStepDeg;
+    /**
+     * @param {number} duration 
+     * @param {number} start 
+     * @param {number} end 
+     * @param {(t: number) => number} easingFunction 
+     */
+    play(duration, start, end, easingFunction) {
+        this.animationDuration = duration;
+        this.startAnimationPosition = start;
+        this.endAnimationPosition = end;
+        this.easingFunction = easingFunction;
 
-        animation.onUpdate?.(config.animationProgress, remainingTime);
-    
-        if (remainingTime === 0) {
-            animation.onComplete?.();
-
-            config.startAnimationTime = null;
-            config.prevAnimationTime = null;
-            cancelAnimationFrame(config.animationFrameId);;
-            return;
-        }
-    
-        config.prevAnimationTime = timestamp;
-        config.animationFrameId = requestAnimationFrame(play);
+        this.#step();
     }
 
-    play();
+    #step(timestamp = performance.now()) {
+        if (this.#startAnimationTime == null) {
+            this.#startAnimationTime = timestamp;
+        }
+
+        const elapsedTime = timestamp - this.#startAnimationTime;
+        const startTimeProgress = Math.min(1, elapsedTime / this.animationDuration);
+        const remainingTimeProgress = 1 - startTimeProgress;
+        const remainingTime = Math.max(0, this.animationDuration * remainingTimeProgress);
+
+        if (elapsedTime === 0) {
+            this.#emit('start');
+        }
+
+        const rotationStepDeg = Transition.lerp(this.startAnimationPosition, this.endAnimationPosition, this.easingFunction(startTimeProgress));
+        this.animationProgress = rotationStepDeg;
+
+        this.#emit('running', this.animationProgress, remainingTime);
+
+        if (remainingTime === 0) {
+            this.#emit('complete');
+
+            this.#startAnimationTime = null;
+            this.#previousFrameAnimationTime = null;
+            cancelAnimationFrame(this.#animationFrameId);;
+            return;
+        }
+
+        this.#previousFrameAnimationTime = timestamp;
+        this.#animationFrameId = requestAnimationFrame(this.#step.bind(this));
+    }
+
+    /**
+     * Subscribes to a particular event of either `start`, `running` 
+     * or `complete` type. Returns unsubscribe handler bound with the 
+     * particular event and subscriber (callback function).
+     * @param {"start" | "running" | "complete"} eventType 
+     * @param {(...any) => void} cb 
+     * @param {any} [thisArg] 
+     * @returns 
+     */
+    on(eventType, cb, thisArg) {
+        if (thisArg != null) {
+            cb = cb.bind(thisArg);
+        }
+
+        const id = Symbol('id');
+
+        if (!(this.#actionsQueue.has(eventType))) {
+            this.#actionsQueue.set(eventType, new Map());
+        }
+
+        let subscribers = this.#actionsQueue.get(eventType);
+        subscribers.set(id, cb);
+
+        /**
+         * An unsubscribe handler which when called unregisters 
+         * a particular subscriber from the current event type's 
+         * subscribers list. If the operation was successful returns true 
+         * and if there are no registered subscribers or operation 
+         * was unsuccessful, false. 
+         * @returns {boolean}
+         */
+        return () => {
+            if (!subscribers.has(id)) {
+                return false;
+            }
+
+            return subscribers.delete(id);
+        };
+    }
+
+    /**
+     * Emits an event of either `start`, `running` or `complete` types,
+     * calling all registered subscribers synschronously. Returns false if no 
+     * subscribers are registered to the specified event type and true otherwise.
+     * @param {"start" | "running" | "complete"} eventType 
+     * @param  {...any} args 
+     * @returns 
+     */
+    #emit(eventType, ...args) {
+        if (!this.#actionsQueue.has(eventType)) {
+            return false;
+        }
+
+        this.#actionsQueue.get(eventType).forEach((cb, id, subscribers) => {
+            cb(...args);
+        });
+
+        return true;
+    }
 
 }
