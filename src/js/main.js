@@ -1,5 +1,5 @@
 import * as api from '../../api/index.js';
-import { WheelComponent } from './wheel.config.js';
+import { WheelComponent } from './wheel.js';
 
 const rootElementRef = document.querySelector('.app-wrapper');
 
