@@ -114,3 +114,18 @@ export function createElement({ name, attributes = {}, properties = {}, parentEl
 
     return element;
 }
+
+/**
+ * Removes the last element of given array recursively,
+ * until no more elements in the array. A callback function 
+ * is called for every poped item, passing it to the callback.
+ * @param {Array<any>} array 
+ * @param {(item: any) => void} cb 
+ * @returns 
+ */
+export function loopAndPopArrayItems(array, cb) {
+    let item = array.pop();
+    if (item) cb(item);
+    if (array.length === 0) return;
+    loopAndPopArrayItems(array, cb);
+}
