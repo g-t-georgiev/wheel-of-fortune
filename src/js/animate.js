@@ -1,4 +1,4 @@
-import { _requestAnimationFrame, _cancelAnimationFrame } from './requestanimationframe.js';
+import { requestAnimationFrame, cancelAnimationFrame } from './animation-frame.js';
 
 /**
  * Abstract class library for animation timing functions
@@ -169,12 +169,12 @@ export function animate(animation) {
 
             config.startAnimationTime = null;
             config.prevAnimationTime = null;
-            _cancelAnimationFrame(config.animationFrameId);;
+            cancelAnimationFrame(config.animationFrameId);;
             return;
         }
     
         config.prevAnimationTime = timestamp;
-        config.animationFrameId = _requestAnimationFrame(play);
+        config.animationFrameId = requestAnimationFrame(play);
     }
 
     play();
