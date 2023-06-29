@@ -202,7 +202,7 @@ function finishCurrentGame() {
     gameObject = null;
 }
 
-export function requestGameData() {
+export async function requestGameData() {
     if (gameObject == null) {
         startNewGame();
     }
