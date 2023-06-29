@@ -1,6 +1,6 @@
 import * as api from '../../api/index.js';
-import { Polygon, createElement, roundNumberToFractionLen, normalizeRotationAngleDeg } from './helpers.js';
-import { animate } from './animate.js';
+import { Polygon, createElement, loopAndPopArrayItems, roundNumberToFractionLen, normalizeRotationAngleDeg } from './helpers.js';
+import { Animation, Transition } from './animate.js';
 
 export class WheelComponent {
     rootElementRef = null;
@@ -20,6 +20,9 @@ export class WheelComponent {
     rotationStartPositionDeg = 0;
     currentRotationCount = 0;
     minFullRotationsCount = 5;
+
+    // subscriptions list
+    #subscriptions = [];
 
     /**
      * Creates a wheel component instance. The root element 
@@ -79,38 +82,38 @@ export class WheelComponent {
         this.startAnimationTimeMs = performance.now();
         console.log('Start button click handler');
 
-        animate({ 
-            target: this,
-            duration: this.rotationDurationMs, 
-            start: this.rotationStartPositionDeg, 
-            end: this.totalRotationAngleDeg, 
-            onUpdate(progress, remainingTime) {
-                // console.log(progress, remainingTime);
-                this.target.rotationProgressDeg = progress;
+        // Instantiate new animation object
+        let spinAnimation = new Animation();
 
-                if (Math.floor(this.target.rotationProgressDeg / 360) > this.target.currentRotationCount) {
-                    this.target.currentRotationCount++;
-                    console.log(`Rotation ${this.target.currentRotationCount} of ${this.target.totalRotationsCount}`);
+        // Subscribe to `running`, `complete` animation hooks
+        this.#subscriptions.push(
+            spinAnimation.on('running', (progress, remainingTime) => {
+                // console.log(progress, remainingTime);
+                this.rotationProgressDeg = progress;
+    
+                if (Math.floor(this.rotationProgressDeg / 360) > this.currentRotationCount) {
+                    this.currentRotationCount++;
+                    console.log(`Rotation ${this.currentRotationCount} of ${this.totalRotationsCount}`);
                 }
             
-                this.target.wheelInnerContainerRef.style.setProperty(
+                this.wheelInnerContainerRef.style.setProperty(
                     'transform',
                     `rotateZ(${progress}deg)`
                 );
-
-            },
-            onComplete() {
-                let targetSector = this.target.targetSector;
-                let targetSectorIndex = this.target.targetSectorIndex;
-                let targetRotationAngleDeg = this.target.targetRotationAngleDeg;
+            }, this),
+    
+            spinAnimation.on('complete', () => {
+                let targetSector = this.targetSector;
+                let targetSectorIndex = this.targetSectorIndex;
+                let targetRotationAngleDeg = this.targetRotationAngleDeg;
                 
-                this.target.rotationProgressDeg = normalizeRotationAngleDeg(this.target.rotationProgressDeg);
-                this.target.rotationStartPositionDeg = this.target.rotationProgressDeg;
+                this.rotationProgressDeg = normalizeRotationAngleDeg(this.rotationProgressDeg);
+                this.rotationStartPositionDeg = this.rotationProgressDeg;
         
-                let rotationProgressDeg = this.target.rotationProgressDeg;
-                let rotationStartPositionDeg = this.target.rotationStartPositionDeg;
+                let rotationProgressDeg = this.rotationProgressDeg;
+                let rotationStartPositionDeg = this.rotationStartPositionDeg;
         
-                this.target.wheelInnerContainerRef.style.setProperty(
+                this.wheelInnerContainerRef.style.setProperty(
                     'transform',
                     `rotateZ(${rotationProgressDeg}deg)`
                 );
@@ -119,26 +122,41 @@ export class WheelComponent {
                 console.log('Winning sector angle:', targetRotationAngleDeg);
                 console.log('Winning sector ref:', targetSector);
         
-                this.target.isSpinning = false;
-                this.target.targetSector = null;
-                this.target.targetSectorIndex = null;
-                this.target.currentRotationCount = 0;
+                this.isSpinning = false;
+                this.targetSector = null;
+                this.targetSectorIndex = null;
+                this.currentRotationCount = 0;
                 
-                this.target.wheelOuterContainerRef.toggleAttribute('data-spin', this.target.isSpinning);
+                this.wheelOuterContainerRef.toggleAttribute('data-spin', this.isSpinning);
         
-                if (targetSectorIndex === 5 || this.target.autoPlay) {
+                if (targetSectorIndex === 5 || this.autoPlay) {
                     // console.log('Free spin starting point', rotationStartPositionDeg);
                     let timerId = window.setTimeout(() => {
                         window.clearInterval(timerId);
-                        this.target.startAutoPlay(this.target.autoSpins);
-                    }, this.target.autoPlayIdleTime);
+                        this.startAutoPlay(this.autoSpins);
+                    }, this.autoPlayIdleTime);
                     return;
                 }
             
-                this.target.playAnimationButtonRef.toggleAttribute('disabled', this.target.isSpinning || this.target.autoPlay);
-            },
-            ease: { type: 'easeInOut', power: [2, 4] }
-        });
+                this.playAnimationButtonRef.toggleAttribute('disabled', this.isSpinning || this.autoPlay);
+
+                // Unsubscribe from registered animation hooks
+                // console.log('Registered animation hooks', this.#subscriptions);
+                loopAndPopArrayItems(this.#subscriptions, (unsubscribe) => {
+                    let suceess = unsubscribe?.();
+                    console.log('Unsubscribed succussfully from animation hook', suceess);
+                });
+                // console.log('Subscriptions after unsubscribe action', this.#subscriptions);
+            }, this)
+        );
+
+        // Trigger animation
+        spinAnimation.play(
+            this.rotationDurationMs, 
+            this.rotationStartPositionDeg, 
+            this.totalRotationAngleDeg, 
+            Transition.easeInOut.call(Transition, 2, 4)
+        );
     }
 
     startAutoPlay(repeatCount) {
