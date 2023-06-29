@@ -21,8 +21,11 @@ export class WheelComponent {
     currentRotationCount = 0;
     minFullRotationsCount = 5;
 
-    // subscriptions list
+    // Subscriptions list
     #subscriptions = [];
+
+    // Registered animations list
+    #animations = {};
 
     /**
      * Creates a wheel component instance. The root element 
@@ -82,76 +85,8 @@ export class WheelComponent {
         this.startAnimationTimeMs = performance.now();
         console.log('Start button click handler');
 
-        // Instantiate new animation object
-        let spinAnimation = new Animation();
-
-        // Subscribe to `running`, `complete` animation hooks
-        this.#subscriptions.push(
-            spinAnimation.on('running', (progress, remainingTime) => {
-                // console.log(progress, remainingTime);
-                this.rotationProgressDeg = progress;
-    
-                if (Math.floor(this.rotationProgressDeg / 360) > this.currentRotationCount) {
-                    this.currentRotationCount++;
-                    console.log(`Rotation ${this.currentRotationCount} of ${this.totalRotationsCount}`);
-                }
-            
-                this.wheelInnerContainerRef.style.setProperty(
-                    'transform',
-                    `rotateZ(${progress}deg)`
-                );
-            }, this),
-    
-            spinAnimation.on('complete', () => {
-                let targetSector = this.targetSector;
-                let targetSectorIndex = this.targetSectorIndex;
-                let targetRotationAngleDeg = this.targetRotationAngleDeg;
-                
-                this.rotationProgressDeg = normalizeRotationAngleDeg(this.rotationProgressDeg);
-                this.rotationStartPositionDeg = this.rotationProgressDeg;
-        
-                let rotationProgressDeg = this.rotationProgressDeg;
-                let rotationStartPositionDeg = this.rotationStartPositionDeg;
-        
-                this.wheelInnerContainerRef.style.setProperty(
-                    'transform',
-                    `rotateZ(${rotationProgressDeg}deg)`
-                );
-        
-                console.log('Wheel rotation progress:', rotationProgressDeg);
-                console.log('Winning sector angle:', targetRotationAngleDeg);
-                console.log('Winning sector ref:', targetSector);
-        
-                this.isSpinning = false;
-                this.targetSector = null;
-                this.targetSectorIndex = null;
-                this.currentRotationCount = 0;
-                
-                this.wheelOuterContainerRef.toggleAttribute('data-spin', this.isSpinning);
-        
-                if (targetSectorIndex === 5 || this.autoPlay) {
-                    // console.log('Free spin starting point', rotationStartPositionDeg);
-                    let timerId = window.setTimeout(() => {
-                        window.clearInterval(timerId);
-                        this.startAutoPlay(this.autoSpins);
-                    }, this.autoPlayIdleTime);
-                    return;
-                }
-            
-                this.playAnimationButtonRef.toggleAttribute('disabled', this.isSpinning || this.autoPlay);
-
-                // Unsubscribe from registered animation hooks
-                // console.log('Registered animation hooks', this.#subscriptions);
-                loopAndPopArrayItems(this.#subscriptions, (unsubscribe) => {
-                    let suceess = unsubscribe?.();
-                    console.log('Unsubscribed succussfully from animation hook', suceess);
-                });
-                // console.log('Subscriptions after unsubscribe action', this.#subscriptions);
-            }, this)
-        );
-
-        // Trigger animation
-        spinAnimation.play(
+        // Trigger wheel spin animation
+        this.#animations.spin.play(
             this.rotationDurationMs, 
             this.rotationStartPositionDeg, 
             this.totalRotationAngleDeg, 
@@ -302,5 +237,68 @@ export class WheelComponent {
         } else {
             this.playAnimationButtonRef.addEventListener('pointerdown', this.playButtonClickHandler.bind(this));
         }
+
+        // Instantiate new animation object
+        let spinAnimation = new Animation('wheel-spin');
+
+        // Subscribe to `running`, `complete` animation hooks
+        this.#subscriptions.push(
+            spinAnimation.on('running', (progress, remainingTime) => {
+                // console.log(progress, remainingTime);
+                this.rotationProgressDeg = progress;
+    
+                if (Math.floor(this.rotationProgressDeg / 360) > this.currentRotationCount) {
+                    this.currentRotationCount++;
+                    console.log(`Rotation ${this.currentRotationCount} of ${this.totalRotationsCount}`);
+                }
+            
+                this.wheelInnerContainerRef.style.setProperty(
+                    'transform',
+                    `rotateZ(${progress}deg)`
+                );
+            }, this),
+    
+            spinAnimation.on('complete', () => {
+                let targetSector = this.targetSector;
+                let targetSectorIndex = this.targetSectorIndex;
+                let targetRotationAngleDeg = this.targetRotationAngleDeg;
+                
+                this.rotationProgressDeg = normalizeRotationAngleDeg(this.rotationProgressDeg);
+                this.rotationStartPositionDeg = this.rotationProgressDeg;
+        
+                let rotationProgressDeg = this.rotationProgressDeg;
+                let rotationStartPositionDeg = this.rotationStartPositionDeg;
+        
+                this.wheelInnerContainerRef.style.setProperty(
+                    'transform',
+                    `rotateZ(${rotationProgressDeg}deg)`
+                );
+        
+                console.log('Wheel rotation progress:', rotationProgressDeg);
+                console.log('Winning sector angle:', targetRotationAngleDeg);
+                console.log('Winning sector ref:', targetSector);
+        
+                this.isSpinning = false;
+                this.targetSector = null;
+                this.targetSectorIndex = null;
+                this.currentRotationCount = 0;
+                
+                this.wheelOuterContainerRef.toggleAttribute('data-spin', this.isSpinning);
+        
+                if (targetSectorIndex === 5 || this.autoPlay) {
+                    // console.log('Free spin starting point', rotationStartPositionDeg);
+                    let timerId = window.setTimeout(() => {
+                        window.clearInterval(timerId);
+                        this.startAutoPlay(this.autoSpins);
+                    }, this.autoPlayIdleTime);
+                    return;
+                }
+            
+                this.playAnimationButtonRef.toggleAttribute('disabled', this.isSpinning || this.autoPlay);
+            }, this)
+        );
+
+        // Register spin animation
+        this.#animations.spin = spinAnimation;
     }
 }
