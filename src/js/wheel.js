@@ -50,6 +50,7 @@ export class WheelComponent {
     }
 
     get targetRotationAngleDeg() {
+        if (this.targetSectorIndex == null) return 0;
         const layoutOffset = 360 - 90;
         const targetRotationAngleDeg = (this.sectorsCount - (this.targetSectorIndex % this.sectorsCount)) * this.anglePerSectorDeg;
         const adjustedRotationTargetRotationAngleDeg = (targetRotationAngleDeg + layoutOffset) % 360;
