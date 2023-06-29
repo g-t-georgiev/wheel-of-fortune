@@ -112,6 +112,7 @@ export class Animation {
      * @param {(t: number) => number} easingFunction 
      */
     play(duration, start, end, easingFunction) {
+        console.log('Animation play triggered');
         this.animationDuration = duration;
         this.startAnimationPosition = start;
         this.endAnimationPosition = end;
