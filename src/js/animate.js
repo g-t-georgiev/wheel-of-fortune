@@ -98,7 +98,12 @@ export class Animation {
     #previousFrameAnimationTime = null;
     #animationProgress = null;
     
-    constructor() { }
+    /**
+     * @param {string?} name 
+     */
+    constructor(name = null) {
+        this.name = name;
+    }
 
     /**
      * @param {number} duration 
@@ -139,6 +144,7 @@ export class Animation {
 
             this.#startAnimationTime = null;
             this.#previousFrameAnimationTime = null;
+            // console.log('Finishing animation with id', this.#animationFrameId);
             cancelAnimationFrame(this.#animationFrameId);;
             return;
         }
@@ -196,10 +202,11 @@ export class Animation {
      * @returns 
      */
     #emit(eventType, ...args) {
-        if (!this.#actionsQueue.has(eventType)) {
+        if (!this.#actionsQueue.has(eventType) || !this.#actionsQueue.get(eventType).size) {
             return false;
         }
 
+        // console.log(`Emit event "${eventType}" with arguments: ${args.join(', ')}`);
         this.#actionsQueue.get(eventType).forEach((cb, id, subscribers) => {
             cb(...args);
         });
