@@ -78,15 +78,21 @@ export class WheelComponent {
             return;
         }
     
-        this.isSpinning = true;
-        this.playAnimationButtonRef.toggleAttribute('disabled', this.isSpinning || this.autoPlay);
-        this.targetSectorIndex = api.requestGameData();
-        this.targetSector = this.sectorElementsRefList[this.targetSectorIndex];
-        this.wheelOuterContainerRef.toggleAttribute('data-spin', this.isSpinning);
-        this.startAnimationTimeMs = performance.now();
+        api.requestGameData().then(sectorIdx => {
+            this.targetSectorIndex = sectorIdx;
+            this.targetSector = this.sectorElementsRefList[sectorIdx];
+
+            this.#animations.spin.play(
+                this.rotationDurationMs, 
+                this.rotationStartPositionDeg, 
+                this.totalRotationAngleDeg, 
+                Transition.easeInOut.call(Transition, 2, 4)
+            );
+        });
+        
         console.log('Start button click handler');
 
-        // Trigger wheel spin animation
+        // Trigger initial wheel spin animation
         this.#animations.spin.play(
             this.rotationDurationMs, 
             this.rotationStartPositionDeg, 
@@ -244,6 +250,12 @@ export class WheelComponent {
 
         // Subscribe to `running`, `complete` animation hooks
         this.#subscriptions.push(
+            spinAnimation.on('start', () => {
+                this.isSpinning = true;
+                this.startAnimationTimeMs = performance.now();
+                this.playAnimationButtonRef.toggleAttribute('disabled', this.isSpinning || this.autoPlay);
+                this.wheelOuterContainerRef.toggleAttribute('data-spin', this.isSpinning);     
+            }, this),
             spinAnimation.on('running', (progress, remainingTime) => {
                 // console.log(progress, remainingTime);
                 this.rotationProgressDeg = progress;
