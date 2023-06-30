@@ -162,10 +162,21 @@ export class HttpRequest {
         };
     }
 
+    /**
+     * Pass error/response data to the current observer.
+     * @param {(error: any, data: any) => void} observer 
+     * @param {any} error 
+     * @param {any} response 
+     */
     #notify(observer, error, response) {
         observer(error, response);
     }
 
+    /**
+     * Send AJAX request.
+     * @param {(error: any, data: any) => void} observer 
+     * @returns 
+     */
     #sendRequest(observer) {
         if (!this.#subscribers.has(observer)) return;
 
@@ -187,6 +198,10 @@ export class HttpRequest {
         }
     }
 
+    /**
+     * Abort ongoing AJAX request.
+     * @param {XMLHttpRequest} xhr 
+     */
     #abortRequest(xhr) {
         const states = [ 'OPENED', 'HEADERS_RECEIVED', 'LOADING' ];
         states.map(state => xhr[state]);
