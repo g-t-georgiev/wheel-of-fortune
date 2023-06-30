@@ -1,6 +1,7 @@
-import * as api from '../../api/index.js';
 import { Polygon, createElement, loopAndPopArrayItems, roundNumberToFractionLen, normalizeRotationAngleDeg } from './helpers.js';
 import { Animation, Transition } from './animate.js';
+
+import { getGameTargetSectorData } from './wheel.service.js';
 
 export class WheelComponent {
     rootElementRef = null;
@@ -77,8 +78,13 @@ export class WheelComponent {
             // Do something while wheel is spinning...
             return;
         }
-    
-        api.requestGameData().then(sectorIdx => {
+
+        const subscription = getGameTargetSectorData().subscribe((error, sectorIdx) => {
+            if (error) {
+                console.error(error);
+            }
+
+            console.log('Current sector', sectorIdx);
             this.targetSectorIndex = sectorIdx;
             this.targetSector = this.sectorElementsRefList[sectorIdx];
 
@@ -89,16 +95,18 @@ export class WheelComponent {
                 Transition.easeInOut.call(Transition, 2, 4)
             );
         });
-        
+
+        this.#subscriptions.push(subscription);
+        console.log('Subscriptions', this.#subscriptions);
         console.log('Start button click handler');
 
         // Trigger initial wheel spin animation
-        this.#animations.spin.play(
-            this.rotationDurationMs, 
-            this.rotationStartPositionDeg, 
-            this.totalRotationAngleDeg, 
-            Transition.easeInOut.call(Transition, 2, 4)
-        );
+        // this.#animations.spin.play(
+        //     this.rotationDurationMs, 
+        //     this.rotationStartPositionDeg, 
+        //     this.totalRotationAngleDeg, 
+        //     Transition.easeInOut.call(Transition, 2, 4)
+        // );
     }
 
     startAutoPlay(repeatCount) {
@@ -300,14 +308,18 @@ export class WheelComponent {
         
                 if (targetSectorIndex === 5 || this.autoPlay) {
                     // console.log('Free spin starting point', rotationStartPositionDeg);
-                    let timerId = window.setTimeout(() => {
-                        window.clearInterval(timerId);
+                    let timerId = globalThis.setTimeout(() => {
+                        globalThis.clearInterval(timerId);
                         this.startAutoPlay(this.autoSpins);
+                        // Clear previous API request listener for the target sector
+                        this.#subscriptions.pop()?.();
                     }, this.autoPlayIdleTime);
                     return;
                 }
             
                 this.playAnimationButtonRef.toggleAttribute('disabled', this.isSpinning || this.autoPlay);
+                // Clear previous API request listener for the target sector
+                this.#subscriptions.pop()?.();
             }, this)
         );
 
