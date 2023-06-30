@@ -9,7 +9,7 @@ getUIRenderData().subscribe((error, data) => {
         return;
     }
 
-    console.log(data);
+    // console.log(data);
     const wheel = new WheelComponent(rootElementRef, data.length, {});
     wheel.initialize(data);
 });
