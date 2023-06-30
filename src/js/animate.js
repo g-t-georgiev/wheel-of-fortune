@@ -138,7 +138,7 @@ export class Animation {
         const rotationStepDeg = Transition.lerp(this.startAnimationPosition, this.endAnimationPosition, this.easingFunction(startTimeProgress));
         this.animationProgress = rotationStepDeg;
 
-        this.#emit('running', this.animationProgress, remainingTime);
+        this.#emit('running', this.animationProgress, elapsedTime, remainingTime);
 
         if (remainingTime === 0) {
             this.#emit('complete');
