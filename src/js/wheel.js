@@ -16,7 +16,10 @@ export class WheelComponent {
     autoPlayIdleTime = 1e3;
     autoSpins = 3;
     frameRate = 60;
-    rotationDurationMs = 5e3;
+    targetSectorIndex;
+    targetSector;
+    totalRotationDurationMs = 7e3;
+    rotationDurationMs = 0;
     rotationProgressDeg = 0;
     rotationStartPositionDeg = 0;
     currentRotationCount = 0;
@@ -88,8 +91,10 @@ export class WheelComponent {
             this.targetSectorIndex = sectorIdx;
             this.targetSector = this.sectorElementsRefList[sectorIdx];
 
+            const remainingTime = this.totalRotationDurationMs - this.rotationDurationMs;
+            console.log('Remaining time')
             this.#animations.spin.play(
-                this.rotationDurationMs, 
+                remainingTime, 
                 this.rotationStartPositionDeg, 
                 this.totalRotationAngleDeg, 
                 Transition.easeInOut.call(Transition, 2, 4)
@@ -101,12 +106,14 @@ export class WheelComponent {
         console.log('Start button click handler');
 
         // Trigger initial wheel spin animation
-        // this.#animations.spin.play(
-        //     this.rotationDurationMs, 
-        //     this.rotationStartPositionDeg, 
-        //     this.totalRotationAngleDeg, 
-        //     Transition.easeInOut.call(Transition, 2, 4)
-        // );
+        if (this.targetSectorIndex == null) {
+            this.#animations.spin.play(
+                this.totalRotationDurationMs, 
+                this.rotationStartPositionDeg, 
+                this.totalRotationAngleDeg, 
+                Transition.easeInOut.call(Transition, 2, 4)
+            );
+        }
     }
 
     startAutoPlay(repeatCount) {
@@ -262,11 +269,13 @@ export class WheelComponent {
                 this.isSpinning = true;
                 this.startAnimationTimeMs = performance.now();
                 this.playAnimationButtonRef.toggleAttribute('disabled', this.isSpinning || this.autoPlay);
-                this.wheelOuterContainerRef.toggleAttribute('data-spin', this.isSpinning);     
+                this.wheelOuterContainerRef.toggleAttribute('data-spin', this.isSpinning);
             }, this),
-            spinAnimation.on('running', (progress, remainingTime) => {
+            spinAnimation.on('running', (progress, elapsedTime, remainingTime) => {
                 // console.log(progress, remainingTime);
                 this.rotationProgressDeg = progress;
+                this.rotationStartPositionDeg = progress; // update according to current progress
+                this.rotationDurationMs = elapsedTime; // update according to current remaining time
     
                 if (Math.floor(this.rotationProgressDeg / 360) > this.currentRotationCount) {
                     this.currentRotationCount++;
@@ -283,7 +292,7 @@ export class WheelComponent {
                 let targetSector = this.targetSector;
                 let targetSectorIndex = this.targetSectorIndex;
                 let targetRotationAngleDeg = this.targetRotationAngleDeg;
-                
+                let totalRotationTime = this.totalRotationDurationMs;
                 this.rotationProgressDeg = normalizeRotationAngleDeg(this.rotationProgressDeg);
                 this.rotationStartPositionDeg = this.rotationProgressDeg;
         
@@ -295,6 +304,7 @@ export class WheelComponent {
                     `rotateZ(${rotationProgressDeg}deg)`
                 );
         
+                console.log('Total rotation time:', totalRotationTime);
                 console.log('Wheel rotation progress:', rotationProgressDeg);
                 console.log('Winning sector angle:', targetRotationAngleDeg);
                 console.log('Winning sector ref:', targetSector);
@@ -303,6 +313,7 @@ export class WheelComponent {
                 this.targetSector = null;
                 this.targetSectorIndex = null;
                 this.currentRotationCount = 0;
+                this.rotationDurationMs = 0; // reset current rotation duration time
                 
                 this.wheelOuterContainerRef.toggleAttribute('data-spin', this.isSpinning);
         
