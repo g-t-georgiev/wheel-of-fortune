@@ -109,19 +109,30 @@ export class HttpRequest {
 
             xhr.addEventListener('error', (ev) => {
                 console.log(`Error occurred on request to ${this.url}`);
+                this.#notify(observer, null, ev);
             }, { signal });
 
-        } else if (this.options.observe === 'response') {
-
-            // Take interest in the whole Response object
+            xhr.addEventListener('timeout', (ev) => {
+                console.log(`Request to ${this.url} timedout`);
+                this.#notify(observer, null, ev);
+            })
 
         } else {
 
             xhr.addEventListener('load', (ev) => {
+                const response = {
+                    status: xhr.status,
+                    statusText: xhr.statusText,
+                    headers: xhr.getAllResponseHeaders(),
+                    body: xhr.response
+                };
+
+                const result = this.options.observe === 'response' ? response : response.body;
+
                 if (xhr.status >= 200 && xhr.status < 300) {
-                    this.#notify(observer, null, xhr.response);
+                    this.#notify(observer, null, result);
                 } else {
-                    this.#notify(observer, new Error(`HTTP Error: ${xhr.status} ${xhr.statusText}`), xhr.response);
+                    this.#notify(observer, new Error(`HTTP Error: ${xhr.status} ${xhr.statusText}`), result);
                 }
             }, { signal });
 
