@@ -8,19 +8,48 @@
  * @property {boolean} withCredentials 
  */
 
+/**
+ * @class
+ * @classdesc Constructs HttpRequest observable object. 
+ */
 export class HttpRequest {
 
+    #supportedHttpMethods = [ 'GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS' ];
     #subscribers = new Map();
 
     /**
      * Constructs HttpRequest observable object.
-     * @param {string} endpointUrl 
-     * @param {'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'} method 
+     * @constructor
+     * @param {string} url 
+     * @param {'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS'} method 
+     * @param {any} data 
      * @param {Partial<HttpRequestOptions>} options 
+     * @param {boolean} async
+     * @example <caption>Creating a GET request:</caption>
+     * const getRequest = new HttpRequest('https://api.example.com/data', 'GET', {
+     *   headers: {},
+     *   params: {},
+     *   observe: 'body',
+     *   responseType: 'json',
+     *   reportProgress: false,
+     *   withCredentials: false
+     * });
+     *
+     * @example <caption>Creating a POST request:</caption>
+     * const data = { name: 'John', age: 25 };
+     * const postRequest = new HttpRequest('https://api.example.com/data', data, 'POST', {
+     *   headers: {},
+     *   params: {},
+     *   observe: 'body',
+     *   responseType: 'json',
+     *   reportProgress: false,
+     *   withCredentials: false
+     * });
      */
     constructor(
-        endpointUrl, 
+        url, 
         method = 'GET', 
+        data = null,
         options = {
             headers: {},
             observe: 'body',
@@ -28,20 +57,56 @@ export class HttpRequest {
             reportProgress: false,
             responseType: 'json',
             withCredentials: false
-        }
+        },
+        async = true 
     ) {
-        this.url = endpointUrl;
+        if (url == null || typeof url !== 'string') {
+            throw new TypeError('Url param should be a valid url string.');
+        }
+
+        if (method && !this.#supportedHttpMethods.includes(method)) {
+            throw new TypeError(`Method param should be either ${this.#supportedHttpMethods.join(', ')}.`);
+        }
+
+        method = method ?? 'GET';
+        options.headers = options.headers ?? {};
+        options.params = options.params ?? {};
+        options.observe = options.observe ?? 'body';
+        options.responseType = options.responseType ?? 'text';
+        options.reportProgress = options.reportProgress ?? false;
+        options.withCredentials = options.withCredentials ?? false;
+
+        if (new.target == null) {
+            let alertMsg = new Error('Class was invoked without the new keyword.');
+            console.error(alertMsg.message);
+            return Reflect.construct(HttpRequest, [ url, method, options, sync ]);
+        }
+
+        this.url = url;
         this.method = method;
+        this.data = data;
         this.options = options;
+        this.async = async;
     }
 
     /**
      * Creates `GET` http request observable object.
-     * @param {string} endpointUrl 
+     * @param {string} url 
      * @param {Partial<HttpRequestOptions>} options 
+     * @param {boolean} async 
+     * 
+     * @example <caption>Creating a GET request:</caption>
+     * const getRequest = HttpRequest.get('https://api.example.com/data', {
+     *   headers: {},
+     *   params: {},
+     *   observe: 'body',
+     *   responseType: 'json',
+     *   reportProgress: false,
+     *   withCredentials: false
+     * });
      */
     static get(
-        endpointUrl, 
+        url, 
         options = {
             headers: {},
             observe: 'body',
@@ -49,9 +114,10 @@ export class HttpRequest {
             reportProgress: false,
             responseType: 'json',
             withCredentials: false
-        }
+        },
+        async = true
     ) {
-        return new this(endpointUrl, 'GET', options);
+        return Reflect.construct(this, [ url, 'GET', null, options, async ]);
     }
 
     /**
@@ -182,7 +248,7 @@ export class HttpRequest {
 
         const xhr = this.#subscribers.get(observer);
         if (xhr.readyState === 0) {
-            xhr.open(this.method, this.url, true);
+            xhr.open(this.method, this.url, this.async);
             xhr.responseType = this.options.responseType;
             xhr.withCredentials = this.options.withCredentials;
 
@@ -192,6 +258,11 @@ export class HttpRequest {
                 headers.forEach(([ name, content ]) => {
                     xhr.setRequestHeader(name, content);
                 });
+            }
+
+            if ([ 'POST', 'PUT', 'PATCH' ].includes(this.method)) {
+                xhr.send(this.data);
+                return;
             }
 
             xhr.send();
