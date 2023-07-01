@@ -18,17 +18,14 @@ export class WheelComponent {
     frameRate = 60;
     targetSectorIndex;
     targetSector;
-    totalRotationDurationMs = 7e3;
-    rotationDurationMs = 0;
+    minRotationDurationMs = 7e3;
     rotationProgressDeg = 0;
     rotationStartPositionDeg = 0;
     currentRotationCount = 0;
     minFullRotationsCount = 5;
 
-    // Subscriptions list
+    #targetSectorData$ = null;
     #subscriptions = [];
-
-    // Registered animations list
     #animations = {};
 
     /**
@@ -69,32 +66,33 @@ export class WheelComponent {
      * @param {PointerEvent} [pointerEvent] 
      * @returns 
      */
-    playButtonClickHandler(pointerEvent) {
-        // console.log(ev);
-        if ((pointerEvent && pointerEvent instanceof PointerEvent) && this.autoPlay) { // Filter event triggers from UI
-            // Show helpful message to the user
-            // Do something else...
-            return;
-        }
+    playButtonClickHandler(pointerEvent) { 
+        // Filter event triggers from UI when in auto-play
+        if ((
+                pointerEvent && 
+                pointerEvent instanceof PointerEvent
+            ) && 
+            this.autoPlay
+        ) return;
     
-        if (this.isSpinning) {
-            // Do something while wheel is spinning...
-            return;
-        }
+        if (this.isSpinning || this.playButtonClickHandler.clicked) return;
 
-        const subscription = getGameTargetSectorData().subscribe((error, sectorIdx) => {
+        // Trigger API request
+        this.playButtonClickHandler.clicked = true;
+        const subscription = this.#targetSectorData$.subscribe((error, sectorIdx) => {
+            this.playButtonClickHandler.clicked = false;
+
             if (error) {
                 console.error(error);
+                return;
             }
 
             console.log('Current sector', sectorIdx);
             this.targetSectorIndex = sectorIdx;
             this.targetSector = this.sectorElementsRefList[sectorIdx];
 
-            const remainingTime = this.totalRotationDurationMs - this.rotationDurationMs;
-            console.log('Remaining time')
             this.#animations.spin.play(
-                remainingTime, 
+                this.minRotationDurationMs, 
                 this.rotationStartPositionDeg, 
                 this.totalRotationAngleDeg, 
                 Transition.easeInOut.call(Transition, 2, 4)
@@ -105,14 +103,8 @@ export class WheelComponent {
         console.log('Subscriptions', this.#subscriptions);
         console.log('Start button click handler');
 
-        // Trigger initial wheel spin animation
         if (this.targetSectorIndex == null) {
-            this.#animations.spin.play(
-                this.totalRotationDurationMs, 
-                this.rotationStartPositionDeg, 
-                this.totalRotationAngleDeg, 
-                Transition.easeInOut.call(Transition, 2, 4)
-            );
+            // Trigger initial wheel spin animation
         }
     }
 
@@ -137,6 +129,8 @@ export class WheelComponent {
             this.autoPlay = false;
             this.wheelOuterContainerRef.toggleAttribute('data-autoplay', this.autoPlay);
             this.playAnimationButtonRef.toggleAttribute('disabled', this.autoPlay);
+            // Clear previous 4 API request listeners
+            this.#subscriptions.splice(this.#subscriptions.length - (repeatCount + 1), (repeatCount + 1)).forEach(_u => _u());
         }
     }
 
@@ -272,10 +266,8 @@ export class WheelComponent {
                 this.wheelOuterContainerRef.toggleAttribute('data-spin', this.isSpinning);
             }, this),
             spinAnimation.on('running', (progress, elapsedTime, remainingTime) => {
-                // console.log(progress, remainingTime);
                 this.rotationProgressDeg = progress;
-                this.rotationStartPositionDeg = progress; // update according to current progress
-                this.rotationDurationMs = elapsedTime; // update according to current remaining time
+                this.rotationStartPositionDeg = progress;
     
                 if (Math.floor(this.rotationProgressDeg / 360) > this.currentRotationCount) {
                     this.currentRotationCount++;
@@ -292,7 +284,7 @@ export class WheelComponent {
                 let targetSector = this.targetSector;
                 let targetSectorIndex = this.targetSectorIndex;
                 let targetRotationAngleDeg = this.targetRotationAngleDeg;
-                let totalRotationTime = this.totalRotationDurationMs;
+                let totalRotationTime = this.minRotationDurationMs;
                 this.rotationProgressDeg = normalizeRotationAngleDeg(this.rotationProgressDeg);
                 this.rotationStartPositionDeg = this.rotationProgressDeg;
         
@@ -313,7 +305,6 @@ export class WheelComponent {
                 this.targetSector = null;
                 this.targetSectorIndex = null;
                 this.currentRotationCount = 0;
-                this.rotationDurationMs = 0; // reset current rotation duration time
                 
                 this.wheelOuterContainerRef.toggleAttribute('data-spin', this.isSpinning);
         
@@ -322,8 +313,6 @@ export class WheelComponent {
                     let timerId = globalThis.setTimeout(() => {
                         globalThis.clearInterval(timerId);
                         this.startAutoPlay(this.autoSpins);
-                        // Clear previous API request listener for the target sector
-                        this.#subscriptions.pop()?.();
                     }, this.autoPlayIdleTime);
                     return;
                 }
@@ -336,5 +325,8 @@ export class WheelComponent {
 
         // Register spin animation
         this.#animations.spin = spinAnimation;
+
+        // Create target sector data observable
+        this.#targetSectorData$ = getGameTargetSectorData();
     }
 }
