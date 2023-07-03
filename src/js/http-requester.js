@@ -79,7 +79,7 @@ export class HttpRequest {
         if (new.target == null) {
             let alertMsg = new Error('Class was invoked without the new keyword.');
             console.error(alertMsg.message);
-            return Reflect.construct(HttpRequest, [ url, method, options, sync ]);
+            return Reflect.construct(HttpRequest, [ url, method, options, async ]);
         }
 
         this.url = url;
