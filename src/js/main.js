@@ -1,15 +1,20 @@
 import { WheelComponent } from './wheel.js';
-import { getUIRenderData } from './wheel.service.js';
+import { getUIRenderData$ } from './wheel.service.js';
 
 const rootElementRef = document.querySelector('.app-wrapper');
 
-getUIRenderData().subscribe((error, data) => {
-    if (error) {
-        console.error(error);
-        return;
-    }
+const http$ = getUIRenderData$();
 
-    // console.log(data);
-    const wheel = new WheelComponent(rootElementRef, data.length, {});
-    wheel.initialize(data);
+const subscription = http$.subscribe({
+    next: function (data) {
+        // console.log(data);
+        const wheel = new WheelComponent(rootElementRef, data.length, {});
+        wheel.initialize(data);
+    },
+    error: function (err) {
+        console.error(err);
+    },
+    complete: function () {
+        subscription.unsubscribe();
+    }
 });

@@ -13,12 +13,14 @@ const UNAUTHORIZED_GET_REQUESTS_OPTIONS = {
     withCredentials: false
 }
 
-export function getUIRenderData() {
+export function getUIRenderData$() {
     const url = API_ROOT_URL + API_GET_WHEEL_DATA_URL;
-    return HttpRequest.get(url, UNAUTHORIZED_GET_REQUESTS_OPTIONS);
+    const http$ = HttpRequest.get(url, UNAUTHORIZED_GET_REQUESTS_OPTIONS);
+    return http$;
 }
 
-export function getGameTargetSectorData() {
+export function getGameData$() {
     const url = API_ROOT_URL + API_GET_TARGET_SECTOR_DATA_URL;
-    return HttpRequest.get(url, UNAUTHORIZED_GET_REQUESTS_OPTIONS);
+    const http$ = HttpRequest.get(url, UNAUTHORIZED_GET_REQUESTS_OPTIONS);
+    return http$;
 }
