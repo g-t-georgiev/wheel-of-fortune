@@ -92,9 +92,9 @@ export class WheelComponent {
             this.targetSector = this.sectorElementsRefList[sectorIdx];
 
             this.#animations.spin.play(
-                this.minRotationDurationMs, 
-                this.rotationStartPositionDeg, 
-                this.totalRotationAngleDeg, 
+                this.minRotationDurationMs,
+                this.rotationStartPositionDeg,
+                this.totalRotationAngleDeg,
                 Transition.easeInOut.call(Transition, 2, 4)
             );
         });
@@ -102,10 +102,6 @@ export class WheelComponent {
         this.#subscriptions.push(subscription);
         console.log('Subscriptions', this.#subscriptions);
         console.log('Start button click handler');
-
-        if (this.targetSectorIndex == null) {
-            // Trigger initial wheel spin animation
-        }
     }
 
     startAutoPlay(repeatCount) {
