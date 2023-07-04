@@ -12,7 +12,7 @@ const subscription = http$.subscribe({
         wheel.initialize(data);
     },
     error: function (err) {
-        console.error(err);
+        console.error(`Something went wrong. \n${err}`);
     },
     complete: function () {
         subscription.unsubscribe();
