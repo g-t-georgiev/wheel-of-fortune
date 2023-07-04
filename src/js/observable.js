@@ -276,4 +276,53 @@ export class Subject {
             }
         }
     }
+
+    /**
+     * Returns an observable only output from the subject.
+     * @returns {Observable}
+     * @example <caption>Convert a Subject into Observable</caption>
+     * const subject = new Subject();
+     * const subject$ = subject.asObservable();
+     * 
+     * subject$.subscribe({
+     *    next(value) {
+     *       console.log('Observer 1', value);
+     *    }
+     * });
+     * 
+     * const subscription2 = subject$.subscribe({
+     *    next(value) {
+     *       console.log('Observer 2', value);
+     *    }
+     * });
+     * 
+     * subject.next(1);
+     * subject.next(2);
+     * subject.next(3);
+     * 
+     * subscription2.unsubscribe();
+     * 
+     * subject.next(4);
+     */
+    asObservable() {
+        const _subject = this;
+        return new Observable(function (subscriber) {
+            const _subscription = _subject.subscribe({
+                next(value) {
+                    subscriber.next(value);
+                },
+                error(err) {
+                    subscriber.error(err);
+                }, 
+                complete() {
+                    subscriber.complete();
+                }
+            });
+
+            return function () {
+                _subscription.unsubscribe();
+                console.log('Unsubscribed from subject');
+            }
+        });
+    }
 }
