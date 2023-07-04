@@ -14,7 +14,7 @@ export class WheelComponent {
 
     autoPlay = false; 
     autoPlayIdleTime = 1e3;
-    autoSpins = 3;
+    autoPlayRepeat = 3;
 
     sectorIdx;
     sector;
@@ -23,7 +23,7 @@ export class WheelComponent {
     rotationStartAngle = 0;
     rotationsCount = 5;
 
-    #playBtnClicked = false;
+    #awaitsHttpResponse = false;
     #startAutoPlayCalls = 0;
 
     /**
@@ -61,25 +61,39 @@ export class WheelComponent {
      * @returns 
      */
     playButtonClickHandler(pointerEvent) { 
-        // Filter event triggers from UI when in auto-play
+        // Filter handler triggers from UI when in auto-play
         if ((
                 pointerEvent && 
                 pointerEvent instanceof PointerEvent
             ) && 
             this.autoPlay
-        ) return;
+        ) {
+            console.log('Play button is disabled.');
+            console.log('Auto-play is running.');
+            return;
+        };
     
-        if (this.isSpinning || this.#playBtnClicked) return;
+        // Filter handler triggers when animation is running/awaiting API response
+        if (this.isSpinning || this.#awaitsHttpResponse) {
+            console.log('Play button is disabled.');
+            if (this.isSpinning) console.log('Animation is running.');
+            if (this.#awaitsHttpResponse) console.log('Awaits response from API.');
+            return;
+        };
 
         // Trigger API request
-        this.#playBtnClicked = true;
+        this.#awaitsHttpResponse = true; // Set await response flag
         const subscription = getGameData$().subscribe({
             next: data => {
-                this.#playBtnClicked = false;
-    
-                console.log('Current sector', data);
+
+                console.log('Current sector data', data);
                 this.sectorIdx = data;
                 this.sector = this.sectorElementsRefList[data];
+
+                // Set auto-play flag
+                if (this.sectorIdx === 5) {
+                    this.autoPlay = true;
+                }
     
                 this.tween(
                     this.rotationStartAngle,
@@ -91,25 +105,37 @@ export class WheelComponent {
                 console.error(err);
             },
             complete: () => {
+                // Reset await response flag
+                this.#awaitsHttpResponse = false;
                 subscription.unsubscribe();
             }
         });
 
-        console.log('Start button click handler');
+        console.log('Play button clicked.');
+        // Disabled button while await response from API
+        this.playAnimationButtonRef.toggleAttribute('disabled', this.#awaitsHttpResponse);
     }
 
-    startAutoPlay(repeatCount) {    
-        if (this.#startAutoPlayCalls < repeatCount) {
-            this.#startAutoPlayCalls++;
-            console.log(`---- Free spins (auto-play) ${this.#startAutoPlayCalls} / ${repeatCount} ----`);
-            this.playButtonClickHandler();
-        } else {
-            console.log('---- Free spins (auto-play) end ----');
-            this.#startAutoPlayCalls = 0;
-            this.autoPlay = false;
+    scheduleAutoPlay() {    
+        if (this.#startAutoPlayCalls === 0) {
+            console.log('----- Free spins (auto-play) mode start -----');
             this.wheelOuterContainerRef.toggleAttribute('data-autoplay', this.autoPlay);
-            this.playAnimationButtonRef.toggleAttribute('disabled', this.autoPlay);
         }
+
+        const timerId = globalThis.setTimeout(() => {
+            globalThis.clearTimeout(timerId);
+            if (this.#startAutoPlayCalls < this.autoPlayRepeat) {
+                this.#startAutoPlayCalls++;
+                console.log(`----- Free spins (auto-play) count ${this.#startAutoPlayCalls} / ${this.autoPlayRepeat} -----`);
+                this.playButtonClickHandler();
+            } else {
+                console.log('----- Free spins (auto-play) mode end -----');
+                this.#startAutoPlayCalls = 0;
+                this.autoPlay = false;
+                this.wheelOuterContainerRef.toggleAttribute('data-autoplay', this.autoPlay);
+                this.playAnimationButtonRef.toggleAttribute('disabled', this.autoPlay);
+            }
+        }, this.autoPlayIdleTime);
     }
 
     /**
@@ -245,19 +271,18 @@ export class WheelComponent {
                 const remainingTime = Math.max(0, duration * (1 - progress));
                 const rate = transitions.interpolate(start, end, transitions.easeInOut(1, 2)(progress));
 
-                if (progress === 0) {
+                if (progress === 0 && progress < 1) {
+                    // Start animation stage
                     this.isSpinning = true;
-                    this.playAnimationButtonRef.toggleAttribute('disabled', this.isSpinning || this.autoPlay);
                     this.wheelOuterContainerRef.toggleAttribute('data-spin', this.isSpinning);
-                    this.wheelOuterContainerRef.toggleAttribute('data-autoplay', this.autoPlay);
-                };
-            
-                this.wheelInnerContainerRef.style.setProperty(
-                    'transform',
-                    `rotateZ(${rate}deg)`
-                );
-
-                if (progress === 1) {
+                } else if (progress < 1) {
+                    // Active animation stage
+                    this.wheelInnerContainerRef.style.setProperty(
+                        'transform',
+                        `rotateZ(${rate}deg)`
+                    );
+                } else {
+                    // Complete animation stage
                     this.rotationStartAngle = normalizeRotationAngleDeg(rate);
 
                     this.wheelInnerContainerRef.style.setProperty(
@@ -267,25 +292,9 @@ export class WheelComponent {
 
                     console.log('Winning sector', this.sector);
             
-                    if (this.sectorIdx === 5 || this.autoPlay) {
-                        if (!this.autoPlay) {
-                            this.autoPlay = true;
-                            console.log('Auto-spins start');
-                        }
-
-                        let timerId = globalThis.setTimeout(() => {
-                            globalThis.clearInterval(timerId);
-                            if (this.#startAutoPlayCalls < this.autoSpins) {
-                                this.#startAutoPlayCalls++;
-                                console.log(`Auto-spins ${this.#startAutoPlayCalls} / ${this.autoSpins}`);
-                                this.playButtonClickHandler();
-                            } else {
-                                console.log('Auto-spins end');
-                                this.#startAutoPlayCalls = 0;
-                                this.autoPlay = false;
-                                this.wheelOuterContainerRef.toggleAttribute('data-autoplay', this.autoPlay);
-                            }
-                        }, this.autoPlayIdleTime);
+                    if (this.autoPlay) {
+                        // Schedule auto-play
+                        this.scheduleAutoPlay();
                     }
                 
                     this.isSpinning = false;
@@ -293,8 +302,10 @@ export class WheelComponent {
                     this.sectorIdx = null;
                     this.wheelOuterContainerRef.toggleAttribute('data-spin', this.isSpinning);
                     this.playAnimationButtonRef.toggleAttribute('disabled', this.isSpinning || this.autoPlay);
+                    // (Unsubscribe) Cancel animation
                     subscription.unsubscribe();
                 }
+            
             }
         })
     }
