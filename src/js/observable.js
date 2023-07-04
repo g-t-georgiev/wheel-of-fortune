@@ -110,6 +110,17 @@ export class Observable {
             cleanUpHandler?.();
         });
     }
+
+    /**
+     * Takes a set of functions, each receiving a value, 
+     * passsing the result to the next one. Returns an Observable.
+     * @param  {...((source: Observable) => Observable)} fns 
+     * @returns {Observable}
+     */
+    pipe(...fns) {
+        const source = this;
+        return fns.reduce((obs, fn) => fn(obs), source);
+    }
 }
 
 export class Observer {
@@ -326,3 +337,279 @@ export class Subject {
         });
     }
 }
+
+// Creation operators
+
+/**
+ * Takes an iterable or array-like value and 
+ * returns an observable which emits the values.
+ * @param {Iterable<any> | ArrayLike<any>} iterable 
+ * @returns {Observable}
+ */
+export function from(iterable) {
+    const convertedArray = (Array.isArray(iterable) && iterable) || Array.from(iterable);
+    return new Observable(function (subscriber) {
+        convertedArray.forEach(item => {
+            subscriber.next(item);
+        });
+
+        subscriber.complete();
+
+        return function () {
+            console.log('Unsubscribed from collection.');
+        }
+    });
+}
+
+// Pipable operators
+
+/**
+ * @param {(value: any) => void} cb 
+ * @returns {(source: Observable) => Observable}
+ */
+export function tap(cb) {
+    return function (source) {
+        return new Observable(function (subscriber) {
+            const _subscription = source.subscribe({
+                next(value) {
+                    cb(value);
+                    subscriber.next(value);
+                },
+                error(err) {
+                    subscriber.error(err);
+                },
+                complete() {
+                    subscriber.complete();
+                }
+            });
+
+            return function () {
+                _subscription.unsubscribe();
+                console.log('Unsubscribed from observable.');
+            }
+        });
+    }
+}
+
+/**
+ * @param {(value: any) => void} cb 
+ * @returns {(source: Observable) => Observable}
+ */
+export function map(cb) {
+    return function (source) {
+        return new Observable(function (subscriber) {
+            const _subscription = source.subscribe({
+                next(value) {
+                    const mappedValue = cb(value);
+                    subscriber.next(mappedValue);
+                },
+                error(err) {
+                    subscriber.error(err);
+                },
+                complete() {
+                    subscriber.complete();
+                }
+            });
+
+            return function () {
+                _subscription.unsubscribe();
+                console.log('Unsubscribed from observable.');
+            }
+        });
+    }
+}
+
+/**
+ * @param {(value: any) => boolean} cb 
+ * @returns {(source: Observable) => Observable}
+ */
+export function filter(cb) {
+    return function (source) {
+        return new Observable(function (subscriber) {
+            const _subscription = source.subscribe({
+                next(value) {
+                    if (cb(value)) {
+                        subscriber.next(value);
+                    }
+                },
+                error(err) {
+                    subscriber.error(err);
+                },
+                complete() {
+                    subscriber.complete();
+                }
+            });
+
+            return function () {
+                _subscription.unsubscribe();
+            }
+        });
+    }
+}
+
+/**
+ * @param {number} count 
+ * @returns {(source: Observable) => Observable} 
+ */
+export function take(count) {
+    return function (source) {
+        return new Observable(function (subscriber) {
+            let emitted = 0;
+
+            const _subscription = source.subscribe({
+                next(value) {
+                    if (count === 0) {
+                        subscriber.complete();
+                        return;
+                    }
+
+                    if (emitted < count) {
+                        subscriber.next(value);
+                        emitted++;
+                        return;
+                    }
+
+                    subscriber.complete();
+                },
+                error(err) {
+                    subscriber.error(err);
+                },
+                complete() {
+                    subscriber.complete();
+                }
+            });
+
+            return function() {
+                _subscription.unsubscribe();
+            }
+        });
+    }
+}
+
+/**
+ * @param {(value: any) => boolean} cb 
+ * @returns {(source: Observable) => Observable}
+ */
+export function takeWhile(cb) {
+    return function (source) {
+        return new Observable(function (subscriber) {
+            const _subscription = source.subscribe({
+                next(value) {
+                    if (cb(value)) {
+                        subscriber.complete();
+                        _subscription.unsubscribe();
+                        return;
+                    }
+
+                    subscriber.next(value);
+                },
+                error(err) {
+                    subscriber.error(err);
+                },
+                complete() {
+                    subscriber.complete();
+                }
+            });
+
+            return function () {
+                _subscription.unsubscribe();
+            }
+        });
+    }
+}
+
+/**
+ * @param {number} count 
+ * @returns {(source: Observable) => Observable} 
+ */
+export function skip(count) {
+    return function (source) {
+        return new Observable(function (subscriber) {
+            let skipped = 0;
+            let emitted = 0;
+
+            const _subscription = source.subscribe({
+                next(value) {
+                    if (skipped < count) {
+                        skipped++;
+                        return;
+                    }
+
+                    subscriber.next(value);
+                    emitted++;
+                },
+                error(err) {
+                    subscriber.error(err);
+                },
+                complete() {
+                    if (emitted === 0) {
+                        subscriber.error(new RangeError('Skip count is greater than emition count.'));
+                    }
+
+                    subscriber.complete();
+                }
+            });
+
+            return function () {
+                _subscription.unsubscribe();
+            }
+        });
+    }
+}
+
+/**
+ * @param {number | Date} due 
+ * @returns {(source: Observable) => Observable}
+ */
+export function delay(due) {
+    return function (source) {
+        return new Observable(function (subscriber) {
+            const timerIds = new Set();
+            let hasCompleted = false;
+
+            const _subscription = source.subscribe({
+                next(value) {
+                    const now = new Date();
+                    const delay = due instanceof Date ? Math.abs(due - now) : due;
+                    const timerId = globalThis.setTimeout(function () {
+                        subscriber.next(value);
+                        timerIds.delete(timerId);
+                        globalThis.clearTimeout(timerId);
+
+                        if (hasCompleted && timerIds.size === 0) {
+                            subscriber.complete();
+                        }
+                    }, delay);
+
+                    timerIds.add(timerId);
+                },
+                error(err) {
+                    subscriber.error(err);
+                },
+                complete() {
+                    hasCompleted = true;
+
+                    if (timerIds.size === 0) {
+                        subscriber.complete();
+                    }
+                }
+            });
+
+            return function () {
+                _subscription.unsubscribe();
+                for (const timerId of timerIds) {
+                    globalThis.clearTimeout(timerId);
+                }
+            }
+        });
+    }
+}
+
+from([ 1,2,3,4,5]).pipe(
+    filter(v => !(v % 2)),
+    map(v => v + v)
+).subscribe({
+    next(value) {
+        console.log(value);
+    }
+})
