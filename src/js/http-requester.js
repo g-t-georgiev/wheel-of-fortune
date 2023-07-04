@@ -113,7 +113,7 @@ export function HttpRequest(
         const states = ['OPENED', 'HEADERS_RECEIVED', 'LOADING'];
         states.map(state => this[state]);
         const abortAllowed = states.includes(this.readyState);
-        console.log(`Request to '${url}' with state ${this.readyState} abortabale ${abortAllowed}`);
+        // console.log(`Request to '${url}' with state ${this.readyState} is ${abortAllowed ? '' : 'not'} abortabale.`);
         if (abortAllowed) {
             this.abort();
         }
@@ -217,13 +217,21 @@ export function HttpRequest(
                     subscriber.next(result);
                 } else {
                     subscriber.next(result);
-                    subscriber.error(new Error(`HTTP Error: ${xhr.status} ${xhr.statusText}`));
+
+                    if (xhr.status >= 400) {
+                        subscriber.error(new Error(`HTTP Error: ${xhr.status} ${xhr.statusText}`));
+                    }
                 }
 
                 if (xhr.readyState === 4) {
                     // console.log('XHR ready state from load event handler', xhr.readyState);
                     subscriber.complete();
                 }
+            }, { signal });
+
+            xhr.addEventListener('error', (ev) => {
+                subscriber.error(new Error(`HTTP Error: ${xhr.status} ${xhr.statusText}`));
+                subscriber.complete();
             }, { signal });
 
             xhr.addEventListener('abort', (ev) => {
