@@ -173,6 +173,7 @@ export class Observer {
 }
 
 export class Subscription {
+    #closed = false;
     #unsubscribe;
     #childSubscriptions = new Set();
 
@@ -194,14 +195,16 @@ export class Subscription {
      * @param {...Subscription} childSubscriptions  
      */
     add(...childSubscriptions) {
-        childSubscriptions.forEach(subscription => {
-            let isSubscriptionInstance = subscription instanceof Subscription;
-            let hasUnsubscribeMethod = 'unsubscribe' in subscription && typeof subscription.unsubscribe === 'function';
+        if (!this.#closed) {
+            childSubscriptions.forEach(subscription => {
+                let isSubscriptionInstance = subscription instanceof Subscription;
+                let hasUnsubscribeMethod = 'unsubscribe' in subscription && typeof subscription.unsubscribe === 'function';
 
-            if (isSubscriptionInstance || hasUnsubscribeMethod) {
-                this.#childSubscriptions.add(subscription);
-            }
-        });
+                if (isSubscriptionInstance || hasUnsubscribeMethod) {
+                    this.#childSubscriptions.add(subscription);
+                }
+            });
+        }
     }
 
     /**
@@ -209,7 +212,9 @@ export class Subscription {
      * @param {Subscription} childSubscription 
      */
     remove(childSubscription) {
-        this.#childSubscriptions.delete(childSubscription);
+        if (!this.#closed) {
+            this.#childSubscriptions.delete(childSubscription);
+        }
     }
 
     /**
@@ -217,12 +222,16 @@ export class Subscription {
      * @returns
      */
     unsubscribe() {
-        for (const childSubscription of this.#childSubscriptions) {
-            childSubscription.unsubscribe?.();
-        }
+        if (!this.closed) {
+            this.#closed = true;
 
-        this.#childSubscriptions.clear();
-        this.#unsubscribe?.();
+            for (const childSubscription of this.#childSubscriptions) {
+                childSubscription.unsubscribe?.();
+            }
+
+            this.#childSubscriptions.clear();
+            this.#unsubscribe?.();
+        }
     }
 }
 
@@ -344,9 +353,93 @@ export class Subject {
     }
 }
 
+/**
+ * Obserbable that immediately emits a complete action 
+ * when subscribed to.
+ */
 export const EMPTY = new Observable(function (subscriber) {
     subscriber.complete();
 });
+
+/**
+ * Creates an observable that will create an error instance and push it to the consumer as an error immediately upon subscription.
+ * @param {() => any} errorFactory 
+ * @returns {Observable} 
+ * 
+ * @example <caption>Create a simple observable that will emit a new error with a timestamp.</caption>
+ * let errorCount = 0;
+ * 
+ * const errorWithTimestamp$ = throwError(() => {
+ *    const error = new Error(`This is error number ${++errorCount}`);
+ *    error.timestamp = Date.now();
+ *    return error;
+ * });
+ * 
+ * errorWithTimestamp$.subscribe({
+ *    error: err => console.log(err.timestamp, err.message)
+ * });
+ *    
+ * errorWithTimestamp$.subscribe({
+ *    error: err => console.log(err.timestamp, err.message)
+ * });
+ */
+export function throwError(errorFactory) {
+    return new Observable(function (destination) {
+        try {
+            const errorInstance = errorFactory();
+            destination.error(errorInstance);
+        } catch (err) {
+            destination.error(err);
+        }
+
+        return function () {
+            console.log('Unsubscribed from `throwError` factory method.');
+        }
+    });
+}
+
+/**
+ * Creates an observable that will wait for a specified time period, or exact date, before emitting the number 0.
+ * @param {number | Date} dueTime 
+ * @returns {Observable}
+ */
+export function timer(dueTime) {
+    return new Observable(function (subscriber) {
+        const start = Date.now();
+        let delay = dueTime instanceof Date ? dueTime - start : dueTime;
+        delay = delay <= 0 ? 0 : delay;
+
+        const timerId = globalThis.setTimeout(() => {
+            subscriber.next(0);
+            globalThis.clearTimeout(timerId);
+        }, delay);
+
+        return function () {
+            globalThis.clearTimeout(timerId);
+            console.log('Unsubscribe from `timer` observable.');
+        }
+    });
+}
+
+/**
+ * Creates an Observable that emits sequential numbers every specified interval of time.
+ * @param {number} period 
+ * @returns {Observable}
+ */
+export function interval(period = 0) {
+    return new Observable(function (destination) {
+        let integer = 0;
+
+        const intervalId = globalThis.setInterval(function () {
+            destination.next(integer++);
+        }, period);
+
+        return function () {
+            globalThis.clearInterval(intervalId);
+            console.log('Unsubscribed from `interval` observable.');
+        }
+    });
+}
 
 // Creation operators
 
@@ -358,20 +451,20 @@ export const EMPTY = new Observable(function (subscriber) {
  */
 export function from(iterable) {
     const convertedArray = (Array.isArray(iterable) && iterable) || Array.from(iterable);
-    return new Observable(function (subscriber) {
+    return new Observable(function (destination) {
         try {
             convertedArray.forEach(item => {
-                subscriber.next(item);
+                destination.next(item);
             });
 
-            subscriber.complete();
+            destination.complete();
         } catch (err) {
-            subscriber.error(err);
-            subscriber.complete();
+            console.log('Error caught in `catch` block of `from` operator function. Reason:', err);
+            destination.error(err);
         }
 
         return function () {
-            console.log('Unsubscribed from collection.');
+            console.log('Unsubscribed from `from` factory method.');
         }
     });
 }
@@ -379,298 +472,317 @@ export function from(iterable) {
 // Pipable operators
 
 /**
- * @param {(value: any) => void} cb 
+ * Used to perform side-effects for notifications from the source observable.
+ * @param {Observer | (value: any) => void} [observerOrNext] 
+ * @param {(error: any) => void} [error] 
+ * @param {() => void} [complete]  
  * @returns {(source: Observable) => Observable}
  */
-export function tap(cb) {
+export function tap(observerOrNext = {}, error, complete) {
+    let observer = typeof observerOrNext === 'function'
+        ? {
+            next: observerOrNext,
+            ...(error && typeof error === 'function' ? { error } : {}),
+            ...(complete && typeof complete === 'function' ? { complete } : {})
+        } : observerOrNext;
+
     return function (source) {
-        return new Observable(function (subscriber) {
+        return new Observable(function (destination) {
             let _subscription;
 
             try {
                 _subscription = source.subscribe({
+                    ...destination,
                     next(value) {
-                        cb(value);
-                        subscriber.next(value);
+                        observer.next?.(value);
+                        destination.next(value);
                     },
                     error(err) {
-                        subscriber.error(err);
-                        subscriber.complete();
+                        observer.error?.(err);
+                        destination.error(err);
                     },
                     complete() {
-                        subscriber.complete();
+                        observer.complete?.();
+                        destination.complete();
                     }
                 });
 
             } catch (err) {
-                subscriber.error(err);
-                subscriber.complete();
+                destination.error(err);
             }
 
             return function () {
-                _subscription.unsubscribe?.();
-                console.log('Unsubscribed from observable.');
+                _subscription?.unsubscribe();
+                console.log('Unsubscribed from `tap` operator observable.');
             }
         });
     }
 }
 
 /**
- * @param {(value: any) => void} cb 
+ * Applies a given `project` function to each value emitted by the source Observable, and emits the resulting values as an Observable.
+ * @param {(value: any, index: number) => void} project 
+ * @param {any} thisArg 
  * @returns {(source: Observable) => Observable}
  */
-export function map(cb) {
+export function map(project, thisArg) {
     return function (source) {
-        return new Observable(function (subscriber) {
+        return new Observable(function (destination) {
             let _subscription;
+            let index;
 
             try {
                 _subscription = source.subscribe({
+                    ...destination,
                     next(value) {
-                        const mappedValue = cb(value);
-                        subscriber.next(mappedValue);
-                    },
-                    error(err) {
-                        subscriber.error(err);
-                        subscriber.complete();
-                    },
-                    complete() {
-                        subscriber.complete();
+                        const mappedValue = project.call(thisArg, value, index++);
+                        destination.next(mappedValue);
                     }
                 });
             } catch (err) {
-                subscriber.error(err);
-                subscriber.complete();
+                // console.log('Error caught in the `catch` block of `map` operator function.', err);
+                destination.error(err);
             }
 
             return function () {
-                _subscription.unsubscribe?.();
-                console.log('Unsubscribed from observable.');
+                _subscription?.unsubscribe();
+                console.log('Unsubscribed from `map` operator observable.');
             }
         });
     }
 }
 
 /**
- * @param {(value: any) => boolean} cb 
+ * Filter items emitted by the source Observable by only emitting those that satisfy a specified `predicate`.
+ * @param {(value: any, index: number) => boolean} predicate 
+ * @param {any} thisArg 
  * @returns {(source: Observable) => Observable}
  */
-export function filter(cb) {
+export function filter(predicate, thisArg) {
     return function (source) {
-        return new Observable(function (subscriber) {
-            let _subscription; 
+        return new Observable(function (destination) {
+            let _subscription;
+            let index = 0;
 
             try {
                 _subscription = source.subscribe({
+                    ...destination,
                     next(value) {
-                        if (cb(value)) {
-                            subscriber.next(value);
+                        if (predicate.call(thisArg, value, index++)) {
+                            destination.next(value);
                         }
-                    },
-                    error(err) {
-                        subscriber.error(err);
-                        subscriber.complete();
-                    },
-                    complete() {
-                        subscriber.complete();
                     }
                 });
             } catch (err) {
-                subscriber.error(err);
-                subscriber.complete();
+                destination.error(err);
             }
 
             return function () {
-                _subscription.unsubscribe?.();
-                console.log('Unsubscribed from observable.');
+                _subscription?.unsubscribe();
+                console.log('Unsubscribed from `filter` operator observable.');
             }
         });
     }
 }
 
 /**
+ * Emits only the first `count` values emitted by the source Observable.
  * @param {number} count 
  * @returns {(source: Observable) => Observable} 
  */
 export function take(count) {
     return function (source) {
-        return new Observable(function (subscriber) {
+        return new Observable(function (destination) {
             let emitted = 0;
             let _subscription;
 
             try {
                 _subscription = source.subscribe({
+                    ...destination,
                     next(value) {
                         if (count === 0) {
-                            subscriber.complete();
+                            destination.complete();
                             return;
                         }
-    
+
                         if (emitted < count) {
-                            subscriber.next(value);
+                            destination.next(value);
                             emitted++;
                             return;
                         }
-    
-                        subscriber.complete();
-                    },
-                    error(err) {
-                        subscriber.error(err);
-                        subscriber.complete();
-                    },
-                    complete() {
-                        subscriber.complete();
+
+                        destination.complete();
                     }
                 });
             } catch (err) {
-                subscriber.error(err);
-                subscriber.complete();
+                destination.error(err);
             }
 
             return function () {
-                console.log('Unsubscribed from observable.');
-                _subscription.unsubscribe?.();
+                console.log('Unsubscribed from `take` operator observable.');
+                _subscription?.unsubscribe();
             }
         });
     }
 }
 
 /**
- * @param {(value: any) => boolean} cb 
+ * Emits values emitted by the source Observable so long as each value satisfies 
+ * the given `predicate`, and then completes as soon as this predicate is not satisfied.
+ * @param {(value: any) => boolean} predicate 
  * @returns {(source: Observable) => Observable}
  */
-export function takeWhile(cb) {
+export function takeWhile(predicate) {
     return function (source) {
-        return new Observable(function (subscriber) {
+        return new Observable(function (destination) {
             let _subscription;
 
             try {
                 _subscription = source.subscribe({
+                    ...destination,
                     next(value) {
-                        if (cb(value)) {
-                            subscriber.complete();
-                            _subscription.unsubscribe();
+                        if (predicate(value)) {
+                            destination.complete();
                             return;
                         }
-    
-                        subscriber.next(value);
-                    },
-                    error(err) {
-                        subscriber.error(err);
-                        subscriber.complete();
-                    },
-                    complete() {
-                        subscriber.complete();
+
+                        destination.next(value);
                     }
                 });
             } catch (err) {
-                subscriber.error(err);
-                subscriber.complete();
+                destination.error(err);
             }
 
             return function () {
-                _subscription.unsubscribe?.();
-                console.log('Unsubscribed from observable.');
+                _subscription?.unsubscribe();
+                console.log('Unsubscribed from `takeWhile` operator observable.');
             }
         });
     }
 }
 
 /**
+ * Emits the values emitted by the source Observable until a notifier Observable emits a value.
+ * @param {Observable} notifier 
+ * @returns {(source: Observable) => Observable}
+ */
+export function takeUntil(notifier) {
+    return function (source) {
+        return new Observable(function (destination) {
+            let _subscription;
+
+            try {
+                _subscription = notifier.subscribe({
+                    ...destination,
+                    next() {
+                        destination.complete();
+                    }
+                });
+
+                !destination.closed && (_subscription.add(source.subscribe(destination)));
+
+            } catch (err) {
+                destination.error(err);
+            }
+
+            return function () {
+                _subscription?.unsubscribe();
+                console.log('Unsubscribed from `takeUntil` operator observable.');
+            }
+        });
+    }
+}
+
+/**
+ * Returns an Observable that skips the first `count` items emitted by the source Observable.
  * @param {number} count 
  * @returns {(source: Observable) => Observable} 
  */
 export function skip(count) {
     return function (source) {
-        return new Observable(function (subscriber) {
+        return new Observable(function (destination) {
             let skipped = 0;
             let emitted = 0;
             let _subscription;
 
             try {
                 _subscription = source.subscribe({
+                    ...destination,
                     next(value) {
                         if (skipped < count) {
                             skipped++;
                             return;
                         }
-    
-                        subscriber.next(value);
+
+                        destination.next(value);
                         emitted++;
-                    },
-                    error(err) {
-                        subscriber.error(err);
-                        subscriber.complete();
                     },
                     complete() {
                         if (emitted === 0) {
-                            subscriber.error(new RangeError('Skip count is greater than emition count.'));
+                            throw new RangeError('Skip count cannot be greater than total emitions count.');
                         }
-    
-                        subscriber.complete();
+
+                        destination.complete();
                     }
                 });
             } catch (err) {
-                subscriber.error(err);
-                subscriber.complete();
+                destination.error(err);
             }
 
             return function () {
-                _subscription.unsubscribe?.();
-                console.log('Unsubscribed from observable.');
+                _subscription?.unsubscribe();
+                console.log('Unsubscribed from `skip` operator observable.');
             }
         });
     }
 }
 
 /**
+ * Delays the emission of items from the source Observable by a given timeout or until a given Date.
  * @param {number | Date} due 
  * @returns {(source: Observable) => Observable}
  */
 export function delay(due) {
     return function (source) {
-        return new Observable(function (subscriber) {
+        return new Observable(function (destination) {
             const timerIds = new Set();
+            const start = new Date();
             let hasCompleted = false;
             let _subscription;
 
             try {
                 _subscription = source.subscribe({
+                    ...destination,
                     next(value) {
-                        const now = new Date();
-                        const delay = due instanceof Date ? Math.abs(due - now) : due;
+                        let delay = due instanceof Date ? due - start : due;
+                        delay = delay <= 0 ? 0 : delay;
                         const timerId = globalThis.setTimeout(function () {
-                            subscriber.next(value);
+                            destination.next(value);
                             timerIds.delete(timerId);
                             globalThis.clearTimeout(timerId);
-    
+
                             if (hasCompleted && timerIds.size === 0) {
-                                subscriber.complete();
+                                destination.complete();
                             }
                         }, delay);
-    
+
                         timerIds.add(timerId);
-                    },
-                    error(err) {
-                        subscriber.error(err);
-                        subscriber.complete();
                     },
                     complete() {
                         hasCompleted = true;
-    
+
                         if (timerIds.size === 0) {
-                            subscriber.complete();
+                            destination.complete();
                         }
                     }
                 });
             } catch (err) {
-                subscriber.error(err);
-                subscriber.complete();
+                destination.error(err);
             }
 
             return function () {
-                _subscription.unsubscribe?.();
-                console.log('Unsubscribed from observable.');
+                _subscription?.unsubscribe();
+                console.log('Unsubscribed from `delay` operator observable.');
                 for (const timerId of timerIds) {
                     globalThis.clearTimeout(timerId);
                 }
@@ -680,52 +792,83 @@ export function delay(due) {
 }
 
 /**
- * @param {(error: any, caught: Observable) => Observable} errorHandler 
+ * Catches errors on the observable to be handled by returning a new observable or throwing an error.
+ * @param {(error: any, caught: Observable) => Observable} selector 
  * @returns {(source: Observable) => Observable}
  */
-export function catchError(errorHandler) {
+export function catchError(selector) {
     return function (source) {
-        let _subscription;
-        let _observable;
-        try {
-            _subscription = source.subscribe({
-                error(err) {
-                    _observable = errorHandler(err, source);
-                    if (!(_observable instanceof Observable)) {
-                        throw new TypeError('Error handler should return an observable.');
-                    }
-                },
-                complete() {
-                    _subscription.unsubscribe?.();
-                }
-            });
+        return new Observable(function (destination) {
+            let _subscription;
+            let _handledResult;
+            let _syncUnsub = false;
 
-            return _observable;
-                        
-        } catch (err) {
-            console.error('Unhandled error', err);
-            
-            if (_subscription && _subscription instanceof Subscription) {
-                _subscription.unsubscribe?.();
+            try {
+                // Subscribe to source observable
+                _subscription = source.subscribe({
+                    ...destination,
+                    error(err) {
+                        // console.log('Destination closed (1)', destination.closed);
+                        _handledResult = selector(err, catchError(selector)(source));
+
+                        if (_subscription) {
+                            _subscription.unsubscribe();
+                            _subscription = null;
+                            _subscription = _handledResult.subscribe(destination);
+                        } else {
+                            _syncUnsub = true;
+                        }
+                    }
+                });
+
+                if (_syncUnsub) {
+                    // console.log('Destination closed (2)', destination.closed);
+                    _subscription.unsubscribe();
+                    // console.log('Destination closed (3)', destination.closed);
+                    _subscription = null;
+                    _subscription = _handledResult?.subscribe(destination);
+                }
+            } catch (err) {
+                // console.log('Error caught in the `catch` blog of `catchError` operator function.', err);
+                destination.error(err);
             }
 
-            return source;
-        }
-    }
-} 
 
-from([1, 2, 3, 4, 5]).pipe(
-    filter(v => v > b),
-    catchError((err, source) => {
-        console.log('Caught error', err);
-        console.log(source);
-        return EMPTY;
-    })
-).subscribe({
-    next(value) {
-        console.log(value);
-    },
-    error(err) {
-        console.error('This is a caught error', err);
+            return function () {
+                _subscription?.unsubscribe();
+                console.log('Unsubscribed from `catchError` observable.');
+            }
+        });
     }
-})
+}
+
+/**
+ * Returns an observable that, at the moment of subscription, will synchronously emit all 
+ * values provided to this operator, then subscribe to the source and mirror all of its emissions to subscribers.
+ * @param  {...any} values 
+ * @returns {(source: Observable) => Observable}
+ */
+export function startWith(...values) {
+    return function (source) {
+        return new Observable(function (destination) {
+            let _subscription;
+
+            try {
+                // First emit arguments
+                for (const value of values) {
+                    destination.next(value);
+                }
+
+                // Subscribe to source observable
+                _subscription = source.subscribe(destination);
+            } catch (err) {
+                destination.error(err);
+            }
+
+            return function () {
+                _subscription?.unsubscribe();
+                console.log('Unsubscribed from `startWith` operator observable.');
+            }
+        });
+    }
+}
