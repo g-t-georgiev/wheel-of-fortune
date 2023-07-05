@@ -118,8 +118,7 @@ export class Observable {
      * @returns {Observable}
      */
     pipe(...fns) {
-        const source = this;
-        return fns.reduce((obs, fn) => fn(obs), source);
+        return fns.reduce((source, fn) => fn(source), this);
     }
 }
 
@@ -318,25 +317,36 @@ export class Subject {
     asObservable() {
         const _subject = this;
         return new Observable(function (subscriber) {
-            const _subscription = _subject.subscribe({
-                next(value) {
-                    subscriber.next(value);
-                },
-                error(err) {
-                    subscriber.error(err);
-                }, 
-                complete() {
-                    subscriber.complete();
-                }
-            });
+            let _subscription;
+
+            try {
+                _subscription = _subject.subscribe({
+                    next(value) {
+                        subscriber.next(value);
+                    },
+                    error(err) {
+                        subscriber.error(err);
+                    },
+                    complete() {
+                        subscriber.complete();
+                    }
+                });
+            } catch (err) {
+                subscriber.error(err);
+                subscriber.complete();
+            }
 
             return function () {
-                _subscription.unsubscribe();
+                _subscription.unsubscribe?.();
                 console.log('Unsubscribed from subject');
             }
         });
     }
 }
+
+export const EMPTY = new Observable(function (subscriber) {
+    subscriber.complete();
+});
 
 // Creation operators
 
@@ -349,11 +359,16 @@ export class Subject {
 export function from(iterable) {
     const convertedArray = (Array.isArray(iterable) && iterable) || Array.from(iterable);
     return new Observable(function (subscriber) {
-        convertedArray.forEach(item => {
-            subscriber.next(item);
-        });
+        try {
+            convertedArray.forEach(item => {
+                subscriber.next(item);
+            });
 
-        subscriber.complete();
+            subscriber.complete();
+        } catch (err) {
+            subscriber.error(err);
+            subscriber.complete();
+        }
 
         return function () {
             console.log('Unsubscribed from collection.');
@@ -370,21 +385,30 @@ export function from(iterable) {
 export function tap(cb) {
     return function (source) {
         return new Observable(function (subscriber) {
-            const _subscription = source.subscribe({
-                next(value) {
-                    cb(value);
-                    subscriber.next(value);
-                },
-                error(err) {
-                    subscriber.error(err);
-                },
-                complete() {
-                    subscriber.complete();
-                }
-            });
+            let _subscription;
+
+            try {
+                _subscription = source.subscribe({
+                    next(value) {
+                        cb(value);
+                        subscriber.next(value);
+                    },
+                    error(err) {
+                        subscriber.error(err);
+                        subscriber.complete();
+                    },
+                    complete() {
+                        subscriber.complete();
+                    }
+                });
+
+            } catch (err) {
+                subscriber.error(err);
+                subscriber.complete();
+            }
 
             return function () {
-                _subscription.unsubscribe();
+                _subscription.unsubscribe?.();
                 console.log('Unsubscribed from observable.');
             }
         });
@@ -398,21 +422,29 @@ export function tap(cb) {
 export function map(cb) {
     return function (source) {
         return new Observable(function (subscriber) {
-            const _subscription = source.subscribe({
-                next(value) {
-                    const mappedValue = cb(value);
-                    subscriber.next(mappedValue);
-                },
-                error(err) {
-                    subscriber.error(err);
-                },
-                complete() {
-                    subscriber.complete();
-                }
-            });
+            let _subscription;
+
+            try {
+                _subscription = source.subscribe({
+                    next(value) {
+                        const mappedValue = cb(value);
+                        subscriber.next(mappedValue);
+                    },
+                    error(err) {
+                        subscriber.error(err);
+                        subscriber.complete();
+                    },
+                    complete() {
+                        subscriber.complete();
+                    }
+                });
+            } catch (err) {
+                subscriber.error(err);
+                subscriber.complete();
+            }
 
             return function () {
-                _subscription.unsubscribe();
+                _subscription.unsubscribe?.();
                 console.log('Unsubscribed from observable.');
             }
         });
@@ -426,22 +458,31 @@ export function map(cb) {
 export function filter(cb) {
     return function (source) {
         return new Observable(function (subscriber) {
-            const _subscription = source.subscribe({
-                next(value) {
-                    if (cb(value)) {
-                        subscriber.next(value);
+            let _subscription; 
+
+            try {
+                _subscription = source.subscribe({
+                    next(value) {
+                        if (cb(value)) {
+                            subscriber.next(value);
+                        }
+                    },
+                    error(err) {
+                        subscriber.error(err);
+                        subscriber.complete();
+                    },
+                    complete() {
+                        subscriber.complete();
                     }
-                },
-                error(err) {
-                    subscriber.error(err);
-                },
-                complete() {
-                    subscriber.complete();
-                }
-            });
+                });
+            } catch (err) {
+                subscriber.error(err);
+                subscriber.complete();
+            }
 
             return function () {
-                _subscription.unsubscribe();
+                _subscription.unsubscribe?.();
+                console.log('Unsubscribed from observable.');
             }
         });
     }
@@ -455,32 +496,40 @@ export function take(count) {
     return function (source) {
         return new Observable(function (subscriber) {
             let emitted = 0;
+            let _subscription;
 
-            const _subscription = source.subscribe({
-                next(value) {
-                    if (count === 0) {
+            try {
+                _subscription = source.subscribe({
+                    next(value) {
+                        if (count === 0) {
+                            subscriber.complete();
+                            return;
+                        }
+    
+                        if (emitted < count) {
+                            subscriber.next(value);
+                            emitted++;
+                            return;
+                        }
+    
                         subscriber.complete();
-                        return;
+                    },
+                    error(err) {
+                        subscriber.error(err);
+                        subscriber.complete();
+                    },
+                    complete() {
+                        subscriber.complete();
                     }
+                });
+            } catch (err) {
+                subscriber.error(err);
+                subscriber.complete();
+            }
 
-                    if (emitted < count) {
-                        subscriber.next(value);
-                        emitted++;
-                        return;
-                    }
-
-                    subscriber.complete();
-                },
-                error(err) {
-                    subscriber.error(err);
-                },
-                complete() {
-                    subscriber.complete();
-                }
-            });
-
-            return function() {
-                _subscription.unsubscribe();
+            return function () {
+                console.log('Unsubscribed from observable.');
+                _subscription.unsubscribe?.();
             }
         });
     }
@@ -493,26 +542,35 @@ export function take(count) {
 export function takeWhile(cb) {
     return function (source) {
         return new Observable(function (subscriber) {
-            const _subscription = source.subscribe({
-                next(value) {
-                    if (cb(value)) {
-                        subscriber.complete();
-                        _subscription.unsubscribe();
-                        return;
-                    }
+            let _subscription;
 
-                    subscriber.next(value);
-                },
-                error(err) {
-                    subscriber.error(err);
-                },
-                complete() {
-                    subscriber.complete();
-                }
-            });
+            try {
+                _subscription = source.subscribe({
+                    next(value) {
+                        if (cb(value)) {
+                            subscriber.complete();
+                            _subscription.unsubscribe();
+                            return;
+                        }
+    
+                        subscriber.next(value);
+                    },
+                    error(err) {
+                        subscriber.error(err);
+                        subscriber.complete();
+                    },
+                    complete() {
+                        subscriber.complete();
+                    }
+                });
+            } catch (err) {
+                subscriber.error(err);
+                subscriber.complete();
+            }
 
             return function () {
-                _subscription.unsubscribe();
+                _subscription.unsubscribe?.();
+                console.log('Unsubscribed from observable.');
             }
         });
     }
@@ -527,31 +585,39 @@ export function skip(count) {
         return new Observable(function (subscriber) {
             let skipped = 0;
             let emitted = 0;
+            let _subscription;
 
-            const _subscription = source.subscribe({
-                next(value) {
-                    if (skipped < count) {
-                        skipped++;
-                        return;
+            try {
+                _subscription = source.subscribe({
+                    next(value) {
+                        if (skipped < count) {
+                            skipped++;
+                            return;
+                        }
+    
+                        subscriber.next(value);
+                        emitted++;
+                    },
+                    error(err) {
+                        subscriber.error(err);
+                        subscriber.complete();
+                    },
+                    complete() {
+                        if (emitted === 0) {
+                            subscriber.error(new RangeError('Skip count is greater than emition count.'));
+                        }
+    
+                        subscriber.complete();
                     }
-
-                    subscriber.next(value);
-                    emitted++;
-                },
-                error(err) {
-                    subscriber.error(err);
-                },
-                complete() {
-                    if (emitted === 0) {
-                        subscriber.error(new RangeError('Skip count is greater than emition count.'));
-                    }
-
-                    subscriber.complete();
-                }
-            });
+                });
+            } catch (err) {
+                subscriber.error(err);
+                subscriber.complete();
+            }
 
             return function () {
-                _subscription.unsubscribe();
+                _subscription.unsubscribe?.();
+                console.log('Unsubscribed from observable.');
             }
         });
     }
@@ -566,37 +632,45 @@ export function delay(due) {
         return new Observable(function (subscriber) {
             const timerIds = new Set();
             let hasCompleted = false;
+            let _subscription;
 
-            const _subscription = source.subscribe({
-                next(value) {
-                    const now = new Date();
-                    const delay = due instanceof Date ? Math.abs(due - now) : due;
-                    const timerId = globalThis.setTimeout(function () {
-                        subscriber.next(value);
-                        timerIds.delete(timerId);
-                        globalThis.clearTimeout(timerId);
-
-                        if (hasCompleted && timerIds.size === 0) {
+            try {
+                _subscription = source.subscribe({
+                    next(value) {
+                        const now = new Date();
+                        const delay = due instanceof Date ? Math.abs(due - now) : due;
+                        const timerId = globalThis.setTimeout(function () {
+                            subscriber.next(value);
+                            timerIds.delete(timerId);
+                            globalThis.clearTimeout(timerId);
+    
+                            if (hasCompleted && timerIds.size === 0) {
+                                subscriber.complete();
+                            }
+                        }, delay);
+    
+                        timerIds.add(timerId);
+                    },
+                    error(err) {
+                        subscriber.error(err);
+                        subscriber.complete();
+                    },
+                    complete() {
+                        hasCompleted = true;
+    
+                        if (timerIds.size === 0) {
                             subscriber.complete();
                         }
-                    }, delay);
-
-                    timerIds.add(timerId);
-                },
-                error(err) {
-                    subscriber.error(err);
-                },
-                complete() {
-                    hasCompleted = true;
-
-                    if (timerIds.size === 0) {
-                        subscriber.complete();
                     }
-                }
-            });
+                });
+            } catch (err) {
+                subscriber.error(err);
+                subscriber.complete();
+            }
 
             return function () {
-                _subscription.unsubscribe();
+                _subscription.unsubscribe?.();
+                console.log('Unsubscribed from observable.');
                 for (const timerId of timerIds) {
                     globalThis.clearTimeout(timerId);
                 }
@@ -605,11 +679,53 @@ export function delay(due) {
     }
 }
 
-from([ 1,2,3,4,5]).pipe(
-    filter(v => !(v % 2)),
-    map(v => v + v)
+/**
+ * @param {(error: any, caught: Observable) => Observable} errorHandler 
+ * @returns {(source: Observable) => Observable}
+ */
+export function catchError(errorHandler) {
+    return function (source) {
+        let _subscription;
+        let _observable;
+        try {
+            _subscription = source.subscribe({
+                error(err) {
+                    _observable = errorHandler(err, source);
+                    if (!(_observable instanceof Observable)) {
+                        throw new TypeError('Error handler should return an observable.');
+                    }
+                },
+                complete() {
+                    _subscription.unsubscribe?.();
+                }
+            });
+
+            return _observable;
+                        
+        } catch (err) {
+            console.error('Unhandled error', err);
+            
+            if (_subscription && _subscription instanceof Subscription) {
+                _subscription.unsubscribe?.();
+            }
+
+            return source;
+        }
+    }
+} 
+
+from([1, 2, 3, 4, 5]).pipe(
+    filter(v => v > b),
+    catchError((err, source) => {
+        console.log('Caught error', err);
+        console.log(source);
+        return EMPTY;
+    })
 ).subscribe({
     next(value) {
         console.log(value);
+    },
+    error(err) {
+        console.error('This is a caught error', err);
     }
 })
