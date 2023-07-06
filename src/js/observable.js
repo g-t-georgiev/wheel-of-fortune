@@ -904,3 +904,39 @@ export function startWith(...values) {
         });
     }
 }
+
+/**
+ * Returns an observable that will emit all values from the source, then synchronously 
+ * emit the provided value(s) immediately after the source completes.
+ * @param  {...any} values 
+ * @returns {(source: Observable) => Observable}
+ */
+export function endWith(...values) {
+    return function (source) {
+        return new Observable(function (destination) {
+            let _subscription;
+
+            try {
+                // Subscribe to source observable
+                _subscription = source.subscribe({
+                    ...destination,
+                    complete() {
+                        // After source completes,
+                        // emit all provided value arguments
+                        for (const value of values) {
+                            destination.next(value);
+                        }
+
+                        destination.complete();
+                    }
+                })
+            } catch (err) {
+                destination.error(err);
+            }
+
+            return function () {
+                _subscription?.unsubscribe();
+            }
+        });
+    }
+}
