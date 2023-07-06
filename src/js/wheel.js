@@ -1,6 +1,6 @@
 import { Polygon, createElement, roundNumberToFractionLen, normalizeRotationAngleDeg } from './helpers.js';
-import { fromEvent, map, tap, takeWhile, endWith } from './observable.js';
-import { transitions, animationFrames$ } from './animate.js';
+import { fromEvent, map, takeWhile, endWith } from './observable.js';
+import { transitions, AnimationFrames } from './animate.js';
 import { getGameData$ } from './wheel.service.js';
 
 export class WheelComponent {
@@ -268,6 +268,7 @@ export class WheelComponent {
      * @param {number} duration 
      */
     tween(start, end, duration) {
+        const animationFrames$ = new AnimationFrames();
         const subscription = animationFrames$
             .pipe(
                 map(({ elapsedTime }) => elapsedTime / duration),
