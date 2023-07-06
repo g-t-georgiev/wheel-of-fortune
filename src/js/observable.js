@@ -452,6 +452,10 @@ export function fromEvent(target, eventName, options) {
     return new Observable(function (destination) {
         const handleEvent = function (ev) {
             destination.next(ev);
+
+            if (options && typeof options === 'object' && options.once) {
+                destination.complete();
+            }
         }
 
         try {
