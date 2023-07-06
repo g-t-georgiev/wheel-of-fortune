@@ -69,22 +69,20 @@ const Transition = {
 }
 
 /**
- * @typedef {object} transitions 
- * @property {(a: number, b: number, t: number) => number} interpolate 
- * @property {(e: number, t: number) => number} easeIn 
- * @property {(e: number, t: number) => number} easeOut 
- * @property {(e1: number, e2: number, t: number) => number} easeInOut 
+ * @returns {Pick<typeof Transition, "interpolate" | "easeIn" | "easeOut" | "easeInOut">}
  */
+const getPublicTransitions = function () {
+    const { interpolate, easeIn, easeOut, easeInOut } = Transition;
 
-/**
- * @type transitions
- */
-export const transitions = {
-    interpolate: Transition.interpolate.bind(Transition),
-    easeIn: Transition.easeIn.bind(Transition),
-    easeOut: Transition.easeOut.bind(Transition),
-    easeInOut: Transition.easeInOut.bind(Transition)
-};
+    return {
+        interpolate: interpolate.bind(Transition),
+        easeIn: easeIn.bind(Transition),
+        easeOut: easeOut.bind(Transition),
+        easeInOut: easeInOut.bind(Transition)
+    };
+}
+
+export const transitions = getPublicTransitions();
 
 export const animationFrames$ = new Observable(function (subscriber) {
     let animationFrameId = null;
