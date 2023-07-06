@@ -143,3 +143,17 @@ export function isJsonString(value) {
         return false;
     }
 }
+
+/**
+ * Parses HTTP response headers string to an object.
+ * @param {string} value 
+ * @returns {}
+ */
+export function parseHttpResponseHeaders(value) {
+    return value
+        .trim()
+        .split(/\r\n/g)
+        .filter(v => v.length !== 0)
+        .map(v => v.split(/: /))
+        .reduce((o, [k, v]) => ({ ...o, [k]: v }), {});
+}
