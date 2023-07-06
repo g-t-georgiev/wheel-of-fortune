@@ -1,23 +1,16 @@
 import { requestAnimationFrame, cancelAnimationFrame } from './animation-frame.js';
 import { Observable } from './observable.js';
 
-class Transition {
-
-    constructor() {
-        if (this.constructor.name === 'Transition') {
-            throw new Error('Abstract class cannot be instantiated');
-        }
-    }
-
+const Transition = {
     /**
      * Flips direction of x value.
      * @param {number} x 
      * @static
      * @returns 
      */
-    static flip(x) {
+    flip(x) {
         return 1 - x;
-    }
+    },
 
     /**
      * Interpolates between start and end value over a set time index from 0 to 1.
@@ -27,71 +20,56 @@ class Transition {
      * @static
      * @returns 
      */
-    static interpolate(a, b, t) {
+    interpolate(a, b, t) {
         return a + (b - a) * t;
-    }
+    },
 
     /**
      * Calculates gradually increasing easing factor index.
-     * @param {number} exponent exponent factor
-     * @static
-     * @returns 
+     * @param {number} e exponent factor 
+     * @param {number} t time progress [0..1] 
+     * @returns {number}
      */
-    static easeIn(exponent = 1) {
-        /**
-         * @param {number} t
-         */
-        return (t) => {
-            // console.log(`Time progression: `, t);
-            let easingFactor = (t) ** exponent;
-            // console.log('Easing factor:', easingFactor);
-            return easingFactor;
-        }
-    }
+    easeIn(e = 1, t) {
+        // console.log(`Time progression: `, t);
+        let easingFactor = (t) ** e;
+        // console.log('Easing factor:', easingFactor);
+        return easingFactor;
+    },
 
     /**
      * Calculates gradually decreasing easing factor index.
-     * @param {number} exponent exponent factor
-     * @static
-     * @returns 
+     * @param {number} e exponent factor 
+     * @param {number} t time progress [0..1] 
+     * @returns {number}
      */
-    static easeOut(exponent = 1) {
-        /**
-         * @param {number} t time progress [0..1]
-         */
-        return (t) => {
-            t = this.flip(t);
-            // console.log(`Time progression: `, t);
-            let easingFactor = this.flip((t) ** exponent);
-            // console.log('Easing factor:', easingFactor);
-            return easingFactor;
-        }
-    }
+    easeOut(e = 1) {
+        t = this.flip(t);
+        // console.log(`Time progression: `, t);
+        let easingFactor = this.flip((t) ** e);
+        // console.log('Easing factor:', easingFactor);
+        return easingFactor;
+    },
 
     /**
      * Calculats gradually increasing and decreasing easing factor index. 
      * If the exponent factors are omitted, the default behavior is linear.
      * If only the one exponent is passed it is used for both easing-in and easing-out effect.
      * Otherwise, the first exponent is used for the ease-in and the secont for the ease-out effect.
-     * @param {number} exponent1 exponent factor 1
-     * @param {number} [exponent2] exponent factor 2 
-     * @static
-     * @returns
+     * @param {number} e1 exponent factor 1
+     * @param {number} [e2] exponent factor 2 
+     * @param {number} t time progress [0..1] 
+     * @returns {number}
      */
-    static easeInOut(exponent1 = 1, exponent2) {
-        /**
-         * @param {number} t time progress [0..1]
-         */
-        return (t) => {
-            const easeInFactor = this.easeIn(exponent1)(t);
-            const easeOutFactor = this.easeOut(exponent2 ?? exponent1)(t);
-            return this.interpolate(easeInFactor, easeOutFactor, t);
-        }
+    easeInOut(e1 = 1, e2) {
+        const easeInFactor = this.easeIn(e1)(t);
+        const easeOutFactor = this.easeOut(e2 ?? e1)(t);
+        return this.interpolate(easeInFactor, easeOutFactor, t);
     }
 }
 
 /**
- * @typedef {object} transitions  
+ * @typedef {object} transitions 
  * @property {(a: number, b: number, t: number) => number} interpolate 
  * @property {(e: number) => (t: number) => number} easeIn 
  * @property {(e: number) => (t: number) => number} easeOut 
