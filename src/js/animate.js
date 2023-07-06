@@ -43,7 +43,7 @@ const Transition = {
      * @param {number} t time progress [0..1] 
      * @returns {number}
      */
-    easeOut(e = 1) {
+    easeOut(e = 1, t) {
         t = this.flip(t);
         // console.log(`Time progression: `, t);
         let easingFactor = this.flip((t) ** e);
@@ -61,9 +61,9 @@ const Transition = {
      * @param {number} t time progress [0..1] 
      * @returns {number}
      */
-    easeInOut(e1 = 1, e2) {
-        const easeInFactor = this.easeIn(e1)(t);
-        const easeOutFactor = this.easeOut(e2 ?? e1)(t);
+    easeInOut(e1 = 1, e2, t) {
+        const easeInFactor = this.easeIn(e1, t);
+        const easeOutFactor = this.easeOut(e2 ?? e1, t);
         return this.interpolate(easeInFactor, easeOutFactor, t);
     }
 }
@@ -71,9 +71,9 @@ const Transition = {
 /**
  * @typedef {object} transitions 
  * @property {(a: number, b: number, t: number) => number} interpolate 
- * @property {(e: number) => (t: number) => number} easeIn 
- * @property {(e: number) => (t: number) => number} easeOut 
- * @property {(e: number, d: number) => (t: number) => number} easeInOut 
+ * @property {(e: number, t: number) => number} easeIn 
+ * @property {(e: number, t: number) => number} easeOut 
+ * @property {(e1: number, e2: number, t: number) => number} easeInOut 
  */
 
 /**
