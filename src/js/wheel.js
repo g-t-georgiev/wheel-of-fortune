@@ -266,9 +266,10 @@ export class WheelComponent {
      * @param {number} start 
      * @param {number} end 
      * @param {number} duration 
+     * @param {number} [delay]
      */
-    tween(start, end, duration) {
-        const animationFrames$ = new AnimationFrames();
+    tween(start, end, duration, delay = 0) {
+        const animationFrames$ = new AnimationFrames(delay);
         const subscription = animationFrames$
             .pipe(
                 map(({ elapsedTime }) => elapsedTime / duration),
