@@ -99,7 +99,7 @@ export class Observable {
      * @param {() => void} subscriber.complete 
      * @returns {Subscription}
      */
-    subscribe({ next, error, complete }) {
+    subscribe({ next, error, complete } = {}) {
         const observer = new Observer(next, error, complete);
         const cleanUpHandler = this.#subscribeFn(observer);
         return new Subscription(() => {
