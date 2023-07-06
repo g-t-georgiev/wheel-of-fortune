@@ -118,7 +118,7 @@ export function createElement({ name, attributes = {}, properties = {}, parentEl
 /**
  * Removes the last element of given array recursively,
  * until no more elements in the array. A callback function 
- * is called for every poped item, passing it to the callback.
+ * is called for every popped item, passing it to the callback.
  * @param {Array<any>} array 
  * @param {(item: any) => void} cb 
  * @returns 
@@ -128,4 +128,18 @@ export function loopAndPopArrayItems(array, cb) {
     if (item) cb(item);
     if (array.length === 0) return;
     loopAndPopArrayItems(array, cb);
+}
+
+/**
+ * A function that checks if a given value is a valid JSON.
+ * @param {string} value 
+ * @returns {boolean}
+ */
+export function isJsonString(value) {
+    try {
+        JSON.parse(value);
+        return true;
+    } catch (e) {
+        return false;
+    }
 }
