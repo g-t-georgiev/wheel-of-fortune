@@ -1,5 +1,5 @@
 import { Polygon, createElement, roundNumberToFractionLen, normalizeRotationAngleDeg } from './helpers.js';
-import { fromEvent } from './observable.js';
+import { fromEvent, map, tap, takeWhile, endWith } from './observable.js';
 import { transitions, animationFrames$ } from './animate.js';
 import { getGameData$ } from './wheel.service.js';
 
@@ -268,25 +268,36 @@ export class WheelComponent {
      * @param {number} duration 
      */
     tween(start, end, duration) {
-        const subscription = animationFrames$.subscribe({
-            next: ({ elapsedTime, timestamp }) => {
-                const progress = Math.min(1, elapsedTime / duration);
-                const remainingTime = Math.max(0, duration * (1 - progress));
-                const rate = transitions.interpolate(start, end, transitions.easeInOut(1, 2, progress));
+        const subscription = animationFrames$
+            .pipe(
+                map(({ elapsedTime }) => elapsedTime / duration),
+                tap((progress) => {
+                    console.log(progress);
+                }),
+                takeWhile((progress) => progress < 1),
+                endWith(1)
+            )
+            .subscribe({
+                next: (progress) => {
+                    const rate = transitions.interpolate(start, end, transitions.easeInOut(1, 2, progress));
 
-                if (progress === 0 && progress < 1) {
-                    // Start animation stage
-                    this.isSpinning = true;
-                    this.wheelOuterContainerRef.toggleAttribute('data-spin', this.isSpinning);
-                } else if (progress < 1) {
+                    if (progress === 0) {
+                        // Start animation stage
+                        this.isSpinning = true;
+                        this.wheelOuterContainerRef.toggleAttribute('data-spin', this.isSpinning);
+                    }
+
                     // Active animation stage
+                    this.rotationStartAngle = rate;
                     this.wheelInnerContainerRef.style.setProperty(
                         'transform',
                         `rotateZ(${rate}deg)`
                     );
-                } else {
+                },
+                complete: () => {
+                    console.log('Animation completed');
                     // Complete animation stage
-                    this.rotationStartAngle = normalizeRotationAngleDeg(rate);
+                    this.rotationStartAngle = normalizeRotationAngleDeg(this.rotationStartAngle);
 
                     this.wheelInnerContainerRef.style.setProperty(
                         'transform',
@@ -294,6 +305,7 @@ export class WheelComponent {
                     );
 
                     console.log('Winning sector', this.sector);
+                    console.log('Next animation start angle:', this.rotationStartAngle);
             
                     if (this.autoPlay) {
                         // Schedule auto-play
@@ -308,8 +320,6 @@ export class WheelComponent {
                     // (Unsubscribe) Cancel animation
                     subscription.unsubscribe();
                 }
-            
-            }
-        })
+            })
     }
 }
