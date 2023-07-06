@@ -441,6 +441,38 @@ export function interval(period = 0) {
     });
 }
 
+/**
+ * Creates an Observable that emits events of a specific type coming from the given event target.
+ * @param {EventTarget | HTMLElement | HTMLCollection | NodeList} target 
+ * @param {string} eventName 
+ * @param {EventListenerOptions | boolean} options 
+ * @returns 
+ */
+export function fromEvent(target, eventName, options) {
+    return new Observable(function (destination) {
+        const handleEvent = function (ev) {
+            destination.next(ev);
+        }
+
+        try {
+            if (!(
+                'addEventListener' in target && 
+                'removeEventListener' in target
+            )) {
+                throw new Error('The provided `target` interface does implement add/remove event listener functionality.');
+            }
+
+            target.addEventListener(eventName, handleEvent, options);
+        } catch (err) {
+            destination.error(err);
+        }
+
+        return function () {
+            target.removeEventListener(eventName, handleEvent);
+        }
+    });
+}
+
 // Creation operators
 
 /**
