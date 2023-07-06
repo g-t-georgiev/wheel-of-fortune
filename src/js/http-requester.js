@@ -211,7 +211,7 @@ export class HttpRequest extends Observable {
             const states = ['OPENED', 'HEADERS_RECEIVED', 'LOADING'];
             states.map(state => xhr[state]);
             const abortAllowed = states.includes(xhr.readyState);
-            // console.log(`Request to '${url}' with state ${xhr.readyState} is ${abortAllowed ? '' : 'not'} abortabale.`);
+            // console.log(`Request to '${decodeURIComponent(url)}' with state ${xhr.readyState} is ${abortAllowed ? '' : 'not'} abortabale.`);
             if (abortAllowed) {
                 xhr.abort();
             }
