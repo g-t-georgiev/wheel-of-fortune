@@ -271,9 +271,6 @@ export class WheelComponent {
         const subscription = animationFrames$
             .pipe(
                 map(({ elapsedTime }) => elapsedTime / duration),
-                tap((progress) => {
-                    console.log(progress);
-                }),
                 takeWhile((progress) => progress < 1),
                 endWith(1)
             )
