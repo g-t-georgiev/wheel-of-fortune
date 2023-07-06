@@ -674,11 +674,11 @@ export function takeWhile(predicate) {
                     ...destination,
                     next(value) {
                         if (predicate(value)) {
-                            destination.complete();
+                            destination.next(value);
                             return;
                         }
 
-                        destination.next(value);
+                        destination.complete();
                     }
                 });
             } catch (err) {
