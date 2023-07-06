@@ -272,7 +272,7 @@ export class WheelComponent {
             next: ({ elapsedTime, timestamp }) => {
                 const progress = Math.min(1, elapsedTime / duration);
                 const remainingTime = Math.max(0, duration * (1 - progress));
-                const rate = transitions.interpolate(start, end, transitions.easeInOut(1, 2)(progress));
+                const rate = transitions.interpolate(start, end, transitions.easeInOut(1, 2, progress));
 
                 if (progress === 0 && progress < 1) {
                     // Start animation stage
