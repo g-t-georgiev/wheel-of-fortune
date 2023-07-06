@@ -1,6 +1,6 @@
 import { Polygon, createElement, roundNumberToFractionLen, normalizeRotationAngleDeg } from './helpers.js';
+import { fromEvent } from './observable.js';
 import { transitions, animationFrames$ } from './animate.js';
-
 import { getGameData$ } from './wheel.service.js';
 
 export class WheelComponent {
@@ -251,12 +251,15 @@ export class WheelComponent {
             this.sectorElementsRefList.push(sector);
         });
         
-
-        if (window.matchMedia('(hover: hover)').matches) {
-            this.playAnimationButtonRef.addEventListener('click', this.playButtonClickHandler.bind(this));
-        } else {
-            this.playAnimationButtonRef.addEventListener('pointerdown', this.playButtonClickHandler.bind(this));
-        }
+        const eventType = window.matchMedia('(hover: hover)').matches ? 'click' : 'pointerdown';
+        fromEvent(this.playAnimationButtonRef, eventType).subscribe({
+            next: (ev) => {
+                this.playButtonClickHandler(ev);
+            },
+            error: (err) => {
+                console.error('Error occurred in `fromEvent` observable:', err);
+            }
+        });
     }
 
     /**
