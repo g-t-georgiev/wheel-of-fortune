@@ -84,6 +84,11 @@ const getPublicTransitions = function () {
 
 export const transitions = getPublicTransitions();
 
+/**
+ * Creates an observable of animation frames instance.
+ * @class 
+ * @extends Observable 
+ */
 export class AnimationFrames extends Observable {
     #animationFrameId;
     #startAnimationFrameTime = null;
