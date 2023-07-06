@@ -936,6 +936,7 @@ export function endWith(...values) {
 
             return function () {
                 _subscription?.unsubscribe();
+                console.log('Unsubscribed from `endWith` operator observable.');
             }
         });
     }
