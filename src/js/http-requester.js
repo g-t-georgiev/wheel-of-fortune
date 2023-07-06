@@ -69,7 +69,7 @@ export class HttpRequest extends Observable {
         method = method ?? 'GET';
         options = typeof options !== 'object' ? {} : options;
         options.headers = options.headers ?? {};
-        options.params = options.params ?? {};
+        options.params = new URLSearchParams(options.params ?? {});
         options.observe = options.observe ?? 'body';
         options.responseType = options.responseType ?? 'text';
         options.reportProgress = options.reportProgress ?? false;
@@ -136,7 +136,7 @@ export class HttpRequest extends Observable {
 
         this.#xhr = xhr;
         this.#controller = controller;
-        this.#url = url;
+        this.#url = new URL(url);
         this.#method = method;
         this.#data = data;
         this.#options = options;
@@ -172,12 +172,16 @@ export class HttpRequest extends Observable {
 
     #sendAJAXRequest() {
         const xhr = this.#xhr;
-        const url = this.#url;
+        let url = this.#url;
         const method = this.#method;
         const data = this.#data;
         const options = this.#options;
-
+        const params = options.params;
         if (xhr && xhr.readyState === 0) {
+            if (params.size !== 0) {
+                url = `${url}?${params}`;
+            }
+
             xhr.open(method, url, options.async);
             xhr.responseType = options.responseType;
             xhr.withCredentials = options.withCredentials;
