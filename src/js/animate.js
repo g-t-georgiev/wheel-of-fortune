@@ -84,32 +84,56 @@ const getPublicTransitions = function () {
 
 export const transitions = getPublicTransitions();
 
-export const animationFrames$ = new Observable(function (subscriber) {
-    let animationFrameId = null;
-    let startAnimationFrameTime = null;
+export class AnimationFrames extends Observable {
+    #animationFrameId;
+    #startAnimationFrameTime = null;
+    #delay = 0;
 
-    function animationLoop(timestamp = performance.now()) {
-        if (startAnimationFrameTime == null) {
-            startAnimationFrameTime = timestamp;
-        }
-    
-        const elapsedTime = timestamp - startAnimationFrameTime;    
-        subscriber.next({ elapsedTime, timestamp });
+    /**
+     * Creates an animation frames observable object. 
+     * Emits the amount of time elapsed since subscription and the timestamp on each animation frame. 
+     * Defaults to milliseconds provided to the requestAnimationFrame's callback. Does not end on its own. 
+     * 
+     * Every subscription will start a separate animation loop. Since animation frames are always 
+     * scheduled by the browser to occur directly before a repaint, scheduling more than one animation 
+     * frame synchronously should not be much different or have more overhead than looping over an array of 
+     * events during a single animation frame. However, if for some reason the developer would like to ensure the execution 
+     * of animation-related handlers are all executed during the same task by the engine, the share operator can be used. 
+     * @param {number} delay 
+     */
+    constructor(delay = 0) {
+        super((subscriber) => {
+            try {
+                const animationLoop = (timestamp = performance.now()) => {
+                    if (this.#startAnimationFrameTime == null) {
+                        this.#startAnimationFrameTime = timestamp;
+                    }
+                
+                    const elapsedTime = timestamp - this.#startAnimationFrameTime;    
+                    subscriber.next({ elapsedTime, timestamp });
+                    
+                    if (this.#animationFrameId) {
+                        cancelAnimationFrame(this.#animationFrameId);
+                    }
+            
+                    this.#animationFrameId = requestAnimationFrame(animationLoop);
+                }
+            
+                let timerId = globalThis.setTimeout(() => {
+                    globalThis.clearTimeout(timerId);
+                    animationLoop.call(this);
+                }, this.#delay);
+            } catch (err) {
+                subscriber.error('Error occurred in animation frames observable:', err);
+            }
+
         
-        if (animationFrameId) {
-            cancelAnimationFrame(animationFrameId);
-        }
+            return () => {
+                console.log(`Unsubscribed from animation frames observable.`);
+                cancelAnimationFrame(this.#animationFrameId);
+            }
+        });
 
-        animationFrameId = requestAnimationFrame(animationLoop);
+        this.#delay = delay;
     }
-
-    let timerId = globalThis.setTimeout(function () {
-        globalThis.clearTimeout(timerId);
-        animationLoop();
-    }, 0);
-
-    return function () {
-        // console.log('Finishing animation with id', animationFrameId);
-        cancelAnimationFrame(animationFrameId);
-    }
-});
+}
