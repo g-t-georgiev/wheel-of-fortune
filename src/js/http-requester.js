@@ -12,6 +12,12 @@ import { Observable } from './observable.js';
  */
 
 
+/**
+ * Handles HTTP requests. Class can be instantiated in the standard way through 
+ * the `constructor` or using the static method for the respective HTTP request method.
+ * @class 
+ * @extends Observable 
+ */
 export class HttpRequest extends Observable {
     #xhr;
     #controller;
