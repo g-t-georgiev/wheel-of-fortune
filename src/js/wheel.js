@@ -1,5 +1,5 @@
 import { Polygon, createElement, roundNumberToFractionLen, normalizeRotationAngleDeg } from './helpers.js';
-import { fromEvent, map, takeWhile, endWith } from './observable.js';
+import { fromEvent, map, tap, takeWhile, endWith } from './observable.js';
 import { transitions, AnimationFrames } from './animate.js';
 import { getGameData$ } from './wheel.service.js';
 
@@ -273,18 +273,18 @@ export class WheelComponent {
             .pipe(
                 map(({ elapsedTime }) => elapsedTime / duration),
                 takeWhile((progress) => progress < 1),
-                endWith(1)
-            )
-            .subscribe({
-                next: (progress) => {
-                    const rate = transitions.interpolate(start, end, transitions.easeInOut(1, 2, progress));
-
+                endWith(1), 
+                tap((progress) => {
                     if (progress === 0) {
                         // Start animation stage
                         this.isSpinning = true;
                         this.wheelOuterContainerRef.toggleAttribute('data-spin', this.isSpinning);
                     }
-
+                }),
+                map((progress) => transitions.interpolate(start, end, transitions.easeInOut(1, 2, progress)))
+            )
+            .subscribe({
+                next: (rate) => {
                     // Active animation stage
                     this.rotationStartAngle = rate;
                     this.wheelInnerContainerRef.style.setProperty(
