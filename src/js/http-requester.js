@@ -177,6 +177,7 @@ export class HttpRequest extends Observable {
 
     get #response() {
         return {
+            ok: this.#xhr.status < 400,
             status: this.#xhr.status,
             statusText: this.#xhr.statusText,
             headers: parseResponseHeaders(this.#xhr.getAllResponseHeaders()),
