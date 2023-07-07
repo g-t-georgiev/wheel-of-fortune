@@ -167,7 +167,7 @@ export class HttpRequest extends Observable {
             status: this.#xhr.status,
             statusText: this.#xhr.statusText,
             headers: parseResponseHeaders(this.#xhr.getAllResponseHeaders()),
-            body: parseResponseBody(this.#xhr.response)
+            body: this.#xhr.responseType === 'text' ? parseResponseBody(this.#xhr.response) : this.#xhr.response
         }
     }
 
