@@ -12,6 +12,16 @@ import { parseResponseHeaders, parseResponseBody, parseRequestBody } from './hel
  * @property {boolean} async 
  */
 
+/**
+ * @typedef {object} HttpContext 
+ * @property {{ [header: string]: string | string[] }} headers 
+ * @property {{ [param: string]: string | number | boolean | ReadonlyArray<string | number | boolean> }} params 
+ * @property {'body' | 'events' | 'response'} observe 
+ * @property {boolean} reportProgress 
+ * @property {'arraybuffer'|'blob'|'json'|'text'} responseType 
+ * @property {boolean} withCredentials 
+ */
+
 
 /**
  * Handles HTTP requests. Class can be instantiated in the standard way through 
@@ -251,6 +261,22 @@ export class HttpRequest extends Observable {
      */
     get responseType() {
         return this.#options.responseType;
+    }
+
+    /**
+     * Clone current HttpRequest object with options to 
+     * pass different values for some of the request parameters.
+     * @param {Partial<HttpContext>} [update]
+     * @returns {HttpRequest}
+     */
+    clone(update = {}) {
+        const { headers, params, observe, reportProgress, responseType, withCredentials } = update;
+        const url = decodeURIComponent(this.#request.url.toString());
+        const method = this.#request.method;
+        const body = this.#request.body;
+        const options = { ...this.#request.options, headers, params, observe, reportProgress, responseType, withCredentials };
+        const clonedHttpRequest = new HttpRequest(url, method, body, options);
+        return clonedHttpRequest;
     }
 
     #sendAJAXRequest() {
