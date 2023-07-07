@@ -282,7 +282,7 @@ export class WheelComponent {
                         this.wheelOuterContainerRef.toggleAttribute('data-spin', this.isSpinning);
                     }
                 }),
-                map((progress) => transitions.interpolate(start, end, transitions.easeInOut(2, 3, progress)))
+                map((progress) => transitions.interpolate(start, end, transitions.easeOut(2.5, progress)))
             )
             .subscribe({
                 next: (rate) => {
