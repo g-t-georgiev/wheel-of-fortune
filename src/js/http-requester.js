@@ -1,5 +1,5 @@
 import { Observable } from './observable.js';
-import { parseResponseHeaders, parseResponseBody } from './helpers.js';
+import { parseResponseHeaders, parseResponseBody, parseRequestBody } from './helpers.js';
 
 /**
  * @typedef {object} HttpRequestOptions
@@ -24,7 +24,7 @@ export class HttpRequest extends Observable {
     #controller;
     #url;
     #method;
-    #data;
+    #body;
     #options;
 
     /**
@@ -32,7 +32,7 @@ export class HttpRequest extends Observable {
      * @constructor
      * @param {string} url 
      * @param {'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS'} method 
-     * @param {any} data 
+     * @param {any} body 
      * @param {Partial<HttpRequestOptions>} options  
      * 
      * @example <caption>Creating a GET request:</caption>
@@ -56,7 +56,7 @@ export class HttpRequest extends Observable {
      *   withCredentials: false
      * });
      */
-    constructor(url, method = 'GET', data = null, options = {}) {
+    constructor(url, method = 'GET', body = null, options = {}) {
         if (url == null || typeof url !== 'string') {
             throw new TypeError('Url param should be a valid url string.');
         }
@@ -70,7 +70,7 @@ export class HttpRequest extends Observable {
         method = method ?? 'GET';
         options = typeof options !== 'object' ? {} : options;
         options.headers = options.headers ?? {};
-        options.params = new URLSearchParams(options.params ?? {});
+        options.params = options.params ?? {};
         options.observe = options.observe ?? 'body';
         options.responseType = options.responseType ?? 'text';
         options.reportProgress = options.reportProgress ?? false;
@@ -140,7 +140,7 @@ export class HttpRequest extends Observable {
         this.#controller = controller;
         this.#url = new URL(url);
         this.#method = method;
-        this.#data = data;
+        this.#body = body;
         this.#options = options;
     }
 
@@ -163,6 +163,15 @@ export class HttpRequest extends Observable {
         return new this(url, 'GET', null, options);
     }
 
+    get #request() {
+        return {
+            url: this.#url,
+            method: this.#method,
+            body: this.#body,
+            options: this.#options
+        }
+    }
+
     get #response() {
         return {
             status: this.#xhr.status,
@@ -174,21 +183,20 @@ export class HttpRequest extends Observable {
 
     #sendAJAXRequest() {
         const xhr = this.#xhr;
-        let url = this.#url;
-        const method = this.#method;
-        const data = this.#data;
-        const options = this.#options;
-        const params = options.params;
+        const request = this.#request;
+        const params = Object.entries(request.options.params);
         if (xhr && xhr.readyState === 0) {
-            if (params.size !== 0) {
-                url = `${url}?${params}`;
+            if (params.length > 0) {
+               params.forEach(([k, v]) => {
+                    request.url.searchParams.set(k, v);
+                });
             }
 
-            xhr.open(method, url, options.async);
-            xhr.responseType = options.responseType;
-            xhr.withCredentials = options.withCredentials;
+            xhr.open(request.method, request.url, request.options.async);
+            xhr.responseType = request.options.responseType;
+            xhr.withCredentials = request.options.withCredentials;
 
-            const headers = options.headers && Object.entries(options.headers);
+            const headers = request.options.headers && Object.entries(request.options.headers);
 
             if (headers) {
                 headers.forEach(([ name, content ]) => {
@@ -196,8 +204,8 @@ export class HttpRequest extends Observable {
                 });
             }
 
-            if (['POST', 'PUT', 'PATCH'].includes(method)) {
-                xhr.send(data);
+            if (['POST', 'PUT', 'PATCH'].includes(request.method)) {
+                xhr.send(parseRequestBody(request.body));
                 return;
             }
 
