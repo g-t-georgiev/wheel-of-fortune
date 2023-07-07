@@ -264,8 +264,8 @@ export class HttpRequest extends Observable {
     }
 
     /**
-     * Clone current HttpRequest object with options to 
-     * pass different values for some of the request parameters.
+     * Clone current HttpRequest object, optionally, 
+     * with different context options.
      * @param {Partial<HttpContext>} [update]
      * @returns {HttpRequest}
      */
