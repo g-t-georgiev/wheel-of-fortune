@@ -148,7 +148,7 @@ export function parseResponseBody(body) {
 /**
  * Parse response headers.
  * @param {string} headers 
- * @returns {}
+ * @returns {any}
  */
 export function parseResponseHeaders(headers) {
     try {
