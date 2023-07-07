@@ -181,6 +181,22 @@ export class HttpRequest extends Observable {
         }
     }
 
+    get url() {
+        return this.#url;
+    }
+
+    get method() {
+        return this.#method;
+    }
+
+    get body() {
+        return this.#body;
+    }
+
+    get options() {
+        return this.#options;
+    }
+
     #sendAJAXRequest() {
         const xhr = this.#xhr;
         const request = this.#request;
