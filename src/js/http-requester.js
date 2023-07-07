@@ -1,5 +1,5 @@
 import { Observable } from './observable.js';
-import { isJsonString, parseHttpResponseHeaders } from './helpers.js';
+import { parseResponseHeaders, parseResponseBody } from './helpers.js';
 
 /**
  * @typedef {object} HttpRequestOptions
@@ -166,8 +166,8 @@ export class HttpRequest extends Observable {
         return {
             status: this.#xhr.status,
             statusText: this.#xhr.statusText,
-            headers: parseHttpResponseHeaders(this.#xhr.getAllResponseHeaders()),
-            body: isJsonString(this.#xhr.response) ? JSON.parse(this.#xhr.response) : this.#xhr.response
+            headers: parseResponseHeaders(this.#xhr.getAllResponseHeaders()),
+            body: parseResponseBody(this.#xhr.response)
         }
     }
 
