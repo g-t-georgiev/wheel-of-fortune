@@ -181,20 +181,76 @@ export class HttpRequest extends Observable {
         }
     }
 
+    /**
+     * The request url.
+     * @readonly
+     * @returns {string}
+     */
     get url() {
-        return this.#url;
+        return this.#url.toString();
     }
 
+    /**
+     * The request method.
+     * @readonly
+     * @returns {string}
+     */
     get method() {
         return this.#method;
     }
 
+    /**
+     * The request body, or null if one isn't set.
+     * @readonly
+     * @returns {any}
+     */
     get body() {
         return this.#body;
     }
 
-    get options() {
-        return this.#options;
+    /**
+     * The request headers or empty object if none are set.
+     * @readonly
+     * @returns {object}
+     */
+    get headers() {
+        return { ...this.#options.headers };
+    }
+
+    /**
+     * The request params or empty object if none are set.
+     * @readonly
+     * @returns {object}
+     */
+    get params() {
+        return { ...this.#options.params };
+    }
+
+    /**
+     * Whether the body, the whole response or events are returned.
+     * @readonly
+     * @returns {string}
+     */
+    get observe() {
+        return this.#options.observe;
+    }
+
+    /**
+     * Whether this request should be made in a way that exposes progress events.
+     * @readonly
+     * @returns {boolean}
+     */
+    get reportProgress() {
+        return this.#options.reportProgress;
+    }
+
+    /**
+     * The expected response type of the server.
+     * @readonly
+     * @returns {string}
+     */
+    get responseType() {
+        return this.#options.responseType;
     }
 
     #sendAJAXRequest() {
