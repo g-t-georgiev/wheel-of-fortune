@@ -13,13 +13,7 @@ import { parseResponseHeaders, parseResponseBody, parseRequestBody } from './hel
  */
 
 /**
- * @typedef {object} HttpContext 
- * @property {{ [header: string]: string | string[] }} headers 
- * @property {{ [param: string]: string | number | boolean | ReadonlyArray<string | number | boolean> }} params 
- * @property {'body' | 'events' | 'response'} observe 
- * @property {boolean} reportProgress 
- * @property {'arraybuffer'|'blob'|'json'|'text'} responseType 
- * @property {boolean} withCredentials 
+ * @typedef {Omit<HttpRequestOptions, "async">} HttpContext 
  */
 
 
