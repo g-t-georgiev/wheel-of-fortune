@@ -85,7 +85,7 @@ export class HttpRequest extends Observable {
                 // AbortController signal
                 const { signal } = this.#controller;
                 const options = this.#options;
-                // signal.addEventListener('abort', abortHandler);
+                // signal.addEventListener('abort', signalAbortHandler);
 
                 if (options.observe === 'body' || options.observe === 'response') {
                     xhr.addEventListener('load', () => {
@@ -129,6 +129,7 @@ export class HttpRequest extends Observable {
                 return () => {
                     this.#abortAJAXRequest();
                     controller.abort('Unsubscribed from request event listener.');
+                    // signal.removeEventListener('abort', signalAbortHandler);
                 };
             } catch (err) {
                 subscriber.error(err);
