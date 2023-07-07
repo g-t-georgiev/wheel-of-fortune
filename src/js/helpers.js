@@ -131,29 +131,35 @@ export function loopAndPopArrayItems(array, cb) {
 }
 
 /**
- * A function that checks if a given value is a valid JSON.
- * @param {string} value 
- * @returns {boolean}
+ * Parse response body. 
+ * If error, returns the original input string.
+ * @param {string} body 
+ * @returns {any}
  */
-export function isJsonString(value) {
+export function parseResponseBody(body) {
     try {
-        JSON.parse(value);
-        return true;
+        return JSON.parse(body);
     } catch (e) {
-        return false;
+        console.error('Error occurred while parsing response body.\n', e);
+        return body;
     }
 }
 
 /**
- * Parses HTTP response headers string to an object.
- * @param {string} value 
+ * Parse response headers.
+ * @param {string} headers 
  * @returns {}
  */
-export function parseHttpResponseHeaders(value) {
-    return value
-        .trim()
-        .split(/\r\n/g)
-        .filter(v => v.length !== 0)
-        .map(v => v.split(/: /))
-        .reduce((o, [k, v]) => ({ ...o, [k]: v }), {});
+export function parseResponseHeaders(headers) {
+    try {
+        return headers
+            .trim()
+            .split(/\r\n/g)
+            .filter(v => v.length !== 0)
+            .map(v => v.split(/: /))
+            .reduce((o, [k, v]) => ({ ...o, [k]: v }), {});
+    } catch (e) {
+        console.error('Error occurred while parsing response headers.\n', e);
+        return headers;
+    }
 }
