@@ -5,12 +5,8 @@ const API_GET_WHEEL_DATA_URL = '/';
 const API_GET_TARGET_SECTOR_DATA_URL = '/game';
 
 const UNAUTHORIZED_GET_REQUESTS_OPTIONS = {
-    headers: { 'Content-Type': 'application/json' },
-    params: {},
-    observe: 'body',
-    reportProgress: false, 
-    responseType: 'json',
-    withCredentials: false
+    headers: { 'Content-Type': 'application/json' }, 
+    responseType: 'json'
 }
 
 export function getUIRenderData$() {
