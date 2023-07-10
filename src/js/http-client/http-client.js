@@ -1,7 +1,7 @@
 import { Observable } from '../observable.js';
-import { parseResponseHeaders, parseResponseBody, parseRequestBody } from '../helpers.js';
+import { parseResponseHeaders, parseResponseBody, parseRequestBody } from './http-utils.js';
 
-import { HttpRequest } from './http-request.js'
+import { HttpRequest } from './models/index.js'
 
 /**
  * Handles HTTP requests. Class can be instantiated in the standard way through 
