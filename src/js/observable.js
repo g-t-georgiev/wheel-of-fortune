@@ -359,8 +359,8 @@ export class Subject {
                     next(value) {
                         subscriber.next(value);
                     },
-                    error(err) {
-                        subscriber.error(err);
+                    error(e) {
+                        subscriber.error(e);
                     },
                     complete() {
                         subscriber.complete();
@@ -569,9 +569,9 @@ export function tap(observerOrNext = {}, error, complete) {
                         observer.next?.(value);
                         destination.next(value);
                     },
-                    error(err) {
-                        observer.error?.(err);
-                        destination.error(err);
+                    error(e) {
+                        observer.error?.(e);
+                        destination.error(e);
                     },
                     complete() {
                         observer.complete?.();
@@ -612,7 +612,7 @@ export function map(project, thisArg) {
                     }
                 });
             } catch (e) {
-                // console.log('Error caught in the `catch` block of `map` operator function.', err);
+                // console.log('Error caught in the `catch` block of `map` operator function.', e);
                 destination.error(e);
             }
 
@@ -879,9 +879,9 @@ export function catchError(selector) {
                 // Subscribe to source observable
                 _subscription = source.subscribe({
                     ...destination,
-                    error(err) {
+                    error(e) {
                         // console.log('Destination closed (1)', destination.closed);
-                        _handledResult = selector(err, catchError(selector)(source));
+                        _handledResult = selector(e, catchError(selector)(source));
 
                         if (_subscription) {
                             _subscription.unsubscribe();
