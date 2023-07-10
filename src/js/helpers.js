@@ -158,16 +158,17 @@ export function parseRequestBody(body) {
 /**
  * Parse response headers. If error occurs, returns the original string input.
  * @param {string} headers 
- * @returns {any}
+ * @returns {{ [header: string]: string | string[] } | string}
  */
 export function parseResponseHeaders(headers) {
     try {
+        let parsedV;
         return headers
             .trim()
             .split(/\r\n/g)
             .filter(v => v.length !== 0)
             .map(v => v.split(/: /))
-            .reduce((o, [k, v]) => ({ ...o, [k]: v }), {});
+            .reduce((o, [k, v]) => ({ ...o, [k]: (parsedV = v.split(/\s*,\s*/g), parsedV.length > 1 ? parsedV : parsedV[0]) }), {});
     } catch (e) {
         console.error('Error occurred while parsing response headers.\n', e);
         return headers;
