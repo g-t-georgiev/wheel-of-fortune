@@ -157,8 +157,8 @@ export class HttpClient extends Observable {
                     controller.abort('Unsubscribed from request event listener.');
                     // signal.removeEventListener('abort', signalAbortHandler);
                 };
-            } catch (err) {
-                subscriber.error(err);
+            } catch (e) {
+                subscriber.error(e);
             }
         });
 
