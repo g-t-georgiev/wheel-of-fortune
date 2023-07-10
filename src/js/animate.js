@@ -128,13 +128,13 @@ export class AnimationFrames extends Observable {
                     globalThis.clearTimeout(timerId);
                     animationLoop.call(this);
                 }, this.#delay);
-            } catch (err) {
-                subscriber.error('Error occurred in animation frames observable:', err);
+            } catch (e) {
+                subscriber.error('Error occurred in animation frames observable:', e);
             }
 
         
             return () => {
-                console.log(`Unsubscribed from animation frames observable.`);
+                // console.log(`Unsubscribed from animation frames observable.`);
                 cancelAnimationFrame(this.#animationFrameId);
             }
         });
