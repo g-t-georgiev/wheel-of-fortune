@@ -1,4 +1,4 @@
-import { HttpRequest } from './http-requester.js'
+import { HttpClient } from './http-client/index.js';
 
 const API_ROOT_URL = 'http://localhost:3001';
 const API_GET_WHEEL_DATA_URL = '/';
@@ -11,12 +11,12 @@ const UNAUTHORIZED_GET_REQUESTS_OPTIONS = {
 
 export function getUIRenderData$() {
     const url = API_ROOT_URL + API_GET_WHEEL_DATA_URL;
-    const http$ = HttpRequest.get(url, UNAUTHORIZED_GET_REQUESTS_OPTIONS);
+    const http$ = HttpClient.get(url, UNAUTHORIZED_GET_REQUESTS_OPTIONS);
     return http$;
 }
 
 export function getGameData$() {
     const url = API_ROOT_URL + API_GET_TARGET_SECTOR_DATA_URL;
-    const http$ = HttpRequest.get(url, UNAUTHORIZED_GET_REQUESTS_OPTIONS);
+    const http$ = HttpClient.get(url, UNAUTHORIZED_GET_REQUESTS_OPTIONS);
     return http$;
 }
