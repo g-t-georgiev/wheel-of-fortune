@@ -216,6 +216,10 @@ export class HttpClient extends Observable {
         return this.#request;
     }
 
+    /**
+     * @readonly 
+     * @return {{ ok: boolean, status: number, statusText: string, headers: string | { [header: string]: string | string[] }, body: any | null }}
+     */
     get #response() {
         return {
             ok: this.#xhr.status < 400,
