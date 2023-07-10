@@ -1,6 +1,9 @@
 /** 
  * Creates an observable object 
- * @example <caption>Create a delayed observable execution, pushing multiple values</caption>
+ * @example
+ * **Create a delayed observable execution, pushing multiple values**
+ * 
+ * ```
  * const observable1 = new Observable(function (subscriber) {
  *   // Async observable execution
  *   const timeoutId = setTimeout(() => {
@@ -36,8 +39,12 @@
  *    // Unsubscribe from observer
  *    subscription1.unsubscribe();
  * }, 500);
+ * ```
  * 
- * @example <caption>Create a delayed observable execution, and pushing a single value every second.</caption>
+ * @example
+ * **Create a delayed observable execution, and pushing a single value every second**
+ * 
+ * ```
  * const observable2 = new Observable(function (subscriber) {
  * let i = 1;
  * const intervalId = setInterval(() => {
@@ -66,6 +73,7 @@
  *    // Unsubcribe from observer
  *    subscription2.unsubscribe();
  * }, 11e3);
+ * ```
  */
 export class Observable {
     /**
@@ -239,12 +247,26 @@ export class Subject {
     #observers = new Set();
     #closed = false;
 
+    /**
+     * Creates a Subject instance.
+     */
     constructor() {
         this.next = this.next.bind(this);
         this.error = this.error.bind(this);
         this.complete = this.complete.bind(this);
     }
 
+    /**
+     * Creates an Observer instance invoking the executor function and 
+     * passing the Observer instance as argument. The return value is 
+     * a Subscription instance holding the unsubscribing logic from the 
+     * Observer. The relationship is many observers : 1 subject.
+     * @param {object} subscriber
+     * @param {(value: any) => void} subscriber.next 
+     * @param {(error: any) => void} subscriber.error 
+     * @param {() => void} subscriber.complete 
+     * @returns {Subscription}
+     */
     subscribe({ next, error, complete }) {
         const observer = new Observer(next, error, complete);
         this.#observers.add(observer);
@@ -299,7 +321,10 @@ export class Subject {
     /**
      * Returns an observable only output from the subject.
      * @returns {Observable}
-     * @example <caption>Convert a Subject into Observable</caption>
+     * @example
+     * **Convert a Subject into Observable**
+     * 
+     * ```
      * const subject = new Subject();
      * const subject$ = subject.asObservable();
      * 
@@ -322,6 +347,7 @@ export class Subject {
      * subscription2.unsubscribe();
      * 
      * subject.next(4);
+     * ```
      */
     asObservable() {
         const _subject = this;
