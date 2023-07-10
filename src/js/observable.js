@@ -391,7 +391,10 @@ export const EMPTY = new Observable(function (subscriber) {
  * @param {() => any} errorFactory 
  * @returns {Observable} 
  * 
- * @example <caption>Create a simple observable that will emit a new error with a timestamp.</caption>
+ * @example
+ * **Create a simple observable that will emit a new error with a timestamp**
+ * 
+ * ```
  * let errorCount = 0;
  * 
  * const errorWithTimestamp$ = throwError(() => {
@@ -407,6 +410,7 @@ export const EMPTY = new Observable(function (subscriber) {
  * errorWithTimestamp$.subscribe({
  *    error: err => console.log(err.timestamp, err.message)
  * });
+ * ```
  */
 export function throwError(errorFactory) {
     return new Observable(function (destination) {
