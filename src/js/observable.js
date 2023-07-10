@@ -384,6 +384,10 @@ export class Subject {
  */
 export const EMPTY = new Observable(function (subscriber) {
     subscriber.complete();
+
+    return function () {
+        console.log('Unsubscribed from `EMPTY` observable.');
+    }
 });
 
 /**
@@ -428,6 +432,36 @@ export function throwError(errorFactory) {
 }
 
 /**
+ * Creates an Observable that emits a sequence of numbers within a specified range.
+ * @param {number} start First integer value from the sequence.
+ * @param {number} count Count of integer values to generate.
+ */
+export function range(start, count) {
+    return new Observable(function (subscriber) {
+        try {
+            let int = start;
+
+            if (count < start) {
+                throw new RangeError('From `range` observable: Count argument value cannot be less than start argument value.');
+            }
+
+            while (int <= count) {
+                subscriber.next(int);
+                int++;
+            }
+
+            subscriber.complete();
+        } catch (e) {
+            subscriber.error(e);
+        }
+
+        return function () {
+            console.log(`Unsubscribed from 'range' (${start}..${count}) observable.`);
+        }
+    });
+}
+
+/**
  * Creates an observable that will wait for a specified time period, or exact date, before emitting the number 0.
  * @param {number | Date} dueTime 
  * @returns {Observable}
@@ -439,7 +473,7 @@ export function timer(dueTime) {
             const start = Date.now();
             let delay = dueTime instanceof Date ? dueTime - start : dueTime;
             delay = delay <= 0 ? 0 : delay;
-    
+
             timerId = globalThis.setTimeout(() => {
                 destination.next(0);
                 globalThis.clearTimeout(timerId);
@@ -450,7 +484,7 @@ export function timer(dueTime) {
 
         return function () {
             globalThis.clearTimeout(timerId);
-            // console.log('Unsubscribe from `timer` observable.');
+            console.log(`Unsubscribe from 'timer' observable with delay ${dueTime}.`);
         }
     });
 }
@@ -475,7 +509,7 @@ export function interval(period = 0) {
 
         return function () {
             globalThis.clearInterval(intervalId);
-            // console.log('Unsubscribed from `interval` observable.');
+            console.log(`Unsubscribed from 'interval' observable with delay ${period}.`);
         }
     });
 }
@@ -499,7 +533,7 @@ export function fromEvent(target, eventName, options) {
 
         try {
             if (!(
-                'addEventListener' in target && 
+                'addEventListener' in target &&
                 'removeEventListener' in target
             )) {
                 throw new Error('The provided `target` interface does implement add/remove event listener functionality.');
