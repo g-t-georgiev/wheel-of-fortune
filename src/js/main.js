@@ -11,8 +11,8 @@ const subscription = http$.subscribe({
         const wheel = new WheelComponent(rootElementRef, data.length, {});
         wheel.initialize(data);
     },
-    error: function (err) {
-        console.error(`Something went wrong. \n${err}`);
+    error: function (e) {
+        console.error(`Something went wrong. \n${e}`);
     },
     complete: function () {
         subscription.unsubscribe();

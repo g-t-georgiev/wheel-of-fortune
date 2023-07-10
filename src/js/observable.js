@@ -366,14 +366,13 @@ export class Subject {
                         subscriber.complete();
                     }
                 });
-            } catch (err) {
-                subscriber.error(err);
-                subscriber.complete();
+            } catch (e) {
+                subscriber.error(e);
             }
 
             return function () {
                 _subscription.unsubscribe?.();
-                console.log('Unsubscribed from subject');
+                // console.log('Unsubscribed from subject');
             }
         });
     }
@@ -414,12 +413,12 @@ export function throwError(errorFactory) {
         try {
             const errorInstance = errorFactory();
             destination.error(errorInstance);
-        } catch (err) {
-            destination.error(err);
+        } catch (e) {
+            destination.error(e);
         }
 
         return function () {
-            console.log('Unsubscribed from `throwError` factory method.');
+            // console.log('Unsubscribed from `throwError` factory method.');
         }
     });
 }
@@ -430,19 +429,24 @@ export function throwError(errorFactory) {
  * @returns {Observable}
  */
 export function timer(dueTime) {
-    return new Observable(function (subscriber) {
-        const start = Date.now();
-        let delay = dueTime instanceof Date ? dueTime - start : dueTime;
-        delay = delay <= 0 ? 0 : delay;
-
-        const timerId = globalThis.setTimeout(() => {
-            subscriber.next(0);
-            globalThis.clearTimeout(timerId);
-        }, delay);
+    return new Observable(function (destination) {
+        let timerId;
+        try {
+            const start = Date.now();
+            let delay = dueTime instanceof Date ? dueTime - start : dueTime;
+            delay = delay <= 0 ? 0 : delay;
+    
+            timerId = globalThis.setTimeout(() => {
+                destination.next(0);
+                globalThis.clearTimeout(timerId);
+            }, delay);
+        } catch (e) {
+            destination.error(e);
+        }
 
         return function () {
             globalThis.clearTimeout(timerId);
-            console.log('Unsubscribe from `timer` observable.');
+            // console.log('Unsubscribe from `timer` observable.');
         }
     });
 }
@@ -454,15 +458,20 @@ export function timer(dueTime) {
  */
 export function interval(period = 0) {
     return new Observable(function (destination) {
-        let integer = 0;
+        let intervalId;
+        try {
+            let integer = 0;
 
-        const intervalId = globalThis.setInterval(function () {
-            destination.next(integer++);
-        }, period);
+            intervalId = globalThis.setInterval(function () {
+                destination.next(integer++);
+            }, period);
+        } catch (e) {
+            destination.error(e);
+        }
 
         return function () {
             globalThis.clearInterval(intervalId);
-            console.log('Unsubscribed from `interval` observable.');
+            // console.log('Unsubscribed from `interval` observable.');
         }
     });
 }
@@ -493,12 +502,13 @@ export function fromEvent(target, eventName, options) {
             }
 
             target.addEventListener(eventName, handleEvent, options);
-        } catch (err) {
-            destination.error(err);
+        } catch (e) {
+            destination.error(e);
         }
 
         return function () {
             target.removeEventListener(eventName, handleEvent);
+            // console.log('Unsubscribed from `fromEvent` observable.');
         }
     });
 }
@@ -520,13 +530,13 @@ export function from(iterable) {
             });
 
             destination.complete();
-        } catch (err) {
-            console.log('Error caught in `catch` block of `from` operator function. Reason:', err);
-            destination.error(err);
+        } catch (e) {
+            // console.error('Error caught in `catch` block of `from` operator function. Reason:', err);
+            destination.error(e);
         }
 
         return function () {
-            console.log('Unsubscribed from `from` factory method.');
+            // console.log('Unsubscribed from `from` factory method.');
         }
     });
 }
@@ -569,13 +579,13 @@ export function tap(observerOrNext = {}, error, complete) {
                     }
                 });
 
-            } catch (err) {
-                destination.error(err);
+            } catch (e) {
+                destination.error(e);
             }
 
             return function () {
                 _subscription?.unsubscribe();
-                console.log('Unsubscribed from `tap` operator observable.');
+                // console.log('Unsubscribed from `tap` operator observable.');
             }
         });
     }
@@ -601,14 +611,14 @@ export function map(project, thisArg) {
                         destination.next(mappedValue);
                     }
                 });
-            } catch (err) {
+            } catch (e) {
                 // console.log('Error caught in the `catch` block of `map` operator function.', err);
-                destination.error(err);
+                destination.error(e);
             }
 
             return function () {
                 _subscription?.unsubscribe();
-                console.log('Unsubscribed from `map` operator observable.');
+                // console.log('Unsubscribed from `map` operator observable.');
             }
         });
     }
@@ -635,13 +645,13 @@ export function filter(predicate, thisArg) {
                         }
                     }
                 });
-            } catch (err) {
-                destination.error(err);
+            } catch (e) {
+                destination.error(e);
             }
 
             return function () {
                 _subscription?.unsubscribe();
-                console.log('Unsubscribed from `filter` operator observable.');
+                // console.log('Unsubscribed from `filter` operator observable.');
             }
         });
     }
@@ -676,12 +686,12 @@ export function take(count) {
                         destination.complete();
                     }
                 });
-            } catch (err) {
-                destination.error(err);
+            } catch (e) {
+                destination.error(e);
             }
 
             return function () {
-                console.log('Unsubscribed from `take` operator observable.');
+                // console.log('Unsubscribed from `take` operator observable.');
                 _subscription?.unsubscribe();
             }
         });
@@ -711,13 +721,13 @@ export function takeWhile(predicate) {
                         destination.complete();
                     }
                 });
-            } catch (err) {
-                destination.error(err);
+            } catch (e) {
+                destination.error(e);
             }
 
             return function () {
                 _subscription?.unsubscribe();
-                console.log('Unsubscribed from `takeWhile` operator observable.');
+                // console.log('Unsubscribed from `takeWhile` operator observable.');
             }
         });
     }
@@ -743,13 +753,13 @@ export function takeUntil(notifier) {
 
                 !destination.closed && (_subscription.add(source.subscribe(destination)));
 
-            } catch (err) {
-                destination.error(err);
+            } catch (e) {
+                destination.error(e);
             }
 
             return function () {
                 _subscription?.unsubscribe();
-                console.log('Unsubscribed from `takeUntil` operator observable.');
+                // console.log('Unsubscribed from `takeUntil` operator observable.');
             }
         });
     }
@@ -787,13 +797,13 @@ export function skip(count) {
                         destination.complete();
                     }
                 });
-            } catch (err) {
-                destination.error(err);
+            } catch (e) {
+                destination.error(e);
             }
 
             return function () {
                 _subscription?.unsubscribe();
-                console.log('Unsubscribed from `skip` operator observable.');
+                // console.log('Unsubscribed from `skip` operator observable.');
             }
         });
     }
@@ -838,13 +848,13 @@ export function delay(due) {
                         }
                     }
                 });
-            } catch (err) {
-                destination.error(err);
+            } catch (e) {
+                destination.error(e);
             }
 
             return function () {
                 _subscription?.unsubscribe();
-                console.log('Unsubscribed from `delay` operator observable.');
+                // console.log('Unsubscribed from `delay` operator observable.');
                 for (const timerId of timerIds) {
                     globalThis.clearTimeout(timerId);
                 }
@@ -890,9 +900,9 @@ export function catchError(selector) {
                     _subscription = null;
                     _subscription = _handledResult?.subscribe(destination);
                 }
-            } catch (err) {
+            } catch (e) {
                 // console.log('Error caught in the `catch` blog of `catchError` operator function.', err);
-                destination.error(err);
+                destination.error(e);
             }
 
 
@@ -923,13 +933,13 @@ export function startWith(...values) {
 
                 // Subscribe to source observable
                 _subscription = source.subscribe(destination);
-            } catch (err) {
-                destination.error(err);
+            } catch (e) {
+                destination.error(e);
             }
 
             return function () {
                 _subscription?.unsubscribe();
-                console.log('Unsubscribed from `startWith` operator observable.');
+                // console.log('Unsubscribed from `startWith` operator observable.');
             }
         });
     }
@@ -960,13 +970,13 @@ export function endWith(...values) {
                         destination.complete();
                     }
                 })
-            } catch (err) {
-                destination.error(err);
+            } catch (e) {
+                destination.error(e);
             }
 
             return function () {
                 _subscription?.unsubscribe();
-                console.log('Unsubscribed from `endWith` operator observable.');
+                // console.log('Unsubscribed from `endWith` operator observable.');
             }
         });
     }
