@@ -227,7 +227,7 @@ export class HttpClient extends Observable {
     }
 
     /**
-     * Sets HTTP headers to the current XHR. 
+     * Sets HTTP request headers. 
      * @returns {void} 
      * @private
      */
