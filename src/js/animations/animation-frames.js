@@ -1,5 +1,5 @@
-import { requestAnimationFrame, cancelAnimationFrame } from './animation-frame.js';
-import { Observable } from './observable.js';
+import { requestAnimationFrame, cancelAnimationFrame } from './raf-api.js';
+import { Observable } from '../obsevable/index.js';
 
 const Transition = {
     /**
