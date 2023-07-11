@@ -97,18 +97,30 @@ export class Observable {
     }
 
     /**
-     * Creates an Observer instance invoking the executor function and 
-     * passing the Observer instance as argument. The return value is 
-     * a Subscription instance holding the unsubscribing logic from the 
-     * Observer. The relationship is 1 observer : 1 subscription.
-     * @param {object} subscriber
-     * @param {(value: any) => void} subscriber.next 
-     * @param {(error: any) => void} subscriber.error 
-     * @param {() => void} subscriber.complete 
+     * Creates an observer instance invoking an executor function, 
+     * passing the observer as an argument. The return value is 
+     * a subscription instance, initialized with a teardown/unsubscribe logic.
+     * @param {{ next(v: any): void, error(e: any): void, complete(): void } | (v: any) => void} [subscriberOrNext] 
+     * @param {(e: any) => void} [error] 
+     * @param {() => void} [complete]  
      * @returns {Subscription}
      */
-    subscribe({ next, error, complete } = {}) {
-        const observer = new Observer(next, error, complete);
+    subscribe(subscriberOrNext, error, complete) {
+        let subscriber = {};
+        if (typeof subscriberOrNext === 'function') {
+            subscriber.next = subscriberOrNext;
+            error && typeof error === 'function' && (subscriber.error = error);
+            complete && typeof complete === 'function' && (subscriber.complete = complete);
+        } else if (
+            typeof subscriberOrNext === 'object' && 
+            [ 'next', 'error', 'complete' ].some(m => Object.prototype.hasOwnProperty.call(subscriberOrNext, m) && typeof subscriberOrNext[m] === 'function')
+        ) {
+            subscriber = { ...subscriberOrNext };
+        } else {
+            throw new TypeError('[Subject#subscribe]: Non subscriber-like passed as argument.');
+        }
+
+        const observer = new Observer(subscriber.next, subscriber.error, subscriber.complete);
         const cleanUpHandler = this.#subscribeFn(observer);
         return new Subscription(() => {
             if (!observer.closed) {
@@ -160,19 +172,19 @@ export class Observer {
         this.#closed = value;
     }
 
-    next(value) {
+    async next(value) {
         if (!this.closed) {
             this.#next?.(value);
         }
     }
 
-    error(error) {
+    async error(error) {
         if (!this.closed) {
             this.#error?.(error);
         }
     }
 
-    complete() {
+    async complete() {
         if (!this.closed) {
             this.closed = true;
             this.#complete?.();
@@ -182,63 +194,90 @@ export class Observer {
 
 export class Subscription {
     #closed = false;
-    #unsubscribe;
-    #childSubscriptions = new Set();
+    #initialTeardown;
+
+    /**
+     * @type Set<Subscription | () => void>
+     */
+    #actions = new Set();
+
+    get closed() {
+        return this.#closed;
+    }
 
     /**
      * Creates a Subscription instance. The 
      * most important method is the `unsubscribe` 
      * method, which invokes the main logic for 
      * unsubscribing from an oberver and closing it.
-     * @param {() => void} unsubscribeHandler 
+     * @param {() => void} initialTeardown
      */
-    constructor(unsubscribeHandler) {
-        this.#unsubscribe = unsubscribeHandler != null && typeof unsubscribeHandler === 'function' ? unsubscribeHandler : null;
+    constructor(initialTeardown) {
+        this.#initialTeardown = initialTeardown != null && typeof initialTeardown === 'function' ? initialTeardown : null;
     }
 
     /**
-     * Puts multiple subscriptions together. So,
-     * when parent subscription is unsubscribed, all 
-     * child subscriptions are unsubscribed as well.
-     * @param {...Subscription} childSubscriptions  
+     * Adds a finalizer to this subscription so that finalization will be unsubscribed/called 
+     * when this subscription is unsubscribed. If this subscription is already closed, 
+     * because it has already been unsubscribed, then whatever finalizer is passed to i
+     * t will automatically be executed (unless the finalizer itself is also a closed subscription).
+     * @param {...(Subscription | () => void)} teardown 
+     * @returns {void}
      */
-    add(...childSubscriptions) {
+    add(...teardown) {
+        // console.log('Added teardown logic.', ...teardown);
         if (!this.#closed) {
-            childSubscriptions.forEach(subscription => {
-                let isSubscriptionInstance = subscription instanceof Subscription;
-                let hasUnsubscribeMethod = 'unsubscribe' in subscription && typeof subscription.unsubscribe === 'function';
+            let isSubscriptionInstance = teardown instanceof Subscription;
+            let hasUnsubscribeMethod = 'unsubscribe' in teardown && typeof teardown.unsubscribe === 'function';
 
-                if (isSubscriptionInstance || hasUnsubscribeMethod) {
-                    this.#childSubscriptions.add(subscription);
+            teardown.forEach(member => {
+                if (isSubscriptionInstance || 
+                    hasUnsubscribeMethod || 
+                    typeof teardown === 'function'
+                ) {
+                    this.#actions.add(member);
                 }
             });
         }
     }
 
     /**
-     * Removes a child subscription.
-     * @param {Subscription} childSubscription 
+     * Removes a previously added finalizer from this subscription.
+     * @param {Subscription | () => void} teardown 
+     * @returns {void}
      */
-    remove(childSubscription) {
+    remove(teardown) {
         if (!this.#closed) {
-            this.#childSubscriptions.delete(childSubscription);
+            this.#actions.delete(teardown);
         }
     }
 
     /**
      * Unsubscribe method for canceling an observer and clean up resources. 
-     * @returns
+     * Important to know is that the method is being executed **synchronously**.
+     * @returns {void}
      */
     unsubscribe() {
         if (!this.closed) {
             this.#closed = true;
 
-            for (const childSubscription of this.#childSubscriptions) {
-                childSubscription.unsubscribe?.();
+            console.log(this.#initialTeardown);
+            if (this.#initialTeardown) {
+                this.#initialTeardown();
             }
 
-            this.#childSubscriptions.clear();
-            this.#unsubscribe?.();
+            for (const teardown of this.#actions) {
+                let isSubscriptionInstance = teardown instanceof Subscription;
+                let hasUnsubscribeMethod = 'unsubscribe' in teardown && typeof teardown.unsubscribe === 'function';
+    
+                if ((isSubscriptionInstance || hasUnsubscribeMethod)) {
+                    teardown.unsubscribe();
+                } else {
+                    teardown();
+                }
+            }
+    
+            this.#actions.size > 0 && this.#actions.clear();
         }
     }
 }
@@ -257,18 +296,30 @@ export class Subject {
     }
 
     /**
-     * Creates an Observer instance invoking the executor function and 
-     * passing the Observer instance as argument. The return value is 
-     * a Subscription instance holding the unsubscribing logic from the 
-     * Observer. The relationship is many observers : 1 subject.
-     * @param {object} subscriber
-     * @param {(value: any) => void} subscriber.next 
-     * @param {(error: any) => void} subscriber.error 
-     * @param {() => void} subscriber.complete 
+     * Creates an observer instance invoking an executor function, 
+     * passing the observer as an argument. The return value is 
+     * a subscription instance, initialized with a teardown/unsubscribe logic.
+     * @param {{ next(v: any): void, error(e: any): void, complete(): void } | (v: any) => void} [subscriberOrNext] 
+     * @param {(e: any) => void} [error] 
+     * @param {() => void} [complete]  
      * @returns {Subscription}
      */
-    subscribe({ next, error, complete }) {
-        const observer = new Observer(next, error, complete);
+    subscribe(subscriberOrNext, error, complete) {
+        let subscriber = {};
+        if (typeof subscriberOrNext === 'function') {
+            subscriber.next = subscriberOrNext;
+            error && typeof error === 'function' && (subscriber.error = error);
+            complete && typeof complete === 'function' && (subscriber.complete = complete);
+        } else if (
+            typeof subscriberOrNext === 'object' && 
+            [ 'next', 'error', 'complete' ].some(m => Object.prototype.hasOwnProperty.call(subscriberOrNext, m) && typeof subscriberOrNext[m] === 'function')
+        ) {
+            subscriber = { ...subscriberOrNext };
+        } else {
+            throw new TypeError('[Subject#subscribe]: Non subscriber-like passed as argument.');
+        }
+
+        const observer = new Observer(subscriber.next, subscriber.error, subscriber.complete);
         this.#observers.add(observer);
         return new Subscription(() => {
             this.#observers.delete(observer);
@@ -287,7 +338,7 @@ export class Subject {
         return this.#observers;
     }
 
-    next(value) {
+    async next(value) {
         if (this.closed) return;
 
         for (const observer of this.observers) {
@@ -297,7 +348,7 @@ export class Subject {
         }
     }
 
-    error(error) {
+    async error(error) {
         if (this.closed) return;
 
         for (const observer of this.observers) {
@@ -307,7 +358,7 @@ export class Subject {
         }
     }
 
-    complete() {
+    async complete() {
         if (this.closed) return;
         this.closed = true;
 
@@ -385,10 +436,9 @@ export class Subject {
 export const EMPTY = new Observable(function (subscriber) {
     subscriber.complete();
 
-    return function () {
-        // TODO: Remove console log
-        console.log('Unsubscribed from `EMPTY` observable.');
-    }
+    // return function () {
+    //     console.log('Unsubscribed from `EMPTY` observable.');
+    // }
 });
 
 /**
@@ -426,9 +476,9 @@ export function throwError(errorFactory) {
             destination.error(e);
         }
 
-        return function () {
-            // console.log('Unsubscribed from `throwError` factory method.');
-        }
+        // return function () {
+        //     console.log('Unsubscribed from `throwError` factory method.');
+        // }
     });
 }
 
@@ -447,6 +497,8 @@ export function range(start, count) {
             }
 
             while (int <= count) {
+                if (subscriber.closed) break;
+
                 subscriber.next(int);
                 int++;
             }
@@ -457,7 +509,6 @@ export function range(start, count) {
         }
 
         return function () {
-            // TODO: Remove console log
             console.log(`Unsubscribed from 'range' (${start}..${count}) observable.`);
         }
     });
@@ -466,19 +517,25 @@ export function range(start, count) {
 /**
  * Creates an observable that will wait for a specified time period, or exact date, before emitting the number 0.
  * @param {number | Date} dueTime 
+ * @param {boolean} [repeat]
  * @returns {Observable}
  */
-export function timer(dueTime) {
+export function timer(dueTime, repeat = false) {
     return new Observable(function (destination) {
         let timerId;
         try {
             const start = Date.now();
             let delay = dueTime instanceof Date ? dueTime - start : dueTime;
-            delay = delay <= 0 ? 0 : delay;
+            delay = delay < 0 ? 0 : delay;
 
-            timerId = globalThis.setTimeout(() => {
-                destination.next(0);
+            let n = 0;
+
+            timerId = globalThis.setTimeout(function handler() {
+                console.log(`[timer] Ticking...`);
+                !destination.closed && destination.next(n++);
                 globalThis.clearTimeout(timerId);
+                !repeat && destination.complete();
+                repeat && !destination.closed && (timerId = globalThis.setTimeout(handler, delay));
             }, delay);
         } catch (e) {
             destination.error(e);
@@ -486,8 +543,7 @@ export function timer(dueTime) {
 
         return function () {
             globalThis.clearTimeout(timerId);
-            // TODO: Remove console log
-            console.log(`Unsubscribe from 'timer' observable with delay ${dueTime}.`);
+            console.log(`Unsubscribed from 'timer' with delay ${dueTime}`);
         }
     });
 }
@@ -499,21 +555,22 @@ export function timer(dueTime) {
  */
 export function interval(period = 0) {
     return new Observable(function (destination) {
-        let intervalId;
+        let subscription;
         try {
-            let integer = 0;
+            if (period < 0) {
+                period = 0;
+            }
 
-            intervalId = globalThis.setInterval(function () {
-                destination.next(integer++);
-            }, period);
+            !destination.closed && (subscription = timer(period, true).subscribe(destination));
         } catch (e) {
             destination.error(e);
         }
 
         return function () {
-            globalThis.clearInterval(intervalId);
-            // TODO: Remove console log
-            console.log(`Unsubscribed from 'interval' observable with delay ${period}.`);
+            if (subscription) {
+                subscription.unsubscribe();
+                console.log(`Unsubscribed from 'interval' with delay ${period}.`);
+            }
         }
     });
 }
@@ -551,6 +608,57 @@ export function fromEvent(target, eventName, options) {
         return function () {
             target.removeEventListener(eventName, handleEvent);
             // console.log('Unsubscribed from `fromEvent` observable.');
+        }
+    });
+}
+
+/**
+ * 
+ * @param  {...Observable} sources 
+ * @returns {Observable}
+ */
+export function concat(...sources) {
+    let closed = false;
+    return new Observable(function (destination) {
+        let idx = 0;
+        let subscription = new Subscription();
+
+        let subscribeFn = function () {
+            if (idx >= sources.length) {
+                console.log('All sources completed.');
+                destination.complete();
+                return;
+            }
+
+            console.log(`${idx}/${sources.length}`);
+
+            if (subscription) {
+                const source = sources[idx];
+                const innerSubscription = source.subscribe({
+                    ...destination,
+                    complete() {
+                        console.log('Source completed.');
+                        idx += 1;
+                        (!closed || !destination.closed) && queueMicrotask(subscribeFn);
+                    }
+                });
+    
+                subscription.add(
+                    innerSubscription
+                );
+            }
+        };
+
+        subscribeFn();
+
+        return function () {
+            closed = true;
+
+            if (subscription && subscription instanceof Subscription) {
+                console.log('Unsubscribed from `concat` observable.');
+                subscription.unsubscribe();
+                subscription = null;
+            }
         }
     });
 }
