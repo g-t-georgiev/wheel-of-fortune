@@ -1,4 +1,4 @@
-import { Observable } from '../observable.js';
+import { Observable } from '../observable/index.js';
 import { parseResponseHeaders, parseResponseBody, parseRequestBody } from './http-utils.js';
 
 import { HttpRequest } from './models/index.js'
