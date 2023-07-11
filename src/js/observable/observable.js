@@ -261,7 +261,7 @@ export class Subscription {
         if (!this.closed) {
             this.#closed = true;
 
-            console.log(this.#initialTeardown);
+            // console.log('Initial teardown', this.#initialTeardown);
             if (this.#initialTeardown) {
                 this.#initialTeardown();
             }
@@ -489,6 +489,13 @@ export function throwError(errorFactory) {
  */
 export function range(start, count) {
     return new Observable(function (subscriber) {
+        let closed = false;
+
+        const cleanUpHandler = function () {
+            closed = true;
+            console.log(`Unsubscribed from 'range' (${start}..${count}) observable.`);
+        };
+
         try {
             let int = start;
 
@@ -497,7 +504,7 @@ export function range(start, count) {
             }
 
             while (int <= count) {
-                if (subscriber.closed) break;
+                if (subscriber.closed || closed) break;
 
                 subscriber.next(int);
                 int++;
@@ -508,9 +515,7 @@ export function range(start, count) {
             subscriber.error(e);
         }
 
-        return function () {
-            console.log(`Unsubscribed from 'range' (${start}..${count}) observable.`);
-        }
+        return cleanUpHandler;
     });
 }
 
@@ -522,7 +527,15 @@ export function range(start, count) {
  */
 export function timer(dueTime, repeat = false) {
     return new Observable(function (destination) {
-        let timerId;
+        let timerId = null;
+        let closed = false;
+
+        const cleanUpHandler = function () {
+            closed = true;
+            globalThis.clearTimeout(timerId);
+            console.log(`Unsubscribed from 'timer' with delay ${dueTime}`);
+        };
+
         try {
             const start = Date.now();
             let delay = dueTime instanceof Date ? dueTime - start : dueTime;
@@ -530,21 +543,33 @@ export function timer(dueTime, repeat = false) {
 
             let n = 0;
 
-            timerId = globalThis.setTimeout(function handler() {
-                console.log(`[timer] Ticking...`);
-                !destination.closed && destination.next(n++);
+            const timerHandler = function handler() {
                 globalThis.clearTimeout(timerId);
-                !repeat && destination.complete();
-                repeat && !destination.closed && (timerId = globalThis.setTimeout(handler, delay));
-            }, delay);
+
+                if (closed || destination.closed) {
+                    console.log('[timer]: About to exit..');
+                    return;
+                }
+
+                console.log('[timer]: Thicking..');
+                destination.next(n++);
+
+                if (!repeat) {
+                    cleanUpHandler();
+                    destination.complete();
+                    return;
+                }
+                
+                timerId = globalThis.setTimeout(handler, delay);
+            };
+
+            timerId = globalThis.setTimeout(timerHandler, delay);
         } catch (e) {
             destination.error(e);
+            // cleanUpHandler();
         }
 
-        return function () {
-            globalThis.clearTimeout(timerId);
-            console.log(`Unsubscribed from 'timer' with delay ${dueTime}`);
-        }
+        return cleanUpHandler;
     });
 }
 
@@ -555,23 +580,34 @@ export function timer(dueTime, repeat = false) {
  */
 export function interval(period = 0) {
     return new Observable(function (destination) {
-        let subscription;
+        let subscription = null;
+        let closed = false;
+        let repeat = true;
+
+        const cleanUpHandler = function () {
+            if (subscription) {
+                closed = true;
+                subscription.unsubscribe();
+                console.log(`Unsubscribed from 'interval' with delay ${period}.`);
+            }
+        };
+
         try {
             if (period < 0) {
                 period = 0;
             }
 
-            !destination.closed && (subscription = timer(period, true).subscribe(destination));
+            if (!closed || !destination.closed) {
+                subscription = timer(period, repeat).subscribe(destination);
+            }
+            
+            
         } catch (e) {
             destination.error(e);
+            // cleanUpHandler();
         }
 
-        return function () {
-            if (subscription) {
-                subscription.unsubscribe();
-                console.log(`Unsubscribed from 'interval' with delay ${period}.`);
-            }
-        }
+        return cleanUpHandler;
     });
 }
 
@@ -613,52 +649,63 @@ export function fromEvent(target, eventName, options) {
 }
 
 /**
- * 
+ * Creates an output Observable which sequentially emits all values from the 
+ * first given Observable and then moves on to the next.
  * @param  {...Observable} sources 
  * @returns {Observable}
  */
 export function concat(...sources) {
-    let closed = false;
     return new Observable(function (destination) {
+        let closed = false;
         let idx = 0;
-        let subscription = new Subscription();
+        let timerId = null;
+        let subscription = null;
 
-        let subscribeFn = function () {
+        const cleanUpHandler = function () {
+            closed = true;
+            globalThis.clearTimeout(timerId);
+
+            if (subscription && subscription instanceof Subscription) {
+                console.log('Unsubscribed from `concat` observable.');
+                subscription.unsubscribe();
+            }
+        };
+
+        let subscribeNext = function () {
+            if (subscription) {
+                subscription.unsubscribe();
+            }
+
             if (idx >= sources.length) {
                 console.log('All sources completed.');
                 destination.complete();
                 return;
             }
+            
 
             console.log(`${idx}/${sources.length}`);
 
-            if (subscription) {
-                const source = sources[idx];
-                const innerSubscription = source.subscribe({
-                    ...destination,
-                    complete() {
-                        console.log('Source completed.');
-                        idx += 1;
-                        (!closed || !destination.closed) && queueMicrotask(subscribeFn);
-                    }
-                });
-    
-                subscription.add(
-                    innerSubscription
-                );
-            }
+            const source = sources[idx];
+            subscription = source.subscribe({
+                ...destination,
+                complete() {
+                    console.log('Source completed.');
+                    idx += 1;
+                    if (!closed || !destination.closed) {
+                        timerId && globalThis.clearTimeout(timerId);
+                        timerId = globalThis.setTimeout(subscribeNext, 0);
+                    } 
+                }
+            });
         };
 
-        subscribeFn();
-
-        return function () {
-            closed = true;
-
-            if (subscription && subscription instanceof Subscription) {
-                console.log('Unsubscribed from `concat` observable.');
-                subscription.unsubscribe();
-                subscription = null;
-            }
+        try {
+            subscribeNext();
+        } catch (e) {
+            destination.error(e);
+            // cleanUpHandler();
         }
+
+        return cleanUpHandler;
     });
 }
