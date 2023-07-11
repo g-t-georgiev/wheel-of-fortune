@@ -1,6 +1,6 @@
 import { Polygon, createElement, roundNumberToFractionLen, normalizeRotationAngleDeg } from './helpers.js';
-import { fromEvent, map, tap, takeWhile, endWith } from './observable.js';
-import { transitions, AnimationFrames } from './animate.js';
+import { fromEvent, map, tap, takeWhile, endWith } from './observable/index.js';
+import { transitions, AnimationFrames } from './animations/index.js';
 import { getGameData$ } from './wheel.service.js';
 
 export class WheelComponent {
