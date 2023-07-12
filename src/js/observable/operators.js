@@ -18,7 +18,7 @@ export function from(iterable) {
 
             destination.complete();
         } catch (e) {
-            // console.error('Error caught in `catch` block of `from` operator function. Reason:', err);
+            // console.error('[from] Error caught:', e);
             destination.error(e);
         }
     });
@@ -29,28 +29,37 @@ export function from(iterable) {
 /**
  * Used to perform side-effects for notifications from the source observable.
  * @param {{ next(v: any): void, error(e: any): void, complete(): void } | (v: any) => void} [subscriberOrNext] 
- * @param {(e: any) => void} [error] 
- * @param {() => void} [complete]  
  * @returns {(source: Observable) => Observable}
  */
 export function tap(subscriberOrNext = {}, error, complete) {
     let subscriber = {};
     if (typeof subscriberOrNext === 'function') {
         subscriber.next = subscriberOrNext;
-        error && typeof error === 'function' && (subscriber.error = error);
-        complete && typeof complete === 'function' && (subscriber.complete = complete);
+        subscriber.error = () => {};
+        subscriber.complete = () => {};
     } else if (
         typeof subscriberOrNext === 'object' && 
         [ 'next', 'error', 'complete' ].some(m => Object.prototype.hasOwnProperty.call(subscriberOrNext, m) && typeof subscriberOrNext[m] === 'function')
     ) {
         subscriber = { ...subscriberOrNext };
+    } else if (subscriberOrNext == null) {
+        subscriber.next = () => {};
+        subscriber.error = () => {};
+        subscriber.complete = () => {};
     } else {
-        throw new TypeError('[Subject#subscribe]: Non subscriber-like passed as argument.');
+        throw new TypeError('[tap] Non subscriber-like passed as argument.');
     }
+
 
     return function (source) {
         return new Observable(function (destination) {
             let subscription = null;
+            const cleanUpHandler = function () {
+                if (subscription && subscription instanceof Subscription) {
+                    // console.log('[tap] Unsubscribed from observable.');
+                    subscription.unsubscribe();
+                }
+            };
 
             try {
                 subscription = source.subscribe({
@@ -73,12 +82,7 @@ export function tap(subscriberOrNext = {}, error, complete) {
                 destination.error(e);
             }
 
-            return function () {
-                if (subscription && subscription instanceof Subscription) {
-                    // console.log('Unsubscribed from `tap` observable.');
-                    subscription.unsubscribe();
-                }
-            }
+            return cleanUpHandler;
         });
     }
 }
@@ -94,6 +98,12 @@ export function map(project, thisArg) {
         return new Observable(function (destination) {
             let subscription;
             let index;
+            const cleanUpHandler = function () {
+                if (subscription && subscription instanceof Subscription) {
+                    // console.log('[map] Unsubscribed from observable.');
+                    subscription.unsubscribe();
+                }
+            }
 
             try {
                 subscription = source.subscribe({
@@ -104,16 +114,11 @@ export function map(project, thisArg) {
                     }
                 });
             } catch (e) {
-                // console.log('Error caught in the `catch` block of `map` operator function.', e);
+                // console.log('[map] Error caught:', e);
                 destination.error(e);
             }
 
-            return function () {
-                if (subscription && subscription instanceof Subscription) {
-                    // console.log('Unsubscribed from `map` observable.');
-                    subscription.unsubscribe();
-                }
-            }
+            return cleanUpHandler;
         });
     }
 }
@@ -129,6 +134,12 @@ export function filter(predicate, thisArg) {
         return new Observable(function (destination) {
             let subscription;
             let index = 0;
+            const cleanUpHandler = function () {
+                if (subscription && subscription instanceof Subscription) {
+                    // console.log('[filter] Unsubscribed from observable.');
+                    subscription.unsubscribe();
+                }
+            };
 
             try {
                 subscription = source.subscribe({
@@ -143,12 +154,7 @@ export function filter(predicate, thisArg) {
                 destination.error(e);
             }
 
-            return function () {
-                if (subscription && subscription instanceof Subscription) {
-                    // console.log('Unsubscribed from `filter` observable.');
-                    subscription.unsubscribe();
-                }
-            }
+            return cleanUpHandler;
         });
     }
 }
@@ -164,6 +170,13 @@ export function take(count) {
         return new Observable(function (destination) {
             let emitted = 0;
             let subscription = null;
+            const cleanUpHandler = function () {
+                if (subscription && subscription instanceof Subscription) {
+                    console.log(`[take] Unsubscribed from observable.`);
+                    console.log('[take] Count:', count);
+                    subscription.unsubscribe();
+                }
+            };
 
             try {
                 subscription = source.subscribe({
@@ -187,12 +200,7 @@ export function take(count) {
                 destination.error(e);
             }
 
-            return function () {
-                if (subscription && subscription instanceof Subscription) {
-                    console.log(`Unsubscribed from 'take' operator observable with count argument ${count}.`);
-                    subscription.unsubscribe();
-                }
-            }
+            return cleanUpHandler;
         });
     }
 }
@@ -207,6 +215,12 @@ export function takeWhile(predicate) {
     return function (source) {
         return new Observable(function (destination) {
             let subscription;
+            const cleanUpHandler = function () {
+                if (subscription && subscription instanceof Subscription) {
+                    // console.log('[takeWhile] Unsubscribed from observable.');
+                    subscription.unsubscribe();
+                }
+            };
 
             try {
                 subscription = source.subscribe({
@@ -224,12 +238,7 @@ export function takeWhile(predicate) {
                 destination.error(e);
             }
 
-            return function () {
-                if (subscription && subscription instanceof Subscription) {
-                    // console.log('Unsubscribed from `takeWhile` observable.');
-                    subscription.unsubscribe();
-                }
-            }
+            return cleanUpHandler;
         });
     }
 }
@@ -243,6 +252,12 @@ export function takeUntil(notifier) {
     return function (source) {
         return new Observable(function (destination) {
             let subscription;
+            const cleanUpHandler = function () {
+                if (subscription && subscription instanceof Subscription) {
+                    // console.log('[takeUntil] Unsubscribed from observable.');
+                    subscription.unsubscribe();
+                }
+            };
 
             try {
                 subscription = notifier.subscribe({
@@ -258,12 +273,7 @@ export function takeUntil(notifier) {
                 destination.error(e);
             }
 
-            return function () {
-                if (subscription && subscription instanceof Subscription) {
-                    // console.log('Unsubscribed from `takeUntil` observable.');
-                    subscription.unsubscribe();
-                }
-            }
+            return cleanUpHandler;
         });
     }
 }
@@ -278,7 +288,14 @@ export function skip(count) {
         return new Observable(function (destination) {
             let skipped = 0;
             let emitted = 0;
-            let subscription;
+            let subscription = null;
+            const cleanUpHandler = function () {
+                if (subscription && subscription instanceof Subscription) {
+                    // console.log('[skip] Unsubscribed from observable.');
+                    // console.log('[skip] Count:', count);
+                    subscription.unsubscribe();
+                }
+            };
 
             try {
                 subscription = source.subscribe({
@@ -304,12 +321,7 @@ export function skip(count) {
                 destination.error(e);
             }
 
-            return function () {
-                if (subscription && subscription instanceof Subscription) {
-                    // console.log('Unsubscribed from `skip` observable.');
-                    subscription.unsubscribe();
-                }
-            }
+            return cleanUpHandler;
         });
     }
 }
@@ -325,7 +337,18 @@ export function delay(due) {
             const timerIds = new Set();
             const start = new Date();
             let hasCompleted = false;
-            let subscription;
+            let subscription = null;
+            const cleanUpHandler = function () {
+                for (const timerId of timerIds) {
+                    globalThis.clearTimeout(timerId);
+                }
+
+                if (subscription && subscription instanceof Subscription) {
+                    // console.log('[delay] Unsubscribed from observable.');
+                    // console.log('[delay] Due:', due);
+                    subscription.unsubscribe();
+                }
+            };
 
             try {
                 subscription = source.subscribe({
@@ -357,16 +380,7 @@ export function delay(due) {
                 destination.error(e);
             }
 
-            return function () {
-                for (const timerId of timerIds) {
-                    globalThis.clearTimeout(timerId);
-                }
-
-                if (subscription && subscription instanceof Subscription) {
-                    // console.log('Unsubscribed from `delay` observable.');
-                    subscription.unsubscribe();
-                }
-            }
+            return cleanUpHandler;
         });
     }
 }
@@ -379,16 +393,22 @@ export function delay(due) {
 export function catchError(selector) {
     return function (source) {
         return new Observable(function (destination) {
-            let subscription;
+            let subscription = null;
             let handledResult;
             let syncUnsub = false;
+            const cleanUpHandler = function () {
+                if (subscription && subscription instanceof Subscription) {
+                    console.log('[catchError] Unsubscribed from observable.');
+                    subscription.unsubscribe();
+                }
+            };
 
             try {
                 // Subscribe to source observable
                 subscription = source.subscribe({
                     ...destination,
                     error(e) {
-                        // console.log('Destination closed (1)', destination.closed);
+                        // console.log('[catchError] Destination closed (:411:)', destination.closed);
                         handledResult = selector(e, catchError(selector)(source));
 
                         if (subscription && subscription instanceof Subscription) {
@@ -402,24 +422,19 @@ export function catchError(selector) {
                 });
 
                 if (syncUnsub) {
-                    // console.log('Destination closed (2)', destination.closed);
+                    // console.log('[catchError] Destination closed (:425:)', destination.closed);
                     subscription?.unsubscribe();
-                    // console.log('Destination closed (3)', destination.closed);
+                    // console.log('[catchError] Destination closed (:427:)', destination.closed);
                     subscription = null;
                     subscription = handledResult?.subscribe(destination);
                 }
             } catch (e) {
-                // console.log('Error caught in the `catch` blog of `catchError` operator function.', err);
+                // console.log('[catchError] Error caught:', e);
                 destination.error(e);
             }
 
 
-            return function () {
-                if (subscription && subscription instanceof Subscription) {
-                    console.log('Unsubscribed from `catchError` observable.');
-                    subscription.unsubscribe();
-                }
-            }
+            return cleanUpHandler;
         });
     }
 }
@@ -433,7 +448,14 @@ export function catchError(selector) {
 export function startWith(...values) {
     return function (source) {
         return new Observable(function (destination) {
-            let subscription;
+            let subscription = null;
+            const cleanUpHandler = function () {
+                if (subscription && subscription instanceof Subscription) {
+                    // console.log('[startWith] Unsubscribed from observable.');
+                    // console.log('[startWith] Values', ...values);
+                    subscription.unsubscribe();
+                }
+            };
 
             try {
                 // First emit arguments
@@ -447,12 +469,7 @@ export function startWith(...values) {
                 destination.error(e);
             }
 
-            return function () {
-                if (subscription && subscription instanceof Subscription) {
-                    // console.log('Unsubscribed from `startWith` observable.');
-                    subscription.unsubscribe();
-                }
-            }
+            return cleanUpHandler;
         });
     }
 }
@@ -466,7 +483,14 @@ export function startWith(...values) {
 export function endWith(...values) {
     return function (source) {
         return new Observable(function (destination) {
-            let subscription;
+            let subscription = null;
+            const cleanUpHandler = function () {
+                if (subscription && subscription instanceof Subscription) {
+                    // console.log('[endWith] Unsubscribed from observable.');
+                    // console.log('[endWith] Values:', ...values);
+                    subscription.unsubscribe();
+                }
+            };
 
             try {
                 // Subscribe to source observable
@@ -486,12 +510,7 @@ export function endWith(...values) {
                 destination.error(e);
             }
 
-            return function () {
-                if (subscription && subscription instanceof Subscription) {
-                    // console.log('Unsubscribed from `endWith` observable.');
-                    subscription.unsubscribe();
-                }
-            }
+            return cleanUpHandler;
         });
     }
 }
