@@ -1,4 +1,4 @@
-import { Observable, Subscription, Observer } from './observable.js';
+import { Observable, Subscription, merge } from './observable.js';
 
 // Creation operators
 
@@ -506,6 +506,82 @@ export function endWith(...values) {
                         destination.complete();
                     }
                 })
+            } catch (e) {
+                destination.error(e);
+            }
+
+            return cleanUpHandler;
+        });
+    }
+}
+
+/**
+ * Converts a higher-order Observable into a first-order Observable which 
+ * concurrently delivers all values that are emitted on the inner Observables.
+ * @param {number } concurrent 
+ * @returns {(source: Observable) => Observable}
+ */
+export function mergeAll(concurrent = Infinity) {
+    return function (higherOrderObservable) {
+        return new Observable(function (destination) {
+            let closed = false;
+            let activeTasks = 0;
+            let finishedTasks = 0;
+            let totalTasks = 0;
+            const tasksQueue = [];
+            let subscription = null;
+            let timeoutId = null;
+
+            const cleanUpHandler = function () {
+                !closed && (closed = true);
+
+                if (subscription) {
+                    subscription.unsubscribe();
+                    console.log('[mergeAll] Unsubscribed from observable.');
+                }
+            };
+
+            const doInnerSub = function () {
+                while (activeTasks < concurrent) {
+                    if (tasksQueue.length === 0) break;
+
+                    activeTasks++;
+                    const task = tasksQueue.shift();
+                    const taskSub = task.subscribe({
+                        ...destination,
+                        complete() {
+                            activeTasks = Math.max(0, activeTasks - 1);
+                            finishedTasks++;
+
+                            if (finishedTasks < totalTasks) {
+                                timeoutId && globalThis.clearTimeout(timeoutId);
+                                timeoutId = globalThis.setTimeout(doInnerSub, 0);
+                                return;
+                            }
+
+                            closed && destination.complete();
+                        }
+                    });
+    
+                    subscription.add(taskSub);
+                }
+            };
+
+            try {
+
+                subscription = higherOrderObservable.subscribe({
+                    ...destination,
+                    next(task) {
+                        totalTasks++;
+                        tasksQueue.push(task);
+                        timeoutId && globalThis.clearTimeout(timeoutId);
+                        timeoutId = globalThis.setTimeout(doInnerSub, 0);
+                    },
+                    complete() {
+                        closed = true;
+                    }
+                });
+
             } catch (e) {
                 destination.error(e);
             }
