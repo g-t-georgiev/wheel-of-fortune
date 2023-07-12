@@ -751,32 +751,33 @@ export function merge(...sources) {
                 console.log('[merge] Active sources', activeSources.size);
                 console.log('[merge] Remaining sources', sources.length);
 
-                if (!source || !(source instanceof Observable)) return;
+                if (!source || !(source instanceof Observable)) break;
 
                 activeSources.add(source);
-                source.subscribe({
-                    ...destination,
-                    next(v) {
-                        if (closed) return;
-                        destination.next(v);
-                    },
-                    complete() {
-                        if (closed) return;
+                subscription.add(
+                    source.subscribe({
+                        ...destination,
+                        next(v) {
+                            if (closed) return;
+                            destination.next(v);
+                        },
+                        complete() {
+                            if (closed) return;
 
-                        activeSources.delete(source);
+                            activeSources.delete(source);
 
-                        if (activeSources.size === 0 && source.length === 0) {
-                            closed = true;
-                            destination.complete();
-                            return;
+                            if (!destination.closed) {
+                                globalThis.clearTimeout(timerId);
+                                globalThis.setTimeout(subscribeNext, 0);
+                            }
                         }
+                    })
+                );
+            }
 
-                        if (!destination.closed) {
-                            globalThis.clearTimeout(timerId);
-                            globalThis.setTimeout(subscribeNext, 0);
-                        }
-                    }
-                });
+            if (activeSources.size === 0 && sources.length === 0) {
+                closed = true;
+                destination.complete();
             }
         };
 
