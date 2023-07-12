@@ -101,21 +101,23 @@ export class Observable {
      * passing the observer as an argument. The return value is 
      * a subscription instance, initialized with a teardown/unsubscribe logic.
      * @param {{ next(v: any): void, error(e: any): void, complete(): void } | (v: any) => void} [subscriberOrNext] 
-     * @param {(e: any) => void} [error] 
-     * @param {() => void} [complete]  
      * @returns {Subscription}
      */
-    subscribe(subscriberOrNext, error, complete) {
+    subscribe(subscriberOrNext) {
         let subscriber = {};
         if (typeof subscriberOrNext === 'function') {
             subscriber.next = subscriberOrNext;
-            error && typeof error === 'function' && (subscriber.error = error);
-            complete && typeof complete === 'function' && (subscriber.complete = complete);
+            subscriber.error = () => {};
+            subscriber.complete = () => {};
         } else if (
             typeof subscriberOrNext === 'object' && 
             [ 'next', 'error', 'complete' ].some(m => Object.prototype.hasOwnProperty.call(subscriberOrNext, m) && typeof subscriberOrNext[m] === 'function')
         ) {
             subscriber = { ...subscriberOrNext };
+        } else if (subscriberOrNext == null) {
+            subscriber.next = () => {};
+            subscriber.error = () => {};
+            subscriber.complete = () => {};
         } else {
             throw new TypeError('[Subject#subscribe]: Non subscriber-like passed as argument.');
         }
@@ -437,7 +439,7 @@ export const EMPTY = new Observable(function (subscriber) {
     subscriber.complete();
 
     // return function () {
-    //     console.log('Unsubscribed from `EMPTY` observable.');
+    //     console.log('[EMPTY] Unsubscribed from observable.');
     // }
 });
 
@@ -477,7 +479,7 @@ export function throwError(errorFactory) {
         }
 
         // return function () {
-        //     console.log('Unsubscribed from `throwError` factory method.');
+        //     console.log('[throwError] Unsubscribed from observable.');
         // }
     });
 }
@@ -493,14 +495,15 @@ export function range(start, count) {
 
         const cleanUpHandler = function () {
             closed = true;
-            console.log(`Unsubscribed from 'range' (${start}..${count}) observable.`);
+            console.log(`[range] Unsubscribed from observable.`);
+            console.log(`[range] (${start}..${count})`);
         };
 
         try {
             let int = start;
 
             if (count < start) {
-                throw new RangeError('From `range` observable: Count argument value cannot be less than start argument value.');
+                throw new RangeError('[range] Error: Count cannot be less than start value.');
             }
 
             while (int <= count) {
@@ -533,7 +536,8 @@ export function timer(dueTime, repeat = false) {
         const cleanUpHandler = function () {
             closed = true;
             globalThis.clearTimeout(timerId);
-            console.log(`Unsubscribed from 'timer' with delay ${dueTime}`);
+            console.log(`[timer] Unsubscribed from observable.`);
+            console.log(`[timer] Delay: ${dueTime}.`);
         };
 
         try {
@@ -547,11 +551,11 @@ export function timer(dueTime, repeat = false) {
                 globalThis.clearTimeout(timerId);
 
                 if (closed || destination.closed) {
-                    console.log('[timer]: About to exit..');
+                    // console.log('[timer] Exiting..');
                     return;
                 }
 
-                console.log('[timer]: Thicking..');
+                // console.log('[timer] Thicking..');
                 destination.next(n++);
 
                 if (!repeat) {
@@ -588,7 +592,8 @@ export function interval(period = 0) {
             if (subscription) {
                 closed = true;
                 subscription.unsubscribe();
-                console.log(`Unsubscribed from 'interval' with delay ${period}.`);
+                console.log(`[interval] Unsubscribed from observable.`);
+                console.log(`[interval] Delay: ${period}.`);
             }
         };
 
@@ -620,6 +625,11 @@ export function interval(period = 0) {
  */
 export function fromEvent(target, eventName, options) {
     return new Observable(function (destination) {
+        const cleanUpHandler = function () {
+            target.removeEventListener(eventName, handleEvent);
+            // console.log('[fromEvent] Unsubscribed from observable.');
+        };
+
         const handleEvent = function (ev) {
             destination.next(ev);
 
@@ -633,7 +643,7 @@ export function fromEvent(target, eventName, options) {
                 'addEventListener' in target &&
                 'removeEventListener' in target
             )) {
-                throw new Error('The provided `target` interface does implement add/remove event listener functionality.');
+                throw new Error('[fromEvent] Error: `target` does not implement add/remove event listener functionality.');
             }
 
             target.addEventListener(eventName, handleEvent, options);
@@ -641,10 +651,7 @@ export function fromEvent(target, eventName, options) {
             destination.error(e);
         }
 
-        return function () {
-            target.removeEventListener(eventName, handleEvent);
-            // console.log('Unsubscribed from `fromEvent` observable.');
-        }
+        return cleanUpHandler;
     });
 }
 
@@ -666,7 +673,7 @@ export function concat(...sources) {
             globalThis.clearTimeout(timerId);
 
             if (subscription && subscription instanceof Subscription) {
-                console.log('Unsubscribed from `concat` observable.');
+                console.log('[concat] Unsubscribed from observable.');
                 subscription.unsubscribe();
             }
         };
@@ -677,7 +684,7 @@ export function concat(...sources) {
             }
 
             if (idx >= sources.length) {
-                console.log('All sources completed.');
+                console.log('[concat] All sources completed.');
                 destination.complete();
                 return;
             }
@@ -689,9 +696,11 @@ export function concat(...sources) {
             subscription = source.subscribe({
                 ...destination,
                 complete() {
-                    console.log('Source completed.');
+                    if (closed) return;
+
+                    console.log('[concat] Source completed.');
                     idx += 1;
-                    if (!closed || !destination.closed) {
+                    if (!destination.closed) {
                         timerId && globalThis.clearTimeout(timerId);
                         timerId = globalThis.setTimeout(subscribeNext, 0);
                     } 
@@ -703,6 +712,84 @@ export function concat(...sources) {
             subscribeNext();
         } catch (e) {
             destination.error(e);
+            console.error('[concat] Error caught', e);
+            // cleanUpHandler();
+        }
+
+        return cleanUpHandler;
+    });
+}
+
+/**
+ * Creates an output Observable which concurrently emits all values from every given input Observable.
+ * @param  {...Observable} sources
+ * @returns {Observable}
+ */
+export function merge(...sources) {
+    return new Observable(function (destination) {
+        let closed = false;
+        let timerId = null;
+        let activeSources = new Set();
+        let concurrentCount = typeof sources[sources.length - 1] === 'number' ? sources.pop() : sources.length;
+        const subscription = new Subscription();
+
+        const cleanUpHandler = function () {
+            !closed && (closed = true);
+            timerId && globalThis.clearTimeout(timerId);
+            
+            if (subscription) {
+                console.log('[merge] Unsubscribed from observable.');
+                subscription.unsubscribe();
+            }
+        };
+
+        const subscribeNext = function () {
+            if (closed || destination.closed) return;
+
+            while (activeSources.size < concurrentCount) {
+                const source = sources.shift();
+                console.log('[merge] Active sources', activeSources.size);
+                console.log('[merge] Remaining sources', sources.length);
+
+                if (!source || !(source instanceof Observable)) return;
+
+                activeSources.add(source);
+                source.subscribe({
+                    ...destination,
+                    next(v) {
+                        if (closed) return;
+                        destination.next(v);
+                    },
+                    complete() {
+                        if (closed) return;
+
+                        activeSources.delete(source);
+
+                        if (activeSources.size === 0 && source.length === 0) {
+                            closed = true;
+                            destination.complete();
+                            return;
+                        }
+
+                        if (!destination.closed) {
+                            globalThis.clearTimeout(timerId);
+                            globalThis.setTimeout(subscribeNext, 0);
+                        }
+                    }
+                });
+            }
+        };
+
+        if (sources.length === 0) {
+            destination.complete();
+            return cleanUpHandler;
+        }
+
+        try {
+            subscribeNext(sources);
+        } catch (e) {
+            destination.error(e);
+            console.error('[merge] Error caught', e);
             // cleanUpHandler();
         }
 
