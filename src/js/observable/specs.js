@@ -1,8 +1,8 @@
-import { interval, take, concatAll, fromEvent, map } from './index.js';
+import { interval, mergeMap, map, from, take } from './index.js';
 
-const clicks = fromEvent(document, 'click');
-const higherOrder = clicks.pipe(
-  map(() => interval(1000).pipe(take(4)))
+const letters = from([ 'a', 'b', 'c' ]);
+const result = letters.pipe(
+  mergeMap(x => interval(1000).pipe(take(4), map(i => x + i)))
 );
-const firstOrder = higherOrder.pipe(concatAll());
-firstOrder.subscribe(x => console.log(x));
+
+result.subscribe(x => console.log(x));
