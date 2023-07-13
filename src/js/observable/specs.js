@@ -1,16 +1,16 @@
-import { fromEvent, map, mergeWith } from './index.js';
+import { interval, scan, map, startWith, take } from './index.js';
 
-const clicks$ = fromEvent(document, 'click').pipe(map(() => 'click'));
-const mousemoves$ = fromEvent(document, 'mousemove').pipe(map(() => 'mousemove'));
-const dblclicks$ = fromEvent(document, 'dblclick').pipe(map(() => 'dblclick'));
-
-mousemoves$
-    .pipe(mergeWith(clicks$, dblclicks$, mousemoves$))
-    .subscribe({
-        next(x) {
-            console.log(x);
-        },
-        complete() {
-            console.log('Completed');
-        }
-    });
+const firstTwoFibs = [0, 1];
+// An endless stream of Fibonacci numbers.
+const fibonacci$ = interval(1000).pipe(
+  // Scan to get the fibonacci numbers (after 0, 1)
+  scan(([a, b]) => [b, a + b], firstTwoFibs),
+  // Get the second number in the tuple, it's the one you calculated
+  map(([, n]) => n),
+  // Start with our first two digits :)
+  startWith(...firstTwoFibs),
+  take(16)
+);
+ 
+fibonacci$.subscribe(console.log); 
+// Output: 0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610
