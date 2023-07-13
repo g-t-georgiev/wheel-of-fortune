@@ -630,6 +630,17 @@ export function mergeMap(project, concurrent = Infinity, thisArg) {
 }
 
 /**
+ * Merge the values from all observables to a single observable result.
+ * @param  {...Observable} sources 
+ * @returns {(target: Observable) => Observable}
+ */
+export function mergeWith(...sources) {
+    return function (target) {
+        return merge(target, ...sources);
+    }
+}
+
+/**
  * Converts a higher-order Observable into a first-order Observable by concatenating the inner Observables in order.
  * @returns {(source: Observable) => Observable}
  */
@@ -653,7 +664,7 @@ export function concatMap(project, thisArg) {
  * subscribes to each observable source provided, one at a time, emitting all of their values, 
  * and not subscribing to the next one until it completes.
  * @param  {...Observable} sources 
- * @returns {(source: Observable) => Observable}
+ * @returns {(target: Observable) => Observable}
  */
 export function concatWith(...sources) {
     return function (target) {
