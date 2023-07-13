@@ -1,4 +1,4 @@
-import { Observable, Subscription, merge } from './observable.js';
+import { Observable, Subscription, concat, merge } from './observable.js';
 
 // Creation operators
 
@@ -170,6 +170,7 @@ export function take(count) {
         return new Observable(function (destination) {
             let emitted = 0;
             let subscription = null;
+
             const cleanUpHandler = function () {
                 if (subscription && subscription instanceof Subscription) {
                     console.log(`[take] Unsubscribed from observable.`);
@@ -178,22 +179,22 @@ export function take(count) {
                 }
             };
 
-            try {
+            try {    
+                if (count === 0) {
+                    destination.complete();
+                    return cleanUpHandler;
+                }
+
                 subscription = source.subscribe({
                     ...destination,
                     next(value) {
-                        if (destination.closed) {
-                            return;
-                        }
-
-                        if (count === 0 || emitted >= count) {
-                            subscription.unsubscribe();
-                            destination.complete();
-                            return;
-                        }
-
                         destination.next(value);
                         emitted++;
+
+                        if (emitted >= count) {
+                            subscription.unsubscribe();
+                            destination.complete();
+                        }
                     }
                 });
             } catch (e) {
@@ -645,4 +646,17 @@ export function concatAll() {
  */
 export function concatMap(project, thisArg) {
     return mergeMap(project, 1, thisArg);
+}
+
+/**
+ * Emits all of the values from the source observable, then, once it completes, 
+ * subscribes to each observable source provided, one at a time, emitting all of their values, 
+ * and not subscribing to the next one until it completes.
+ * @param  {...Observable} sources 
+ * @returns {(source: Observable) => Observable}
+ */
+export function concatWith(...sources) {
+    return function (target) {
+        return concat(target, ...sources);
+    }
 }
