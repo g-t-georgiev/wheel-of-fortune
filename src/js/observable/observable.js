@@ -728,14 +728,18 @@ export function concat(...sources) {
 export function merge(...sources) {
     return new Observable(function (destination) {
         let closed = false;
-        let timerId = null;
-        let activeSources = new Set();
-        let concurrentCount = typeof sources[sources.length - 1] === 'number' ? sources.pop() : sources.length;
+        let activeTasks = 0;
+        let finishedTasks = 0;
+        let totalTasks = 0;
+        let timeoutId = null;
+        let concurrentTasks = typeof sources[sources.length - 1] === 'number' ? sources.pop() : sources.length;
+        totalTasks = sources.length;
+        const tasksQueue = [ ...sources ];
         const subscription = new Subscription();
 
         const cleanUpHandler = function () {
             !closed && (closed = true);
-            timerId && globalThis.clearTimeout(timerId);
+            timeoutId && globalThis.clearTimeout(timeoutId);
             
             if (subscription) {
                 console.log('[merge] Unsubscribed from observable.');
@@ -746,38 +750,29 @@ export function merge(...sources) {
         const subscribeNext = function () {
             if (closed || destination.closed) return;
 
-            while (activeSources.size < concurrentCount) {
-                const source = sources.shift();
-                console.log('[merge] Active sources', activeSources.size);
-                console.log('[merge] Remaining sources', sources.length);
+            while (activeTasks < concurrentTasks) {
+                if (tasksQueue.length === 0) break;
 
-                if (!source || !(source instanceof Observable)) break;
+                activeTasks++;
+                const source = tasksQueue.shift();
+                const taskSub = source.subscribe({
+                    ...destination,
+                    complete() {
+                        activeTasks = Math.max(0, activeTasks - 1);
+                        finishedTasks++;
 
-                activeSources.add(source);
-                subscription.add(
-                    source.subscribe({
-                        ...destination,
-                        next(v) {
-                            if (closed) return;
-                            destination.next(v);
-                        },
-                        complete() {
-                            if (closed) return;
-
-                            activeSources.delete(source);
-
-                            if (!destination.closed) {
-                                globalThis.clearTimeout(timerId);
-                                globalThis.setTimeout(subscribeNext, 0);
-                            }
+                        if (finishedTasks < totalTasks) {
+                            timeoutId && globalThis.clearTimeout(timeoutId);
+                            timeoutId = globalThis.setTimeout(subscribeNext, 0);
+                            return;
                         }
-                    })
-                );
-            }
 
-            if (activeSources.size === 0 && sources.length === 0) {
-                closed = true;
-                destination.complete();
+                        closed = true;
+                        destination.complete();
+                    }
+                });
+
+                subscription.add(taskSub);
             }
         };
 
