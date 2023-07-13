@@ -592,6 +592,43 @@ export function mergeAll(concurrent = Infinity) {
 }
 
 /**
+ * Projects each source value to an Observable which is merged in the output Observable.
+ * @param {(value: any, index: number) => Observable} project 
+ * @param {number} concurrent 
+ * @param {any} thisArg 
+ * @returns {(source: Observable) => Observable}
+ */
+export function mergeMap(project, concurrent = Infinity, thisArg) {
+    return function (source) {
+        return new Observable(function (destination) {
+            let closed = false;
+            let subscription = null;
+
+            const cleanUpHandler = function () {
+                !closed && (closed = true);
+
+                if (subscription && subscription instanceof Subscription) {
+                    console.log('[mergeMap] Unsubscribed from observable.');
+                    subscription.unsubscribe();
+                }
+            };
+
+            try {
+                subscription = source.pipe(
+                    map(project, thisArg),
+                    mergeAll(concurrent)
+                ).subscribe(destination)
+            } catch (e) {
+                destination.error(e);
+            }
+
+
+            return cleanUpHandler;
+        });
+    }
+}
+
+/**
  * Converts a higher-order Observable into a first-order Observable by concatenating the inner Observables in order.
  * @returns {(source: Observable) => Observable}
  */
