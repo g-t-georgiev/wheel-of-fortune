@@ -97,7 +97,7 @@ export function map(project, thisArg) {
     return function (source) {
         return new Observable(function (destination) {
             let subscription;
-            let index;
+            let index = 0;
             const cleanUpHandler = function () {
                 if (subscription && subscription instanceof Subscription) {
                     // console.log('[map] Unsubscribed from observable.');
@@ -669,5 +669,68 @@ export function concatMap(project, thisArg) {
 export function concatWith(...sources) {
     return function (target) {
         return concat(target, ...sources);
+    }
+}
+
+/**
+ * Useful for encapsulating and managing state. Applies an accumulator 
+ * (or "reducer function") to each value from the source after an initial state 
+ * is established -- either via a seed value (second argument), 
+ * or from the first value from the source. 
+ * @param {(acc: any, value: any, index: number) => any} accumulator 
+ * @param {any} seed 
+ * @param {any} thisArg 
+ * @returns {(source: Observable) => Observable}
+ */
+export function scan(accumulator, seed, thisArg) {
+    return function (source) {
+        return new Observable(function (destination) {
+            let closed = false;
+            let subscription = null;
+            let index = 0;
+            let isFirstValue = true;
+            let state;
+
+            if (thisArg !== undefined) {
+                accumulator = accumulator.bind(thisArg);
+            }
+
+            const cleanUpHandler = function () {
+                !closed && (closed = true);
+
+                if (subscription && subscription instanceof Subscription) {
+                    console.log('[scan] Unsubscribed from observable.');
+                    subscription.unsubscribe();
+                }
+            };
+
+            try {
+
+                subscription = source.subscribe({
+                    ...destination,
+                    next(value) {
+                        if (isFirstValue) {
+                            isFirstValue = false;
+                            state = seed ?? value;
+                            
+                            if (seed == null) {
+                                index++;
+                                return;
+                            }
+                        }
+
+                        state = accumulator(state, value, index);
+                        index++;
+
+                        destination.next(state);
+                    }
+                });
+
+            } catch (e) {
+                destination.error(e);
+            }
+
+            return cleanUpHandler;
+        });
     }
 }
