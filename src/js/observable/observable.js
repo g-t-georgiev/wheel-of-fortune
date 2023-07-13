@@ -664,13 +664,15 @@ export function fromEvent(target, eventName, options) {
 export function concat(...sources) {
     return new Observable(function (destination) {
         let closed = false;
-        let idx = 0;
-        let timerId = null;
+        let timeoutId = null;
+        const tasksQueue = [ ...sources ];
+        let totalTasks = sources.length;
+        let finishedTasks = 0;
         let subscription = null;
 
         const cleanUpHandler = function () {
-            closed = true;
-            globalThis.clearTimeout(timerId);
+            !closed && (closed = true);
+            globalThis.clearTimeout(timeoutId);
 
             if (subscription && subscription instanceof Subscription) {
                 console.log('[concat] Unsubscribed from observable.');
@@ -683,27 +685,22 @@ export function concat(...sources) {
                 subscription.unsubscribe();
             }
 
-            if (idx >= sources.length) {
-                console.log('[concat] All sources completed.');
-                destination.complete();
-                return;
-            }
-            
+            if (tasksQueue.length === 0) return;
 
-            console.log(`${idx}/${sources.length}`);
-
-            const source = sources[idx];
+            const source = tasksQueue.shift();
             subscription = source.subscribe({
                 ...destination,
                 complete() {
-                    if (closed) return;
+                    finishedTasks++;
 
-                    console.log('[concat] Source completed.');
-                    idx += 1;
-                    if (!destination.closed) {
-                        timerId && globalThis.clearTimeout(timerId);
-                        timerId = globalThis.setTimeout(subscribeNext, 0);
-                    } 
+                    if (finishedTasks < totalTasks) {
+                        timeoutId && globalThis.clearTimeout(timeoutId);
+                        timeoutId = globalThis.setTimeout(subscribeNext, 0);
+                        return;
+                    }
+
+                    closed = true;
+                    destination.complete();
                 }
             });
         };
