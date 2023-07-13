@@ -635,3 +635,14 @@ export function mergeMap(project, concurrent = Infinity, thisArg) {
 export function concatAll() {
     return mergeAll(1);
 }
+
+/**
+ * Projects each source value to an Observable which is merged in the output Observable, 
+ * in a serialized fashion waiting for each one to complete before merging the next.
+ * @param {(value: any, index: number) => Observable} project 
+ * @param {any} thisArg 
+ * @returns {(source: Observable) => Observable}
+ */
+export function concatMap(project, thisArg) {
+    return mergeMap(project, 1, thisArg);
+}
