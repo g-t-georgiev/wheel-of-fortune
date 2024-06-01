@@ -17,11 +17,12 @@
 
 The projects stack includes HTML, CSS and Javascript.
 
-The project uses a custom code only written by me, e.g. handling HTTP requests and animations by recreating the behavior of the famous RxJS observables. Project file structure and eco system mimics Angular's by separating component's business logic from external dependencies introducing services. Currently only one component exists, although the play button coudl be separated into its own component. 
-The decision for the above choices were heavily influenced by my Angular inclined usage at the time of creation and the simplicity and flexibility of RxJS and my desire to recreate the logic and behavior of the respective packages, thus show casing skills and knowledge extending the current project's scope.
-
-On page load the app requests data for constructing the wheel segments, buiding the elements dynamically first, setting the appropriate styles. When the wheel UI is rendered, the user can click the start button, which requests data from the API for the segment's index to land on and initiates the spin. The buttons is locked from the start of the network request, during the spinning animation and during autoplay mode (which is only available on free spins, for now).
+The project uses a custom code only, written by me, e.g., handling HTTP requests and animations, by recreating the behavior of the famous RxJS observables. Project file structure and eco system mimics Angular's, by separating component's business logic from external dependencies introducing services. Currently only one component exists, although the play button could be separated into a component of its own.
 
 The spinning animation logic is inspired by GSAP's. For the purposes of simplicity and flexibility, I have created tweening functions, which use my custom observables under the hood, as well, instead of, e.g. event driven system or callbacks, for getting the start, update (runned on every request animation frame tick) and complete states of the current tweening animation.
+
+The decision for the above choices were influenced by my heavy usage of Angular at the time of creation and the simplicity and flexibility of RxJS (really admire their work) and my desire to recreate the logic and behavior of the respective packages, thus show casing skills and knowledge extending the current project's scope.
+
+On page load the app requests data for constructing the wheel segments, buiding the elements dynamically first, setting the appropriate styles. When the wheel UI is rendered, the user can click the start button, which requests data from the API for the segment's index to land on and initiates the spin. The buttons is locked from the start of the network request, during the spinning animation and during autoplay mode (which is only available on free spins, for now).
 
 Currently the app back-end does not support multiple users, so on every page visit, a new instance of a game is initiated, discarding current one. This is primarily a BE issue, which is not relevant for mainly front-end demonstration purposes. But will be taken for consideration and further improvements and optimizations will follow.
