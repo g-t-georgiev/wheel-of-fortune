@@ -85,8 +85,8 @@ export class WheelComponent {
         this.#awaitsHttpResponse = true; // Set await response flag
         const subscription = getGameData$().subscribe({
             next: data => {
-
                 console.log('Current sector data', data);
+                
                 this.sectorIdx = data;
                 this.sector = this.sectorElementsRefList[data];
 
