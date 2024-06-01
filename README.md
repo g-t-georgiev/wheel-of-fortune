@@ -1,5 +1,5 @@
 # Task 
-<span style="color: #ccc; font-size: 14px;">Task description as it was given to me:</span>
+*Task description as it was given to me:*
 
 Създаване на колело на късмета, с определен брой сектори /14-18/.
 При натискане на бутон "Старт", колелото започва да се върти по посока
@@ -15,3 +15,4 @@
 
 # Project setup and description
 
+The project uses a lot of custom code for handling HTTP requests and animations by simulating the behavior of the famous RxJS observables. Project file structure and eco system mimics Angular's by separating component's business logic from external dependencies introducing services. The decision for this choices were heavily influenced by my Angular inclined usage at the time of creation and the simplicity and flexibility of RxJS.
