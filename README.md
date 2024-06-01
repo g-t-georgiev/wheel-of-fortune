@@ -1,5 +1,6 @@
 # Task 
-\textcolor{#ccc}{Task description as it was given to me:}
+<span style="color: #ccc; font-size: 14px;">Task description as it was given to me:</span>
+
 Създаване на колело на късмета, с определен брой сектори /14-18/.
 При натискане на бутон "Старт", колелото започва да се върти по посока
 на часовниковата стрелка /въртенето да продължи около 5 сек./. След това
