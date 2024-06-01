@@ -1,6 +1,13 @@
 import { HttpClient } from './http-client/index.js';
+import appConfig from '../app.config.json';
 
-const API_ROOT_URL = 'http://localhost:3001';
+console.log(appConfig);
+
+const URL = true ? 
+    'http://localhost:3001' : 
+    'https://wheel-of-fortune-c222da430610.herokuapp.com/';
+
+const API_ROOT_URL = URL;
 const API_GET_WHEEL_DATA_URL = '/';
 const API_GET_TARGET_SECTOR_DATA_URL = '/game';
 
