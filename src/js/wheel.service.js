@@ -1,5 +1,5 @@
 import { HttpClient } from './http-client/index.js';
-import appConfig from '../app.config.json';
+import appConfig from '../app.config.js';
 
 console.log(appConfig);
 
