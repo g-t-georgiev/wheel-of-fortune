@@ -18,12 +18,10 @@ const UNAUTHORIZED_GET_REQUESTS_OPTIONS = {
 
 export function getUIRenderData$() {
     const url = API_ROOT_URL + API_GET_WHEEL_DATA_URL;
-    const http$ = HttpClient.get(url, UNAUTHORIZED_GET_REQUESTS_OPTIONS);
-    return http$;
+    return HttpClient.get(url, UNAUTHORIZED_GET_REQUESTS_OPTIONS);
 }
 
 export function getGameData$() {
     const url = API_ROOT_URL + API_GET_TARGET_SECTOR_DATA_URL;
-    const http$ = HttpClient.get(url, UNAUTHORIZED_GET_REQUESTS_OPTIONS);
-    return http$;
+    return HttpClient.get(url, UNAUTHORIZED_GET_REQUESTS_OPTIONS);
 }
