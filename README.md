@@ -16,3 +16,5 @@
 # Project setup and description
 
 The project uses a lot of custom code for handling HTTP requests and animations by simulating the behavior of the famous RxJS observables. Project file structure and eco system mimics Angular's by separating component's business logic from external dependencies introducing services. The decision for this choices were heavily influenced by my Angular inclined usage at the time of creation and the simplicity and flexibility of RxJS.
+
+Currently the app back-end does not support multiple users, so on every page visit, a new instance of a game is initiated, discarding current one. This primarily a BE issue, which is not relevant for mainly front-end demonstration purpose. But will be taken for consideration and further improvements and optimizations will follow.
