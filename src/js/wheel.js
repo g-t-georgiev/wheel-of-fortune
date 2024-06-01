@@ -13,7 +13,7 @@ export class WheelComponent {
     isSpinning = false;
 
     autoPlay = false; 
-    autoPlayIdleTime = 1e3;
+    autoPlayIdleTime = 1.5e3;
     autoPlayRepeat = 3;
 
     sectorIdx;
@@ -144,7 +144,7 @@ export class WheelComponent {
      * @param {(polygonSideLen: number) => void} callback 
      */
     setWheelSectorsBlockSize(parentElementClientRect, callback) {
-        // Calculate innter radius in pixels
+        // Calculate inner radius in pixels
         const radius = parentElementClientRect.width * 0.5;
         // Calculate polygon side length in pixels
         let polygonSideLen = Math.floor(Polygon.getSideLen(this.sectorsCount, radius));
@@ -251,7 +251,7 @@ export class WheelComponent {
             this.sectorElementsRefList.push(sector);
         });
         
-        const eventType = window.matchMedia('(hover: hover)').matches ? 'click' : 'pointerdown';
+        const eventType = window.matchMedia('(hover: hover)').matches ? 'click' : 'pointerup';
         fromEvent(this.playAnimationButtonRef, eventType).subscribe({
             next: (ev) => {
                 this.playButtonClickHandler(ev);
