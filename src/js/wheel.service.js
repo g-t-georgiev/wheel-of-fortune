@@ -8,7 +8,7 @@ const URL = APP_MODE === 'development' ?
     'https://wheel-of-fortune-c222da430610.herokuapp.com/';
 
 const API_ROOT_URL = URL;
-const API_GET_WHEEL_DATA_URL = '/';
+const API_GET_WHEEL_DATA_URL = '';
 const API_GET_TARGET_SECTOR_DATA_URL = '/game';
 
 const UNAUTHORIZED_GET_REQUESTS_OPTIONS = {
