@@ -1,10 +1,10 @@
 import { HttpClient } from './http-client/index.js';
-import appConfig from '../app.config.js';
+import appConfig from '../../app.config.js';
 
 const APP_MODE = (appConfig?.development ?? true) ? 'development' : 'production';
 
 const URL = APP_MODE === 'development' ? 
-    'http://localhost:3001' : 
+    'http://localhost:5006/' : 
     'https://wheel-of-fortune-c222da430610.herokuapp.com/';
 
 const API_ROOT_URL = URL;
