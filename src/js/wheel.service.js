@@ -15,7 +15,7 @@ let apiUrl = appMode === AppMode.Development
 
 const apiUrlOverride = AppMode.Development ? urlParams?.get("apiUrl") : '';
 
-if (apiUrlOVerride.trim()) apiUrl = apiUrlOverride;
+if (apiUrlOverride.trim()) apiUrl = apiUrlOverride;
 
 const initDataUrlEndpoint = '';
 const gameDataUrlEndPoint = 'game';
