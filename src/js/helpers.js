@@ -127,6 +127,10 @@ export function loopAndPopArrayItems(array, cb) {
     loopAndPopArrayItems(array, cb);
 }
 
+/**
+ * Helper function that takes a snapshot of the current url and returns the searchParams object only.
+ * @returns {UrlSearchParams}
+ */
 export function extractUrlParams() {
     const url = new URL(location.href);
     return url.searchParams;
