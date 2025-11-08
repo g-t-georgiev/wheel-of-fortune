@@ -7,7 +7,7 @@ const urlParams = extractUrlParams();
 const appMode = (appConfig?.development ?? true) ? AppMode.Development : AppMode.Production;
 const appModeOverride = urlParams?.get('mode');
 
-if (appModeOverride.trim() && Object.values(AppMode).include(appModeOverride)) appMode = appModeOverride;
+if (appModeOverride.trim() && Object.values(AppMode).includes(appModeOverride)) appMode = appModeOverride;
 
 let apiUrl = appMode === AppMode.Development 
     ? 'http://localhost:5006/' 
