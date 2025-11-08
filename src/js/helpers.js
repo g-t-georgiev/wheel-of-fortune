@@ -135,3 +135,8 @@ export function extractUrlParams() {
     const url = new URL(location.href);
     return url.searchParams;
 }
+
+export const AppMode = {
+	Development: "development",
+	Production: "production",
+};
