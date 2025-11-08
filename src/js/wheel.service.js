@@ -4,7 +4,7 @@ import { extractUrlParams, AppMode } from "./helpers.js";
 
 const urlParams = extractUrlParams();
 
-const appMode = (appConfig?.development ?? true) ? AppMode.Development : AppMode.Production;
+let appMode = (appConfig?.development ?? true) ? AppMode.Development : AppMode.Production;
 const appModeOverride = urlParams?.get('mode');
 
 if (appModeOverride.trim() && Object.values(AppMode).includes(appModeOverride)) appMode = appModeOverride;
