@@ -1,27 +1,36 @@
 import { HttpClient } from './http-client/index.js';
 import appConfig from '../../app.config.js';
+import { extractUrlParams, AppMode } from "./helpers.js";
 
-const APP_MODE = (appConfig?.development ?? true) ? 'development' : 'production';
+const urlParams = extractUrlParams();
 
-const URL = APP_MODE === 'development' ? 
-    'http://localhost:5006/' : 
-    'https://wheel-of-fortune-c222da430610.herokuapp.com/';
+const appMode = (appConfig?.development ?? true) ? AppMode.Development : AppMode.Production;
+const appModeOverride = urlParams?.get('mode');
 
-const API_ROOT_URL = URL;
-const API_GET_WHEEL_DATA_URL = '';
-const API_GET_TARGET_SECTOR_DATA_URL = 'game';
+if (appModeOverride.trim() && Object.values(AppMode).include(appModeOverrride)) appMode = appModeOverride;
 
-const UNAUTHORIZED_GET_REQUESTS_OPTIONS = {
+let apiUrl = appMode === AppMode.Development 
+    ? 'http://localhost:5006/' 
+    : 'https://wheel-of-fortune-c222da430610.herokuapp.com/';
+
+const apiUrlOverride = AppMode.Development ? urlParams?.get("apiUrl") : '';
+
+if (apiUrlOVerride.trim()) apiUrl = apiUrlOverride;
+
+const initDataUrlEndpoint = '';
+const gameDataUrlEndPoint = 'game';
+
+const getRequestOptions = {
     headers: { 'Content-Type': 'application/json' }, 
     responseType: 'json'
 }
 
 export function getUIRenderData$() {
-    const url = API_ROOT_URL + API_GET_WHEEL_DATA_URL;
-    return HttpClient.get(url, UNAUTHORIZED_GET_REQUESTS_OPTIONS);
+    const url = apiUrl + initDataUrlEndpoint;
+    return HttpClient.get(url, getRequestOptions);
 }
 
 export function getGameData$() {
-    const url = API_ROOT_URL + API_GET_TARGET_SECTOR_DATA_URL;
-    return HttpClient.get(url, UNAUTHORIZED_GET_REQUESTS_OPTIONS);
+    const url = apiUrl + gameDataUrlEndpoint;
+    return HttpClient.get(url, getRequestOptions);
 }
