@@ -126,3 +126,8 @@ export function loopAndPopArrayItems(array, cb) {
     if (array.length === 0) return;
     loopAndPopArrayItems(array, cb);
 }
+
+export function extractUrlParams() {
+    const url = new URL(location.href);
+    return url.searchParams;
+}
