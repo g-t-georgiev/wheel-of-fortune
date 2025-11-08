@@ -31,6 +31,6 @@ export function getUIRenderData$() {
 }
 
 export function getGameData$() {
-    const url = apiUrl + gameDataUrlEndpoint;
+    const url = apiUrl + gameDataUrlEndPoint;
     return HttpClient.get(url, getRequestOptions);
 }
