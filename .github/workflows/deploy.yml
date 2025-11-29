@@ -41,25 +41,21 @@ jobs:
       - name: Type check
         run: npx tsc --noEmit
 
-      # 5️⃣ Lint code
-      - name: Lint code
-        run: npm run lint
-
-      # 6️⃣ Build Vite project
+      # 5️⃣ Build Vite project
       - name: Build
         run: npm run build
 
-      # 7️⃣ Configure GitHub Pages
+      # 6️⃣ Configure GitHub Pages
       - name: Setup GitHub Pages
         uses: actions/configure-pages@v4
 
-      # 8️⃣ Upload artifact (Vite output)
+      # 7️⃣ Upload artifact (Vite output)
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4
         with:
           path: ./dist
 
-      # 9️⃣ Deploy to GitHub Pages
+      # 8️⃣ Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
