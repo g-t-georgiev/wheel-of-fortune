@@ -16,10 +16,14 @@ export default class StatesManager {
     return this.#currentState;
   }
 
-  setStates(states: [id: number, state: State][]) {
-    states.forEach(([id, state]) => {
-      this.#states.set(id, state);
-    });
+  setStates(states: Record<number, State>) {
+    Object.entries(states)
+      .sort((a, b) => Number(a[0]) - Number(b[0]))
+      .forEach(([id, state]) => {
+        this.#states.set(Number(id), state);
+      });
+
+    return this.#states;
   }
 
   async execute(stateId: number = 0) {
