@@ -1,0 +1,15 @@
+enum MainSceneStates {
+  INTRO,
+  IDLE,
+  SPIN_START,
+  RECEIVED_DATA,
+  SPIN_STOPPING,
+  SPIN_STOP,
+  SHOW_WINS,
+  FREESPINS_RETRIGGER,
+  FREESPINS_START,
+  FREESPINS_END,
+  ROUND_FINISH
+}
+
+export default MainSceneStates;

@@ -1,16 +1,11 @@
-export enum Action {
-  SPIN_START,
-  FEATURE_START,
-}
-
 export default class ActionsManager {
-  #actions!: Map<Action, { (): void }>;
+  #actions!: Map<number, { (): void }>;
 
   constructor() {
     this.#actions = new Map();
   }
 
-  setAction(action: Action): Promise<void> {
+  setAction(action: number): Promise<void> {
     this.resolveAction(action);
 
     return new Promise<void>((r) => {
@@ -18,7 +13,7 @@ export default class ActionsManager {
     });
   }
 
-  resolveAction(action: Action) {
+  resolveAction(action: number) {
     this.#actions.get(action)?.();
     this.#actions.delete(action);
   }

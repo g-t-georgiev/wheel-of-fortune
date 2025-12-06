@@ -11,6 +11,10 @@ export default class ScenesManager {
     this.#sceneConstructors = ScenesManager.importScenes();
   }
 
+  get currentScene() {
+    return this.#currentScene;
+  }
+
   private static importScenes() {
     const sceneModules = import.meta.glob(
       "/src/scenes/*.ts",

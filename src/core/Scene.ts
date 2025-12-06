@@ -1,4 +1,4 @@
-import ActionsManager, { type Action } from "./ActionsManager";
+import ActionsManager from "./ActionsManager";
 import StatesManager from "./StatesManager";
 
 export interface Scene {
@@ -37,12 +37,12 @@ export abstract class Scene implements Scene {
   }
 
   /** @readonly */
-  setAction(action: Action) {
+  setAction(action: number) {
     return this.#actionsManager.setAction(action);
   }
 
   /** @readonly */
-  resolveAction(action: Action) {
+  resolveAction(action: number) {
     return this.#actionsManager.resolveAction(action);
   }
 
