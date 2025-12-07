@@ -1,16 +1,16 @@
 import Client from "./Client";
-import { type RequestData, type ResponseData } from "./ClientTypes.ts";
+import { RequestType, type ResponseData } from "./ClientTypes.ts";
 
-export default class ClientWrapper extends Client<"spin"> {
+export default class ClientWrapper extends Client<RequestType.Spin> {
   override sendRequest() {
-    return super.sendRequest("spin", {} as RequestData<"spin">);
+    return super.sendRequest(RequestType.Spin, {});
   }
 
   override getResponse() {
-    return super.getResponse("spin");
+    return super.getResponse(RequestType.Spin);
   }
 
-  setResponse(response: ResponseData<"spin">): void {
+  setResponse(response: ResponseData<RequestType.Spin>): void {
     super.setResponse(response);
   }
 }

@@ -1,28 +1,20 @@
-export type RequestType =
-  | "init"
-  | "spin";
+export enum RequestType {
+  Init,
+  Spin
+}
 
-interface InitRequestData {
-  id: number;
-};
-interface InitResponseData {
-  sessionToken: string;
-};
+interface InitRequestData { };
+interface InitResponseData { };
 
-interface SpinRequestData {
-  sessionToken: string;
-  bet: number;
-};
-interface SpinResponseData {
-  spins: any[];
-};
+interface SpinRequestData { };
+interface SpinResponseData { };
 
 interface Protocol {
-  "init": {
+  [RequestType.Init]: {
     req: InitRequestData;
     res: InitResponseData;
   };
-  "spin": {
+  [RequestType.Spin]: {
     req: SpinRequestData;
     res: SpinResponseData;
   };

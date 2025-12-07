@@ -1,6 +1,6 @@
-import { type RequestType, type RequestData, type ResponseData } from "./ClientTypes.ts";
+import { RequestType, type RequestData, type ResponseData } from "./ClientTypes.ts";
 
-export default class Client<T extends RequestType> {
+export default class Client<T extends RequestType = RequestType> {
   async sendRequest(type: T, params: RequestData<T>): Promise<void> {
     return Promise.resolve();
   }
@@ -11,4 +11,3 @@ export default class Client<T extends RequestType> {
 
   setResponse(response: ResponseData<T>): void { }
 }
-
