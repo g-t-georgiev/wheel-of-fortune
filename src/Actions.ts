@@ -1,11 +1,7 @@
-export enum Action {
-  SPIN_START,
+enum Action {
+  PLAY,
   FEATURE_START,
+  SKIP,
 }
 
-const actions = {
-  SPIN_START: "SPIN_START",
-  FEATURE_START: "FEATURE_START",
-}
-
-export default actions;
+export default Action;

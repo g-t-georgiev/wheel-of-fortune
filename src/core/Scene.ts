@@ -31,6 +31,8 @@ export abstract class Scene implements Scene {
 
   protected abstract actionsHandler(action: string): void;
 
+  protected abstract skipHandler(): void;
+
   /** @readonly */
   start() {
     this.stateMachine.execute();

@@ -1,9 +1,9 @@
 import Scene from '../core/Scene';
-import actions, { Action } from "../Actions";
+import Action from "../Actions";
 import MainSceneStates from '../states/Main';
 
 export default class Main extends Scene {
-  spinStart!: Promise<void>;
+  playStart!: Promise<void>;
 
   /** 
    * Initialize states, load resources, etc.
@@ -16,16 +16,18 @@ export default class Main extends Scene {
   }
 
   async load() {
-    this.spinStart = this.setAction(Action.SPIN_START);
+    this.playStart = this.setAction(Action.PLAY);
   }
 
   protected initStates() {
     this.stateMachine.setStates({
-      [MainSceneStates.INTRO]: async () => { },
-      [MainSceneStates.IDLE]: async () => {
-        await this.spinStart;
+      [MainSceneStates.INTRO]: async () => {
+        // TODO: Handle intro screen and animations here.
       },
-      [MainSceneStates.SPIN_START]: async () => {
+      [MainSceneStates.IDLE]: async () => {
+        await this.playStart;
+      },
+      [MainSceneStates.PLAY_START]: async () => {
         // TODO: Request client data.
         // TODO: Start wheel spin.
       },
@@ -42,16 +44,22 @@ export default class Main extends Scene {
         // TODO: Display wins.
       },
       [MainSceneStates.FREESPINS_RETRIGGER]: async () => {
-        // TODO: Retrigger free spins.
+        // TODO: Retrigger freespins.
       },
-      [MainSceneStates.FREESPINS_START]: async () => {
-        // TODO: Show free spins splash screen, init free spins.
+      [MainSceneStates.FREESPINS_ACTIVATE]: async () => {
+        // TODO: Show freespins splash screen, init free spins.
+
+        await this.setAction(Action.FEATURE_START);
       },
       [MainSceneStates.FREESPINS_END]: async () => {
-        // TODO: Handle free spins end, show free spins reward, etc.
+        // TODO: Handle freespins end, show free spins reward, etc.
+      },
+      [MainSceneStates.PLAY_STOP]: async () => {
+        // TODO: Handle freespins scenarios here.
+        // if (next spin) return PLAY_START
       },
       [MainSceneStates.ROUND_FINISH]: async () => {
-        this.spinStart = this.setAction(Action.SPIN_START);
+        this.playStart = this.setAction(Action.PLAY);
 
         return MainSceneStates.IDLE;
       },
@@ -59,23 +67,32 @@ export default class Main extends Scene {
   }
 
   protected actionsHandler(action: string) {
-    switch (action) {
-      case actions.SPIN_START: {
-        if (this.stateMachine.currentState !== MainSceneStates.IDLE) {
-          console.warn("Cannot spin, game is not IDLE.");
+    if (action === Action[Action.PLAY]) {
+      if (this.stateMachine.currentState !== MainSceneStates.IDLE) {
+        console.warn("Cannot spin, game is not IDLE.");
 
-          return;
-        }
-
-        this.resolveAction(Action.SPIN_START);
-
-        break;
+        return;
       }
-      case actions.FEATURE_START: {
-        this.resolveAction(Action.FEATURE_START);
 
-        break;
-      }
+      this.resolveAction(Action.PLAY);
+
+      return;
     }
+
+    if (action === Action[Action.FEATURE_START]) {
+      this.resolveAction(Action.FEATURE_START);
+
+      return;
+    }
+
+    if (action === Action[Action.SKIP]) {
+      this.skipHandler();
+
+      return;
+    }
+  }
+
+  protected skipHandler() {
+    // TODO: Handle skipping logic here
   }
 }
