@@ -23,6 +23,7 @@ export default class StatesManager {
         this.#states.set(Number(id), state);
       });
 
+    console.log(this.#states);
     return this.#states;
   }
 
@@ -39,14 +40,17 @@ export default class StatesManager {
     let nextStateId = await state();
     this.#hasUnresolvedState = false;
 
-    if (nextStateId && nextStateId in this.#states) {
+    console.log("HERE 1", nextStateId);
+    if (nextStateId && this.#states.has(nextStateId)) {
+      console.log("HERE 2");
       this.execute(nextStateId);
       return;
     }
 
     nextStateId = this.#currentState + 1;
+    console.log("HERE 3", nextStateId, this.#states.has(nextStateId));
 
-    if (nextStateId in this.#states) {
+    if (this.#states.has(nextStateId)) {
       this.execute(nextStateId);
     }
   }

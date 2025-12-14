@@ -1,5 +1,5 @@
 export enum RequestType {
-  Init,
+  Default,
   Spin
 }
 
@@ -10,7 +10,7 @@ interface SpinRequestData { };
 interface SpinResponseData { };
 
 interface Protocol {
-  [RequestType.Init]: {
+  [RequestType.Default]: {
     req: InitRequestData;
     res: InitResponseData;
   };
@@ -20,5 +20,5 @@ interface Protocol {
   };
 }
 
-export type RequestData<T extends RequestType> = Protocol[T]["req"];
-export type ResponseData<T extends RequestType> = Protocol[T]["res"];
+export type RoundRequestData<T extends RequestType> = Protocol[T]["req"];
+export type RoundResponseData<T extends RequestType> = Protocol[T]["res"];

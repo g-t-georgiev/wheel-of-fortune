@@ -1,18 +1,18 @@
-import Scene from '../core/Scene';
+import { Scene } from '../core';
+import type { StageContext } from '../core/types';
 import Action from "../Actions";
 import MainSceneStates from '../states/Main';
 
 export default class Main extends Scene {
-  playStart!: Promise<void>;
+  private playStart!: Promise<void>;
 
   /** 
    * Initialize states, load resources, etc.
    */
-  constructor() {
-    super();
+  constructor(ctx: StageContext) {
+    super(ctx);
 
-    console.log(`Hello, from ${this.constructor.name}!`);
-    // this.initStates();
+    this.initStates();
   }
 
   async load() {
@@ -23,40 +23,62 @@ export default class Main extends Scene {
     this.stateMachine.setStates({
       [MainSceneStates.INTRO]: async () => {
         // TODO: Handle intro screen and animations here.
+        console.log("INTRO");
       },
       [MainSceneStates.IDLE]: async () => {
+        console.log("IDLE");
         await this.playStart;
       },
       [MainSceneStates.PLAY_START]: async () => {
-        // TODO: Request client data.
+        if (!this.ctx.gameData.response) {
+          this.ctx.client.requestRoundData();
+        }
+
+        console.log("PLAY_START");
         // TODO: Start wheel spin.
       },
       [MainSceneStates.RECEIVED_DATA]: async () => {
-        // TODO: Await response and cache response data.
+        if (this.ctx.gameData.response) return;
+
+        const response = await this.ctx.client.awaitRoundResponse();
+
+        if (!response) {
+          console.warn("Something went wrong while fetching response.");
+
+          return;
+        }
+
+        this.ctx.gameData.setRoundResponse(response);
       },
       [MainSceneStates.SPIN_STOPPING]: async () => {
         // TODO: Trigger spin settle.
+        console.log("SPIN_STOPPING", this.ctx.gameData.response);
       },
       [MainSceneStates.SPIN_STOP]: async () => {
         // TODO: Await spin stop.
+        console.log("SPIN_STOP");
       },
       [MainSceneStates.SHOW_WINS]: async () => {
         // TODO: Display wins.
+        console.log("SHOW_WINS");
       },
       [MainSceneStates.FREESPINS_RETRIGGER]: async () => {
         // TODO: Retrigger freespins.
+        console.log("FREESPINS_RETRIGGER");
       },
       [MainSceneStates.FREESPINS_ACTIVATE]: async () => {
         // TODO: Show freespins splash screen, init free spins.
+        console.log("FEATURE_START");
 
         await this.setAction(Action.FEATURE_START);
       },
       [MainSceneStates.FREESPINS_END]: async () => {
         // TODO: Handle freespins end, show free spins reward, etc.
       },
-      [MainSceneStates.PLAY_STOP]: async () => {
-        // TODO: Handle freespins scenarios here.
-        // if (next spin) return PLAY_START
+      [MainSceneStates.PLAY_FINISH]: async () => {
+        if (this.ctx.gameData.nextSpin()) {
+          return MainSceneStates.PLAY_START;
+        }
       },
       [MainSceneStates.ROUND_FINISH]: async () => {
         this.playStart = this.setAction(Action.PLAY);
@@ -66,7 +88,7 @@ export default class Main extends Scene {
     });
   }
 
-  protected actionsHandler(action: string) {
+  actionsHandler(action: string) {
     if (action === Action[Action.PLAY]) {
       if (this.stateMachine.currentState !== MainSceneStates.IDLE) {
         console.warn("Cannot spin, game is not IDLE.");

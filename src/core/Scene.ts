@@ -1,15 +1,16 @@
 import ActionsManager from "./ActionsManager";
 import StatesManager from "./StatesManager";
+import type { StageContext } from "./types";
 
 export interface Scene {
   /** Play animations or some setup before starting state machine*/
-  load?(): Promise<unknown>;
+  load(): Promise<unknown>;
   /** Play animation or some cleanup when removing scene */
-  unload?(): Promise<unknown>;
+  unload(): Promise<unknown>;
   /** Resize handler */
-  resize?(params: any): void;
+  resize(params: any): void;
   /** Ticker update handler */
-  update?(delta: number): void;
+  update(delta: number): void;
 }
 
 export abstract class Scene implements Scene {
@@ -22,14 +23,14 @@ export abstract class Scene implements Scene {
    * 
    * Logic here is executed only once when scene is constructed.
    */
-  constructor() {
+  constructor(protected ctx: StageContext) {
     this.stateMachine = new StatesManager();
     this.#actionsManager = new ActionsManager();
   }
 
   protected abstract initStates(): void;
 
-  protected abstract actionsHandler(action: string): void;
+  abstract actionsHandler(action: string): void;
 
   protected abstract skipHandler(): void;
 

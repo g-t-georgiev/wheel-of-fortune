@@ -1,13 +1,37 @@
-import { RequestType, type RequestData, type ResponseData } from "./ClientTypes.ts";
+import { RequestType, type RoundRequestData, type RoundResponseData } from "./types";
 
-export default class Client<T extends RequestType = RequestType> {
-  async sendRequest(type: T, params: RequestData<T>): Promise<void> {
-    return Promise.resolve();
+export interface ClientWrapper {
+  requestRoundData(): Promise<RoundResponseData<RequestType.Spin>>;
+  awaitRoundResponse(): Promise<RoundResponseData<RequestType.Spin> | undefined>;
+}
+export class Client implements ClientWrapper {
+  async request<T extends RequestType>(
+    // @ts-expect-error: boilerplate code, will implement
+    type: T,
+    // @ts-expect-error: boilerplate code, will implement
+    params: RoundRequestData<T>
+  ): Promise<RoundResponseData<T>> {
+    // TODO: Implement HTTP request mechanism
+    return Promise.resolve({} as RoundResponseData<T>);
   }
 
-  async getResponse(type: T): Promise<ResponseData<T>> {
-    return {} as ResponseData<T>;
+  private roundDataPromise?: Promise<RoundResponseData<RequestType.Spin>>;
+
+  requestRoundData() {
+    if (!this.roundDataPromise) {
+      const requestParams = {} as RoundRequestData<RequestType.Spin>;
+      this.roundDataPromise = this.request(RequestType.Spin, requestParams);
+    }
+
+    return this.roundDataPromise;
   }
 
-  setResponse(response: ResponseData<T>): void { }
+  async awaitRoundResponse() {
+    if (!this.roundDataPromise) return;
+
+    const data = await this.roundDataPromise;
+    this.roundDataPromise = undefined;
+
+    return data;
+  }
 }

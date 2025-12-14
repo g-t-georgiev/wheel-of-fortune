@@ -1,5 +1,6 @@
-import Game from "./core/Game";
-import gameConfig from "./configs/gameConfig";
+import { Game } from "./core";
+import emitter from "./core/EventEmitter";
+import Action from "./Actions";
 
 /** Main entry point for game setup and functionalities. */
 export default class GameApi {
@@ -20,14 +21,20 @@ export default class GameApi {
       view: this.#view,
     });
 
-    window.addEventListener("resize", this.resize);
+    this.bootstrap();
   }
 
   get container() {
     return this.#container;
   }
 
-  resize = () => {
-    // TODO: Calculate
-  };
+  async bootstrap() {
+    await this.#app.load();
+
+    // listen for preload completion to start the Main scene
+    emitter.once("preload:finished", () => this.#app.start());
+
+    // forward document clicks as container interactions to the current scene
+    document.addEventListener("click", () => this.#app.triggerAction(Action.CONTAINER_INTERACTION));
+  }
 }
