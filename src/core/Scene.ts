@@ -1,6 +1,6 @@
 import ActionsManager from "./ActionsManager";
 import StatesManager from "./StatesManager";
-import type { StageContext } from "./types";
+import type { SceneProps } from "./types";
 
 export interface Scene {
   /** Play animations or some setup before starting state machine*/
@@ -14,18 +14,20 @@ export interface Scene {
 }
 
 export abstract class Scene implements Scene {
-  #actionsManager!: ActionsManager;
-
   protected stateMachine!: StatesManager;
+
+  #actionsManager!: ActionsManager;
 
   /** 
    * Initial setup and/or loading of resources.
    * 
    * Logic here is executed only once when scene is constructed.
    */
-  constructor(protected ctx: StageContext) {
+  constructor(protected props: SceneProps) {
     this.stateMachine = new StatesManager();
     this.#actionsManager = new ActionsManager();
+
+    this.initStates();
   }
 
   protected abstract initStates(): void;

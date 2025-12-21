@@ -1,12 +1,13 @@
 import type { RequestType, RoundResponseData } from "./client/types";
 
 export class GameData {
-  #response?: RoundResponseData<RequestType.Spin>;
+  #response: RoundResponseData<RequestType.Spin> | null = null;
   #initResponse: RoundResponseData<RequestType.Default>;
 
-  // internal spin queue extracted from latest round response
+  /** Internal spin queue extracted from latest round response. */
   #spins: any[] = [];
-  #currentIndex = -1;
+  /** Internal property reference to the current spin index. */
+  #spinIndex = -1;
 
   constructor(initResponse: RoundResponseData<RequestType.Default>) {
     this.#initResponse = initResponse;
@@ -16,17 +17,20 @@ export class GameData {
     return this.#response;
   }
 
-  // previously `defaultResponse`
   get initResponse() {
     return this.#initResponse;
   }
 
-  // set the latest round response and prepare internal spins queue
-  setRoundResponse(data: RoundResponseData<RequestType.Spin>) {
-    this.#response = data;
-    const maybeSpins = (data as any)?.spins;
+  get currentSpin() {
+    return this.#spins[this.#spinIndex];
+  }
+
+  /** Set the latest round response and spin data. */
+  setRoundResponse(response: RoundResponseData<RequestType.Spin>) {
+    this.#response = response;
+    const maybeSpins = (response as any)?.spins;
     this.#spins = Array.isArray(maybeSpins) ? maybeSpins : [];
-    this.#currentIndex = -1;
+    this.#spinIndex = 0;
   }
 
   inFreeSpins(): boolean {
@@ -34,25 +38,24 @@ export class GameData {
   }
 
   hasNextSpins(): boolean {
-    return this.#currentIndex + 1 < this.#spins.length;
+    return this.#spinIndex + 1 < this.#spins.length;
   }
 
   nextSpin(): any | null {
     if (!this.hasNextSpins()) return null;
-    this.#currentIndex += 1;
-    return this.#spins[this.#currentIndex];
+    this.#spinIndex += 1;
+    return this.#spins[this.#spinIndex];
   }
 
   isFreeSpinFirst(): boolean {
-    return this.#currentIndex === 0;
+    return this.#spinIndex === 0;
   }
 
-  get currentSpinIndex(): number {
-    return this.#currentIndex;
-  }
+  /** Resets round response and spins data. */
+  reset() {
+    this.#response = null;
 
-  resetSpins() {
     this.#spins = [];
-    this.#currentIndex = -1;
+    this.#spinIndex = -1;
   }
 }

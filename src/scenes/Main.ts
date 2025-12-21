@@ -1,21 +1,17 @@
-import { Scene } from '../core';
-import type { StageContext } from '../core/types';
+import { Scene, GameData, type ClientWrapper } from '../core';
 import Action from "../Actions";
 import MainSceneStates from '../states/Main';
 
 export default class Main extends Scene {
+  client!: ClientWrapper;
+  gameData!: GameData;
+
   private playStart!: Promise<void>;
 
-  /** 
-   * Initialize states, load resources, etc.
-   */
-  constructor(ctx: StageContext) {
-    super(ctx);
-
-    this.initStates();
-  }
-
   async load() {
+    this.client = this.props!.client;
+    this.gameData = this.props!.gameData;
+
     this.playStart = this.setAction(Action.PLAY);
   }
 
@@ -30,17 +26,17 @@ export default class Main extends Scene {
         await this.playStart;
       },
       [MainSceneStates.PLAY_START]: async () => {
-        if (!this.ctx.gameData.response) {
-          this.ctx.client.requestRoundData();
+        if (!this.gameData.response) {
+          this.client.requestRoundData();
         }
 
         console.log("PLAY_START");
         // TODO: Start wheel spin.
       },
       [MainSceneStates.RECEIVED_DATA]: async () => {
-        if (this.ctx.gameData.response) return;
+        if (this.gameData.response) return;
 
-        const response = await this.ctx.client.awaitRoundResponse();
+        const response = await this.client.awaitRoundResponse();
 
         if (!response) {
           console.warn("Something went wrong while fetching response.");
@@ -48,11 +44,11 @@ export default class Main extends Scene {
           return;
         }
 
-        this.ctx.gameData.setRoundResponse(response);
+        this.gameData.setRoundResponse(response);
       },
       [MainSceneStates.SPIN_STOPPING]: async () => {
         // TODO: Trigger spin settle.
-        console.log("SPIN_STOPPING", this.ctx.gameData.response);
+        console.log("SPIN_STOPPING", this.gameData.response);
       },
       [MainSceneStates.SPIN_STOP]: async () => {
         // TODO: Await spin stop.
@@ -76,7 +72,7 @@ export default class Main extends Scene {
         // TODO: Handle freespins end, show free spins reward, etc.
       },
       [MainSceneStates.PLAY_FINISH]: async () => {
-        if (this.ctx.gameData.nextSpin()) {
+        if (this.gameData.nextSpin()) {
           return MainSceneStates.PLAY_START;
         }
       },

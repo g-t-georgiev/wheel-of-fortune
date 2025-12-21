@@ -1,17 +1,18 @@
 import Scene from "./Scene";
-import type { StageContext } from "./types";
+import type { SceneProps } from "./types";
 import type { ConstructorType } from "../types";
 
-type SceneFactory = (ctx?: StageContext) => Scene;
 
-export default class ScenesManager<Factories extends Record<string, SceneFactory> = Record<string, SceneFactory>> {
+type SceneFactoryMap = Record<string, ConstructorType<typeof Scene>>;
+
+export default class ScenesManager {
   #currentScene?: Scene;
-  #sceneFactories!: Factories;
+  #sceneFactories!: SceneFactoryMap;
   #sceneInstances!: Map<string, Scene>;
 
-  constructor(factories?: Factories) {
+  constructor() {
     this.#sceneInstances = new Map();
-    this.#sceneFactories = factories ?? (ScenesManager.importScenesAsFactories() as Factories);
+    this.#sceneFactories = ScenesManager.importScenesAsFactories();
   }
 
   get currentScene() {
@@ -30,25 +31,14 @@ export default class ScenesManager<Factories extends Record<string, SceneFactory
       if (!fileName)
         throw new Error("Error while parsing filename");
 
-      // create a factory that forwards the context to the constructor
-      acc[fileName] = ((ctx?: StageContext) => new module.default(ctx as any)) as SceneFactory;
+      acc[fileName] = module.default;
 
       return acc;
-    }, {} as Record<string, SceneFactory>);
+    }, {} as SceneFactoryMap);
   }
 
-  // overloaded signature: allow (name, ctx, deletePrevious) or (name, deletePrevious)
-  async switchScene<K extends keyof Factories>(sceneName: K, ctxOrDeletePrevious?: StageContext | boolean, deletePrevious = false) {
-    // maintain backward compatibility: if caller passed boolean as second arg
-    let ctx: StageContext | undefined;
-
-    if (typeof ctxOrDeletePrevious === "boolean") {
-      deletePrevious = ctxOrDeletePrevious as boolean;
-      ctx = undefined;
-    } else {
-      ctx = ctxOrDeletePrevious as StageContext | undefined;
-    }
-
+  /** Switch scenes. */
+  async switchScene<K extends keyof SceneFactoryMap>(sceneName: K, props: SceneProps, deletePrevious: boolean = false): Promise<void> {
     await this.removeScene(deletePrevious);
 
     const nameStr = String(sceneName);
@@ -56,7 +46,7 @@ export default class ScenesManager<Factories extends Record<string, SceneFactory
 
     const scene = isSceneCached
       ? this.#sceneInstances.get(nameStr)
-      : this.initScene(nameStr, ctx);
+      : this.initScene(nameStr, props);
 
     if (!scene)
       throw new Error(`Failed to initialize scene: ${nameStr}`);
@@ -68,12 +58,12 @@ export default class ScenesManager<Factories extends Record<string, SceneFactory
     scene.start();
   }
 
-  private initScene(sceneName: string, ctx?: StageContext) {
-    const factory = this.#sceneFactories[sceneName];
+  private initScene(sceneName: string, props: SceneProps) {
+    const sceneConstructor = this.#sceneFactories[sceneName];
 
-    if (!factory) return undefined;
+    if (!sceneConstructor) return undefined;
 
-    const scene = factory(ctx);
+    const scene = new sceneConstructor(props);
 
     if (!(scene instanceof Scene))
       throw new TypeError(`Invalid type value for scene ${sceneName}`);

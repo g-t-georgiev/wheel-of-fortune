@@ -35,6 +35,6 @@ export default class GameApi {
     emitter.once("preload:finished", () => this.#app.start());
 
     // forward document clicks as container interactions to the current scene
-    document.addEventListener("click", () => this.#app.triggerAction(Action.CONTAINER_INTERACTION));
+    document.addEventListener("click", () => this.#app.callActions(Action.CONTAINER_INTERACTION));
   }
 }

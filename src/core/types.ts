@@ -5,7 +5,7 @@ import type { GameData } from "./GameData";
  * Shared stage context passed to scene factories.
  * Contains central services and the single source of truth `GameData`.
  */
-export interface StageContext {
+export interface SceneProps {
   client: ClientWrapper;
   gameData: GameData;
 }
